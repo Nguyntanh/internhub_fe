@@ -41,3 +41,16 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+
+# --- InternHub Specific ---
+# Ignore environment specific files
+src/environments/environment.ts
+!src/environments/environment.prod.ts
+
+# Documentation files from developers
+*.pdf
+*.docx
+
+# OS metadata
+.Spotlight-V100
+.Trashes
