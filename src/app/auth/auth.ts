@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, of } from 'rxjs';
+import { Observable, catchError, of, throwError } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -27,7 +27,7 @@ export class Auth {
       // Optionally, send the error to a remote logging infrastructure
 
       // Let the app keep running by returning an empty result.
-      return of(result as T);
+      return throwError(() => error);
     };
   }
 }

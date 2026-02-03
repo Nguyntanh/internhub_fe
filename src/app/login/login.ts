@@ -20,18 +20,24 @@ export class LoginComponent {
   constructor(private authService: Auth, private router: Router) {}
 
   onSubmit() {
+    // Individual form field errors will handle invalid input
+    // and prevent submission if form.invalid remains true.
+
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
       if (email && password) {
         this.authService.login({ email, password }).subscribe({
           next: (response) => {
             console.log('Login successful', response);
-            // Handle successful login, e.g., store token, navigate to dashboard
-            this.router.navigate(['/']); // Navigate to home or dashboard
+            this.router.navigate(['/dashboard']);
           },
           error: (error) => {
             console.error('Login failed', error);
-            // Handle login error, e.g., display error message to user
+            // Clear any existing errors first if needed, then set custom error on password field
+            this.loginForm.get('password')?.setErrors({
+              incorrectCredentials:
+                'Email hoặc mật khẩu không chính xác. Vui lòng thử lại.',
+            });
           },
         });
       }
