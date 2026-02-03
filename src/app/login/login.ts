@@ -20,8 +20,13 @@ export class LoginComponent {
   constructor(private authService: Auth, private router: Router) {}
 
   onSubmit() {
-    // Individual form field errors will handle invalid input
-    // and prevent submission if form.invalid remains true.
+    // Clear previous form-level and control-level API errors on new submission
+    this.loginForm.setErrors(null);
+    const passwordControl = this.loginForm.get('password');
+    if (passwordControl?.hasError('incorrectCredentials')) {
+      passwordControl.setErrors(null);
+      passwordControl.updateValueAndValidity();
+    }
 
     if (this.loginForm.valid) {
       const { email, password } = this.loginForm.value;
@@ -33,11 +38,19 @@ export class LoginComponent {
           },
           error: (error) => {
             console.error('Login failed', error);
-            // Clear any existing errors first if needed, then set custom error on password field
-            this.loginForm.get('password')?.setErrors({
-              incorrectCredentials:
-                'Email hoặc mật khẩu không chính xác. Vui lòng thử lại.',
-            });
+            if (error.status === 0) {
+              // Set a form-level error for connection issues
+              this.loginForm.setErrors({
+                connectionLost:
+                  'Mất kết nối tới máy chủ. Vui lòng thử lại sau.',
+              });
+            } else {
+              // Set a control-level error for authentication issues
+              passwordControl?.setErrors({
+                incorrectCredentials:
+                  'Email hoặc mật khẩu không chính xác. Vui lòng thử lại.',
+              });
+            }
           },
         });
       }

@@ -96,6 +96,13 @@
 
           
 
+          <div
+            *ngIf="loginForm.hasError('connectionLost')"
+            class="text-red-500 text-xs mt-1 mb-2"
+          >
+            {{ loginForm.errors?.['connectionLost'] }}
+          </div>
+
           <button
             type="submit"
             [disabled]="loginForm.invalid"
