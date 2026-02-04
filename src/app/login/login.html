@@ -94,12 +94,7 @@
             </div>
           </div>
 
-          
-
-          <div
-            *ngIf="loginForm.hasError('connectionLost')"
-            class="text-red-500 text-xs mt-1 mb-2"
-          >
+          <div *ngIf="loginForm.hasError('connectionLost')" class="text-red-500 text-xs mt-1 mb-2">
             {{ loginForm.errors?.['connectionLost'] }}
           </div>
 
@@ -111,13 +106,6 @@
             Đăng nhập
           </button>
         </form>
-
-        <p class="mt-6 text-xs text-gray-500 text-center md:text-left">
-          Bằng việc sử dụng email do hệ thống cung cấp, bạn xác nhận đồng ý để InternHub liên hệ về
-          các sản phẩm và dịch vụ của chúng tôi. Bạn có thể tùy chỉnh thông báo hoặc từ chối nhận
-          thông tin bất kỳ lúc nào bằng cách nhấn vào mục "Hủy đăng ký" trong email. Tìm hiểu thêm
-          về cách chúng tôi xử lý dữ liệu của bạn tại Chính sách bảo mật.
-        </p>
       </div>
 
       <!-- Right Column: Welcome Message -->
