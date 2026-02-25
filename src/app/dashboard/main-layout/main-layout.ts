@@ -11,5 +11,9 @@ import { RouterModule } from '@angular/router'; // Import RouterModule
   encapsulation: ViewEncapsulation.None,
 })
 export class MainLayout {
+  isSidebarVisible: boolean = true; // State to control sidebar visibility
 
+  toggleSidebar() {
+    this.isSidebarVisible = !this.isSidebarVisible;
+  }
 }
