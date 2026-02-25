@@ -25,24 +25,24 @@ export const routes: Routes = [
     path: 'dashboard',
     component: MainLayout, // Use MainLayout as the parent component
     children: [
-      { path: '', component: Dashboard, data: { breadcrumb: 'Tổng quan' } }, // Render Dashboard inside MainLayout's <router-outlet>
-      { path: 'execution', component: Execution, data: { breadcrumb: 'Thực thi' } },
-      { path: 'management', component: Management, data: { breadcrumb: 'Quản lý' } },
-      { path: 'capacity', component: Capacity, data: { breadcrumb: 'Năng lực' } },
-      { path: 'approval', component: Approval, data: { breadcrumb: 'Phê duyệt' } },
+      { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } }, // Render Dashboard inside MainLayout's <router-outlet>
+      { path: 'execution', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } },
+      { path: 'management', component: Management, data: { title: 'Quản lý', mode: 'dashboard' } },
+      { path: 'capacity', component: Capacity, data: { title: 'Năng lực', mode: 'dashboard' } },
+      { path: 'approval', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } },
     ],
   },
   {
     path: 'settings',
     component: MainLayout,
-    data: { breadcrumb: 'Cài đặt' },
+    data: { title: 'Cài đặt', mode: 'setting' },
     children: [
       { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Redirect to HR management by default
-      { path: 'hr', component: Hr, data: { breadcrumb: 'Quản trị Nhân sự' } },
-      { path: 'config-review', component: ConfigReview, data: { breadcrumb: 'Cấu hình Đánh giá' } },
-      { path: 'partner-data', component: PartnerData, data: { breadcrumb: 'Dữ liệu Đối tác' } },
-      { path: 'system-operation', component: SystemOperation, data: { breadcrumb: 'Vận hành hệ thống' } },
-      { path: 'security', component: Security, data: { breadcrumb: 'Bảo mật & Tra cứu' } },
+      { path: 'hr', component: Hr, data: { title: 'Quản trị Nhân sự', mode: 'setting' } },
+      { path: 'config-review', component: ConfigReview, data: { title: 'Cấu hình Đánh giá', mode: 'setting' } },
+      { path: 'partner-data', component: PartnerData, data: { title: 'Dữ liệu Đối tác', mode: 'setting' } },
+      { path: 'system-operation', component: SystemOperation, data: { title: 'Vận hành hệ thống', mode: 'setting' } },
+      { path: 'security', component: Security, data: { title: 'Bảo mật & Tra cứu', mode: 'setting' } },
     ],
   },
 ];

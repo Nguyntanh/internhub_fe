@@ -9,11 +9,24 @@
 
     <!-- Breadcrumbs -->
     <nav class="ml-4 flex items-center space-x-2 text-gray-600 text-base">
-      <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last">
-        <a [routerLink]="breadcrumb.url" class="hover:text-gray-900" [ngClass]="{'font-semibold': last, 'pointer-events-none': last}">
-          {{ breadcrumb.label }}
+      <ng-container *ngIf="currentRouteMode === 'setting'">
+        <!-- Settings-style breadcrumbs: < [Current Tab Name] -->
+        <a [routerLink]="['/dashboard']" class="hover:text-gray-900 flex items-center group">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1 text-gray-600 group-hover:text-gray-900">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
         </a>
-        <span *ngIf="!last" class="text-gray-400">&gt;</span>
+        <span class="text-gray-400">&nbsp;</span> <!-- Small space to separate the arrow link from the text -->
+        <span *ngFor="let breadcrumb of breadcrumbs" class="font-semibold text-gray-900">
+          {{ breadcrumb.label }}
+        </span>
+      </ng-container>
+
+      <ng-container *ngIf="currentRouteMode === 'dashboard'">
+        <!-- Dashboard-style breadcrumbs: [Current Tab Name] -->
+        <span *ngFor="let breadcrumb of breadcrumbs" class="font-semibold text-gray-900">
+          {{ breadcrumb.label }}
+        </span>
       </ng-container>
     </nav>
   </div>

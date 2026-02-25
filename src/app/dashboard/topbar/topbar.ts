@@ -22,21 +22,35 @@ export class Topbar implements OnInit, OnDestroy {
 
   breadcrumbs: Breadcrumb[] = [];
   private destroy$ = new Subject<void>();
+  public currentRouteMode: string = 'dashboard'; // New property
 
-  constructor(private router: Router, private activatedRoute: ActivatedRoute) {}
+  constructor(public router: Router, private activatedRoute: ActivatedRoute) {}
 
   ngOnInit() {
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
-        map(() => this.buildBreadcrumbs(this.activatedRoute.root)),
+        map(() => {
+          // Find the currently active route (leaf route) to get its data
+          let route = this.activatedRoute.root;
+          while (route.firstChild) {
+            route = route.firstChild;
+          }
+          this.currentRouteMode = route.snapshot.data['mode'] || 'dashboard'; // Update mode
+          return this.buildBreadcrumbs(this.activatedRoute.root);
+        }),
         takeUntil(this.destroy$)
       )
       .subscribe((breadcrumbs) => {
         this.breadcrumbs = breadcrumbs;
       });
 
-    // Build initial breadcrumbs
+    // Build initial breadcrumbs and set initial mode
+    let route = this.activatedRoute.root;
+    while (route.firstChild) {
+      route = route.firstChild;
+    }
+    this.currentRouteMode = route.snapshot.data['mode'] || 'dashboard';
     this.breadcrumbs = this.buildBreadcrumbs(this.activatedRoute.root);
   }
 
@@ -51,54 +65,30 @@ export class Topbar implements OnInit, OnDestroy {
 
   private buildBreadcrumbs(route: ActivatedRoute): Breadcrumb[] {
     let breadcrumbs: Breadcrumb[] = [];
-    let currentUrl: string = '';
 
-    const isDashboardOrSettings = this.router.url.startsWith('/dashboard') || this.router.url.startsWith('/settings');
-
-    if (isDashboardOrSettings) {
-      breadcrumbs.push({ label: 'Dashboard', url: '/dashboard' });
-      currentUrl += '/dashboard';
+    // Find the currently active route (leaf route)
+    let currentRoute: ActivatedRoute = route; // Ensure currentRoute is not null here
+    while (currentRoute.firstChild) {
+      currentRoute = currentRoute.firstChild;
     }
 
-    let currentActivatedRoute: ActivatedRoute | null = route.root;
+    const routeData = currentRoute.snapshot.data;
+    const title = routeData['title'];
+    // const mode = routeData['mode']; // Mode will be used in template
 
-    // Traverse the route tree to collect breadcrumb data
-    while (currentActivatedRoute) {
-      const childrenRoutes: ActivatedRoute[] = currentActivatedRoute.children.filter(child => child.outlet === 'primary');
-
-      if (childrenRoutes.length === 0) {
-        break; // No more primary children, stop traversing
-      }
-
-      // Move to the next primary child route
-      currentActivatedRoute = childrenRoutes[0];
-      
-      // Ensure currentActivatedRoute is not null after assignment before accessing its properties
-      if (!currentActivatedRoute) {
-        break;
-      }
-
-      const routeSnapshot = currentActivatedRoute.snapshot;
-      const pathSegments = routeSnapshot.url.map(segment => segment.path);
-      const path = pathSegments.join('/');
-
-      if (path && !path.startsWith('dashboard')) { // Avoid duplicating 'dashboard' segment if already added implicitly
-        currentUrl += `/${path}`;
-      }
-
-      const label = routeSnapshot.data['breadcrumb'];
-
-      if (label && !breadcrumbs.some(b => b.label === label)) {
-        breadcrumbs.push({ label, url: currentUrl });
-      }
+    if (title) {
+        breadcrumbs.push({ label: title, url: this.router.url });
     }
     
-    // Clear breadcrumbs if not in dashboard or settings routes (e.g. on '/' or '/login')
-    // This 'if' block is correctly placed now after the while loop.
-    if (!isDashboardOrSettings && breadcrumbs.length > 0) {
-      breadcrumbs = [];
-    }
-
     return breadcrumbs;
+  }
+
+  // Helper function to identify dashboard family routes
+  public isDashboardFamilyRoute(url: string): boolean {
+    return url.startsWith('/dashboard') ||
+           url.startsWith('/execution') ||
+           url.startsWith('/management') ||
+           url.startsWith('/capacity') ||
+           url.startsWith('/approval');
   }
 }

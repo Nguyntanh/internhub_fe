@@ -23,10 +23,10 @@ export class Sidebar implements OnInit, OnDestroy {
 
   dashboardMenuItems: MenuItem[] = [
     { label: 'Tổng quan', icon: 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z', routerLink: '/dashboard' },
-    { label: 'Thực thi', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', routerLink: '/dashboard/execution' }, // Assuming an execution route
-    { label: 'Quản lý', icon: 'M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2m0-6V9a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2h2m7-5a2 2 0 01-2 2H9a2 2 0 01-2-2m7-4a2 2 0 01-2-2H9a2 2 0 00-2 2m7-4a2 2 0 01-2-2H9a2 2 0 00-2 2', routerLink: '/dashboard/management' }, // Assuming a management route
-    { label: 'Năng lực', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 16h.01', routerLink: '/dashboard/capacity' }, // Assuming a capacity route
-    { label: 'Phê duyệt', icon: 'M5 13l4 4L19 7', routerLink: '/dashboard/approval' }, // Assuming an approval route
+    { label: 'Thực thi', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', routerLink: '/execution' }, // Updated to top-level
+    { label: 'Quản lý', icon: 'M19 11H5m14 0a2 2 0 012 2v2a2 2 0 01-2 2m0-6V9a2 2 0 00-2-2H7a2 2 0 00-2 2v6a2 2 0 002 2h2m7-5a2 2 0 01-2 2H9a2 2 0 01-2-2m7-4a2 2 0 01-2-2H9a2 2 0 00-2 2m7-4a2 2 0 01-2-2H9a2 2 0 00-2 2', routerLink: '/management' }, // Updated to top-level
+    { label: 'Năng lực', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 16h.01', routerLink: '/capacity' }, // Updated to top-level
+    { label: 'Phê duyệt', icon: 'M5 13l4 4L19 7', routerLink: '/approval' }, // Updated to top-level
   ];
 
   settingsMenuItems: MenuItem[] = [
