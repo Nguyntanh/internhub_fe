@@ -1,0 +1,18 @@
+<div class="flex h-screen bg-gray-100">
+  <!-- Sidebar will be here -->
+  <div class="w-64 bg-white border-r border-gray-200">
+    <!-- Placeholder for Sidebar Component -->
+    <app-sidebar></app-sidebar>
+  </div>
+
+  <!-- Main Content Area -->
+  <div class="flex flex-col flex-1">
+    <!-- Topbar will be here -->
+    <app-topbar></app-topbar>
+
+    <!-- Main content area -->
+    <main class="flex-1 p-6">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
