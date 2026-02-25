@@ -26,11 +26,39 @@ export const routes: Routes = [
     component: MainLayout, // Use MainLayout as the parent component
     children: [
       { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } }, // Render Dashboard inside MainLayout's <router-outlet>
-      { path: 'execution', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } },
-      { path: 'management', component: Management, data: { title: 'Quản lý', mode: 'dashboard' } },
-      { path: 'capacity', component: Capacity, data: { title: 'Năng lực', mode: 'dashboard' } },
-      { path: 'approval', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } },
     ],
+  },
+  {
+    path: 'execution',
+    component: MainLayout,
+    data: { title: 'Thực thi', mode: 'dashboard' },
+    children: [
+      { path: '', component: Execution } // Default for /execution
+    ]
+  },
+  {
+    path: 'management',
+    component: MainLayout,
+    data: { title: 'Quản lý', mode: 'dashboard' },
+    children: [
+      { path: '', component: Management } // Default for /management
+    ]
+  },
+  {
+    path: 'capacity',
+    component: MainLayout,
+    data: { title: 'Năng lực', mode: 'dashboard' },
+    children: [
+      { path: '', component: Capacity } // Default for /capacity
+    ]
+  },
+  {
+    path: 'approval',
+    component: MainLayout,
+    data: { title: 'Phê duyệt', mode: 'dashboard' },
+    children: [
+      { path: '', component: Approval } // Default for /approval
+    ]
   },
   {
     path: 'settings',
