@@ -93,11 +93,9 @@ export class Topbar implements OnInit, OnDestroy {
       }
     }
     
-    // Special handling for the root /dashboard route to only show 'Dashboard'
-    if (this.router.url === '/dashboard' && breadcrumbs.length > 1 && breadcrumbs[0].label === 'Dashboard') {
-      breadcrumbs = [{ label: 'Dashboard', url: '/dashboard' }];
-    } else if (!isDashboardOrSettings && breadcrumbs.length > 0) {
-      // Clear breadcrumbs if not in dashboard or settings routes (e.g. on '/' or '/login')
+    // Clear breadcrumbs if not in dashboard or settings routes (e.g. on '/' or '/login')
+    // This 'if' block is correctly placed now after the while loop.
+    if (!isDashboardOrSettings && breadcrumbs.length > 0) {
       breadcrumbs = [];
     }
 

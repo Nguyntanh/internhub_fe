@@ -18,7 +18,7 @@ export const routes: Routes = [
     path: 'dashboard',
     component: MainLayout, // Use MainLayout as the parent component
     children: [
-      { path: '', component: Dashboard }, // Render Dashboard inside MainLayout's <router-outlet>
+      { path: '', component: Dashboard, data: { breadcrumb: 'Tổng quan' } }, // Render Dashboard inside MainLayout's <router-outlet>
       // Other dashboard-related routes can be added here
     ],
   },
