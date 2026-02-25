@@ -12,8 +12,6 @@
   <!-- Main Content Area -->
   <div
     class="flex flex-col flex-1 transition-all duration-300 ease-in-out"
-    [class.ml-64]="isSidebarVisible"
-    [class.ml-0]="!isSidebarVisible"
   >
     <!-- Topbar will be here -->
     <app-topbar [isSidebarVisible]="isSidebarVisible" (toggleSidebar)="toggleSidebar()"></app-topbar>
