@@ -11,6 +11,13 @@ import { ConfigReview } from './settings/config-review/config-review';
 import { PartnerData } from './settings/partner-data/partner-data';
 import { SystemOperation } from './settings/system-operation/system-operation';
 
+// Import the new dashboard sub-components
+import { Execution } from './dashboard/execution/execution';
+import { Management } from './dashboard/management/management';
+import { Capacity } from './dashboard/capacity/capacity';
+import { Approval } from './dashboard/approval/approval';
+
+
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'login', component: LoginComponent },
@@ -19,7 +26,10 @@ export const routes: Routes = [
     component: MainLayout, // Use MainLayout as the parent component
     children: [
       { path: '', component: Dashboard, data: { breadcrumb: 'Tổng quan' } }, // Render Dashboard inside MainLayout's <router-outlet>
-      // Other dashboard-related routes can be added here
+      { path: 'execution', component: Execution, data: { breadcrumb: 'Thực thi' } },
+      { path: 'management', component: Management, data: { breadcrumb: 'Quản lý' } },
+      { path: 'capacity', component: Capacity, data: { breadcrumb: 'Năng lực' } },
+      { path: 'approval', component: Approval, data: { breadcrumb: 'Phê duyệt' } },
     ],
   },
   {
