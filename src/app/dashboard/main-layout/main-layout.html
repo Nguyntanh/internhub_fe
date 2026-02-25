@@ -1,20 +1,12 @@
 <div class="flex h-screen bg-gray-100">
   <!-- Sidebar will be here -->
-  <div
-    class="fixed top-0 left-0 h-screen w-64 bg-white border-r border-gray-200 transition-transform duration-300 ease-in-out z-30"
-    [class.translate-x-0]="isSidebarOpen"
-    [class.translate-x-full]="!isSidebarOpen"
-  >
+  <div class="w-64 bg-white border-r border-gray-200">
     <!-- Placeholder for Sidebar Component -->
     <app-sidebar></app-sidebar>
   </div>
 
   <!-- Main Content Area -->
-  <div
-    class="flex flex-col flex-1 transition-all duration-300 ease-in-out"
-    [class.ml-64]="isSidebarOpen"
-    [class.ml-0]="!isSidebarOpen"
-  >
+  <div class="flex flex-col flex-1">
     <!-- Topbar will be here -->
     <app-topbar></app-topbar>
 
