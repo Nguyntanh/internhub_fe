@@ -11,13 +11,12 @@
     <nav class="ml-4 flex items-center space-x-2 text-gray-600 text-base">
       <ng-container *ngIf="currentRouteMode === 'setting'">
         <!-- Settings-style breadcrumbs: < [Current Tab Name] -->
-        <a [routerLink]="['/dashboard']" class="hover:text-gray-900 flex items-center group">
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-1 text-gray-600 group-hover:text-gray-900">
+        <a [routerLink]="['/dashboard']" class="hover:text-gray-900 flex items-center group -ml-1"> <!-- Added -ml-1 for tighter spacing -->
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-0.5 text-gray-600 group-hover:text-gray-900"> <!-- Changed mr-1 to mr-0.5 -->
             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
           </svg>
         </a>
-        <span class="text-gray-400">&nbsp;</span> <!-- Small space to separate the arrow link from the text -->
-        <span *ngFor="let breadcrumb of breadcrumbs" class="font-semibold text-gray-900">
+        <span *ngFor="let breadcrumb of breadcrumbs" class="font-semibold text-gray-900 ml-0.5"> <!-- Added ml-0.5 for tighter spacing -->
           {{ breadcrumb.label }}
         </span>
       </ng-container>
