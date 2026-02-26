@@ -56,12 +56,6 @@
       </ng-container>
 
       <span *ngIf="isSidebarVisible">{{ item.label }}</span>
-
-      <!-- Chevron Icon for sub-menus -->
-      <svg *ngIf="item.children && isSidebarVisible" class="h-5 w-5 ml-auto transition-transform duration-200"
-        [class.rotate-90]="item.expanded" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> <!-- Chevron right -->
-      </svg>
     </a>
 
     <!-- Div for parent menu items that don't have a direct link but act as toggles -->
@@ -84,12 +78,6 @@
       </ng-container>
 
       <span *ngIf="isSidebarVisible">{{ item.label }}</span>
-
-      <!-- Chevron Icon for sub-menus -->
-      <svg *ngIf="item.children && isSidebarVisible" class="h-5 w-5 ml-auto transition-transform duration-200"
-        [class.rotate-90]="item.expanded" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> <!-- Chevron right -->
-      </svg>
     </div>
 
     <!-- Sub-menu -->
