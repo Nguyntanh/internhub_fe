@@ -1,23 +1,47 @@
-<nav class="flex px-5 py-3 text-gray-700 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-800 dark:border-gray-700" aria-label="Breadcrumb">
-  <ol class="inline-flex items-center space-x-1 md:space-x-2 rtl:space-x-reverse">
-    <li class="inline-flex items-center" *ngFor="let breadcrumb of (breadcrumbs$ | async); let last = last; let first = first">
-      <ng-container *ngIf="!last">
-        <a [routerLink]="breadcrumb.url" class="inline-flex items-center text-sm font-medium text-gray-700 hover:text-blue-600 dark:text-gray-400 dark:hover:text-white">
-          <ng-container *ngIf="first && breadcrumb.label === '<'">
-            <svg class="w-3 h-3 me-2.5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
-              <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
+<nav class="flex items-center text-base py-2">
+  <ng-container *ngIf="breadcrumbData$ | async as breadcrumbOutput">
+    <!-- Dashboard Mode Breadcrumb: [Tên Cấp Cha] < [Tên Cấp Con] -->
+    <ng-container *ngIf="!breadcrumbOutput.isSettingsPage">
+      <ol class="flex items-center gap-2">
+        <li *ngFor="let item of breadcrumbOutput.items; let last = last; let i = index">
+          <span
+            [ngClass]="{
+              'text-black font-semibold': item.isCurrent,
+              'text-gray-500': !item.isCurrent
+            }"
+          >
+            {{ item.label }}
+          </span>
+          <span *ngIf="!last" class="text-gray-500"> &lt; </span>
+        </li>
+      </ol>
+    </ng-container>
+
+    <!-- Setting Mode Breadcrumb: < [Tên Cấp Cha] < [Tên Cấp Con] -->
+    <ng-container *ngIf="breadcrumbOutput.isSettingsPage">
+      <ol class="flex items-center gap-2">
+        <li *ngFor="let item of breadcrumbOutput.items; let last = last; let i = index">
+          <!-- Render clickable '<' only if backLink exists -->
+          <a
+            [routerLink]="item.backLink"
+            class="px-1 cursor-pointer text-blue-500 hover:text-blue-700 flex items-center"
+            *ngIf="item.backLink"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
             </svg>
-            Dashboard
-          </ng-container>
-          <ng-container *ngIf="!(first && breadcrumb.label === '<')">{{ breadcrumb.label }}</ng-container>
-        </a>
-        <svg class="rtl:rotate-180 w-3 h-3 text-gray-400 mx-1" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 6 10">
-          <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 9 4-4-4-4"/>
-        </svg>
-      </ng-container>
-      <ng-container *ngIf="last">
-        <span class="ms-1 text-sm font-medium text-gray-500 md:ms-2 dark:text-gray-400">{{ breadcrumb.label }}</span>
-      </ng-container>
-    </li>
-  </ol>
+          </a>
+          <!-- Label part -->
+          <span
+            [ngClass]="{
+              'text-black font-semibold': item.isCurrent,
+              'text-gray-500': !item.isCurrent
+            }"
+          >
+            {{ item.label }}
+          </span>
+        </li>
+      </ol>
+    </ng-container>
+  </ng-container>
 </nav>

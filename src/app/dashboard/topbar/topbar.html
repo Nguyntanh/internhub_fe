@@ -7,29 +7,8 @@
       </svg>
     </button>
 
-    <!-- Breadcrumbs -->
-    <nav class="ml-4 flex items-center space-x-1 text-gray-600 text-base">
-      <ng-container *ngIf="breadcrumbs$ | async as breadcrumbs">
-        <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last">
-          <a
-            [routerLink]="breadcrumb.url"
-            class="flex items-center"
-            [class.text-gray-900]="breadcrumb.isLast"
-            [class.font-semibold]="breadcrumb.isLast"
-            [class.text-gray-600]="!breadcrumb.isLast"
-            [class.hover:text-blue-600]="!breadcrumb.isLast"
-            [class.px-1]="breadcrumb.isChevron"
-          >
-            <ng-container *ngIf="breadcrumb.isChevron">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-              </svg>
-            </ng-container>
-            <span>{{ breadcrumb.label }}</span>
-          </a>
-        </ng-container>
-      </ng-container>
-    </nav>
+    <app-breadcrumb></app-breadcrumb>
+
   </div>
 
   <!-- Right: Notification and User Profile -->

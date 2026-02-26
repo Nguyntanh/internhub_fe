@@ -2,13 +2,13 @@ import { Component, EventEmitter, Input, Output, ViewEncapsulation, OnInit, OnDe
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, ActivatedRoute, RouterModule } from '@angular/router';
 import { filter, map, takeUntil } from 'rxjs/operators';
-import { Subject, Observable } from 'rxjs'; // Import Observable
+import { Subject } from 'rxjs'; // Import Observable is not needed for this change.
 
-import { BreadcrumbService, BreadcrumbItem } from '../../shared/breadcrumb.service'; // Import BreadcrumbService and BreadcrumbItem
+import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component'; // Import BreadcrumbComponent
 
 @Component({
   selector: 'app-topbar',
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, BreadcrumbComponent], // Add BreadcrumbComponent to imports
   templateUrl: './topbar.html',
   styleUrl: './topbar.css',
   encapsulation: ViewEncapsulation.None,
@@ -17,17 +17,13 @@ export class Topbar implements OnInit, OnDestroy {
   @Input() isSidebarVisible: boolean = true;
   @Output() toggleSidebar = new EventEmitter<void>();
 
-  breadcrumbs$: Observable<BreadcrumbItem[]>; // Now an observable
   private destroy$ = new Subject<void>();
   public currentRouteMode: string = 'dashboard';
 
   constructor(
     public router: Router,
     private activatedRoute: ActivatedRoute,
-    private breadcrumbService: BreadcrumbService // Inject BreadcrumbService
-  ) {
-    this.breadcrumbs$ = this.breadcrumbService.breadcrumbs$; // Assign observable
-  }
+  ) {}
 
   ngOnInit() {
     this.router.events
@@ -43,7 +39,7 @@ export class Topbar implements OnInit, OnDestroy {
         }),
         takeUntil(this.destroy$)
       )
-      .subscribe(); // No longer subscribing to breadcrumbs here, handled by service
+      .subscribe();
 
     // Set initial mode
     let route = this.activatedRoute.root;

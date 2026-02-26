@@ -39,7 +39,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: MainLayout, // Use MainLayout as the parent component
-    data: { breadcrumb: 'Tổng quan' },
+    data: { title: 'Tổng quan' },
     children: [
       { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } }, // Render Dashboard inside MainLayout's <router-outlet>
     ],
@@ -47,7 +47,7 @@ export const routes: Routes = [
   {
     path: 'tasks', // Changed from /execution to /tasks
     component: MainLayout,
-    data: { breadcrumb: 'Thực thi' },
+    data: { title: 'Thực thi' },
     children: [
       { path: '', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } } // Default for /tasks
     ]
@@ -55,27 +55,27 @@ export const routes: Routes = [
   {
     path: 'management',
     component: MainLayout,
-    data: { breadcrumb: 'Quản lý' },
+    data: { title: 'Quản lý' },
     children: [
       { path: '', redirectTo: 'interns', pathMatch: 'full' }, // Redirect to interns by default
-      { path: 'interns', component: InternsComponent, data: { breadcrumb: 'Hồ sơ Intern' } },
-      { path: 'users', component: UsersComponent, data: { breadcrumb: 'Đội ngũ (Users)' } },
+      { path: 'interns', component: InternsComponent, data: { title: 'Hồ sơ Intern' } },
+      { path: 'users', component: UsersComponent, data: { title: 'Đội ngũ (Users)' } },
     ]
   },
   {
     path: 'skills', // Changed from /capacity to /skills
     component: MainLayout,
-    data: { breadcrumb: 'Năng lực' },
+    data: { title: 'Năng lực' },
     children: [
       { path: '', redirectTo: 'config', pathMatch: 'full' }, // Redirect to config by default
-      { path: 'config', component: ConfigComponent, data: { breadcrumb: 'Cấu hình Skill' } },
-      { path: 'analytics', component: AnalyticsComponent, data: { breadcrumb: 'Radar Analytics' } },
+      { path: 'config', component: ConfigComponent, data: { title: 'Cấu hình Skill' } },
+      { path: 'analytics', component: AnalyticsComponent, data: { title: 'Radar Analytics' } },
     ]
   },
   {
     path: 'approval',
     component: MainLayout,
-    data: { breadcrumb: 'Phê duyệt' },
+    data: { title: 'Phê duyệt' },
     children: [
       { path: '', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } } // Default for /approval
     ]
@@ -83,55 +83,55 @@ export const routes: Routes = [
   {
     path: 'settings',
     component: MainLayout,
-    data: { breadcrumb: 'Cài đặt' }, // Top-level settings breadcrumb
+    data: { title: 'Cài đặt' }, // Top-level settings breadcrumb
     children: [
       { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Default redirect for /settings
 
       { // Quản trị Nhân sự
         path: 'hr',
         component: Hr, // Hr component as a parent for its sub-settings
-        data: { breadcrumb: 'Quản trị Nhân sự' },
+        data: { title: 'Quản trị Nhân sự' },
         children: [
           { path: '', redirectTo: 'accounts', pathMatch: 'full' },
-          { path: 'accounts', component: AccountsComponent, data: { breadcrumb: 'Quản lý Tài khoản Nội bộ' } },
-          { path: 'interns', component: HrInternsComponent, data: { breadcrumb: 'Quản lý Thực tập sinh' } },
-          { path: 'org-structure', component: OrgStructureComponent, data: { breadcrumb: 'Cơ cấu Tổ chức' } },
+          { path: 'accounts', component: AccountsComponent, data: { title: 'Quản lý Tài khoản Nội bộ' } },
+          { path: 'interns', component: HrInternsComponent, data: { title: 'Quản lý Thực tập sinh' } },
+          { path: 'org-structure', component: OrgStructureComponent, data: { title: 'Cơ cấu Tổ chức' } },
         ]
       },
       { // Cấu hình Đánh giá
         path: 'evaluation', // New path for evaluation settings
         component: ConfigReview, // Using existing ConfigReview component as parent
-        data: { breadcrumb: 'Cấu hình Đánh giá' },
+        data: { title: 'Cấu hình Đánh giá' },
         children: [
           { path: '', redirectTo: 'skills', pathMatch: 'full' },
-          { path: 'skills', component: EvaluationSkillsComponent, data: { breadcrumb: 'Thư viện Kỹ năng' } },
+          { path: 'skills', component: EvaluationSkillsComponent, data: { title: 'Thư viện Kỹ năng' } },
         ]
       },
       { // Dữ liệu Đối tác
         path: 'partners', // New path for partners settings
         component: PartnerData, // Using existing PartnerData component as parent
-        data: { breadcrumb: 'Dữ liệu Đối tác' },
+        data: { title: 'Dữ liệu Đối tác' },
         children: [
           { path: '', redirectTo: 'list', pathMatch: 'full' },
-          { path: 'list', component: PartnersListComponent, data: { breadcrumb: 'Danh mục Đối tác' } },
+          { path: 'list', component: PartnersListComponent, data: { title: 'Danh mục Đối tác' } },
         ]
       },
       { // Vận hành hệ thống
         path: 'operation', // New path for operation settings
         component: SystemOperation, // Using existing SystemOperation component as parent
-        data: { breadcrumb: 'Vận hành hệ thống' },
+        data: { title: 'Vận hành hệ thống' },
         children: [
           { path: '', redirectTo: 'process', pathMatch: 'full' },
-          { path: 'process', component: OperationProcessComponent, data: { breadcrumb: 'Cấu hình Quy trình' } },
+          { path: 'process', component: OperationProcessComponent, data: { title: 'Cấu hình Quy trình' } },
         ]
       },
       { // Bảo mật & Tra cứu
         path: 'security',
         component: Security, // Using existing Security component as parent
-        data: { breadcrumb: 'Bảo mật & Tra cứu' },
+        data: { title: 'Bảo mật & Tra cứu' },
         children: [
           { path: '', redirectTo: 'logs', pathMatch: 'full' },
-          { path: 'logs', component: SecurityLogsComponent, data: { breadcrumb: 'Nhật ký Hệ thống' } },
+          { path: 'logs', component: SecurityLogsComponent, data: { title: 'Nhật ký Hệ thống' } },
         ]
       },
     ],
