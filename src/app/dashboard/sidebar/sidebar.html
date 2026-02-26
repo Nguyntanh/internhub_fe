@@ -39,13 +39,14 @@
       [routerLink]="item.routerLink"
       [routerLinkActive]="['bg-gray-100', 'text-black', 'font-semibold']"
       [routerLinkActiveOptions]="getRouterLinkActiveOptions(item)"
-      class="flex items-center text-gray-700 rounded-md hover:bg-gray-100 text-lg cursor-pointer transition-all duration-300 ease-in-out"
-      [ngClass]="{
-        'px-4 py-2': isSidebarVisible,
-        'justify-center py-2 px-2': !isSidebarVisible,
-        'pl-8': level > 0 && isSidebarVisible,
-        'active-menu-item': isMenuItemActive(item)
-      }"
+      class="flex items-center text-gray-700 rounded-md hover:bg-gray-100 text-lg"
+      [class.px-4]="isSidebarVisible"
+      [class.py-2]="isSidebarVisible"
+      [class.justify-center]="!isSidebarVisible"
+      [class.py-2]="!isSidebarVisible"
+      [class.px-2]="!isSidebarVisible"
+      [class.pl-8]="level > 0 && isSidebarVisible"
+      [class.active-menu-item]="isMenuItemActive(item)"
       (click)="item.children ? toggleSubMenu(item) : null"
     >
       <!-- Icon for menu items -->
@@ -57,23 +58,19 @@
 
       <span *ngIf="isSidebarVisible">{{ item.label }}</span>
 
-      <!-- Chevron Icon for sub-menus -->
-      <svg *ngIf="item.children && isSidebarVisible" class="h-5 w-5 ml-auto transition-transform duration-200"
-        [class.rotate-90]="item.expanded" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> <!-- Chevron right -->
-      </svg>
     </a>
 
     <!-- Div for parent menu items that don't have a direct link but act as toggles -->
     <div
       *ngIf="!item.routerLink && item.children"
-      class="flex items-center text-gray-700 rounded-md hover:bg-gray-100 text-lg cursor-pointer transition-all duration-300 ease-in-out"
-      [ngClass]="{
-        'px-4 py-2': isSidebarVisible,
-        'justify-center py-2 px-2': !isSidebarVisible,
-        'pl-8': level > 0 && isSidebarVisible,
-        'active-menu-item': isParentToggleActive(item)
-      }"
+      class="flex items-center text-gray-700 rounded-md hover:bg-gray-100 text-lg"
+      [class.px-4]="isSidebarVisible"
+      [class.py-2]="isSidebarVisible"
+      [class.justify-center]="!isSidebarVisible"
+      [class.py-2]="!isSidebarVisible"
+      [class.px-2]="!isSidebarVisible"
+      [class.pl-8]="level > 0 && isSidebarVisible"
+      [class.active-menu-item]="isParentToggleActive(item)"
       (click)="toggleSubMenu(item)"
     >
       <!-- Icon for menu items -->
@@ -85,11 +82,6 @@
 
       <span *ngIf="isSidebarVisible">{{ item.label }}</span>
 
-      <!-- Chevron Icon for sub-menus -->
-      <svg *ngIf="item.children && isSidebarVisible" class="h-5 w-5 ml-auto transition-transform duration-200"
-        [class.rotate-90]="item.expanded" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> <!-- Chevron right -->
-      </svg>
     </div>
 
     <!-- Sub-menu -->
