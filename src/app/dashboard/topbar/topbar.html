@@ -3,29 +3,31 @@
     <!-- Left: Sidebar Toggle -->
     <button class="text-gray-500 hover:text-gray-700 focus:outline-none" (click)="onToggleSidebar()">
       <svg class="h-6 w-6 transition-transform duration-300" [ngClass]="{'rotate-180': !isSidebarVisible}" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M3 6.75C3 6.33579 3.33579 6 3.75 6H20.25C20.6642 6 21 6.33579 21 6.75C21 7.16421 20.6642 7.5 20.25 7.5H3.75C3.33579 7.5 3 7.16421 3 6.75ZM3 12C3 11.5858 3.33579 11.25 3.75 11.25H20.25C20.6642 11.25 21 11.5858 21 12C21 12.4142 20.6642 12.75 20.25 12.75H3.75C3.33579 12.75 3 12.4142 3 12ZM3 17.25C3 16.8358 3.33579 16.5 3.75 16.5H20.25C20.6642 16.5 21 16.8358 21 17.25C21 17.6642 20.6642 18 20.25 18H3.75C3.33579 18 3 17.6642 3 17.25Z" />
+        <path fill-rule="evenodd" clip-rule="evenodd" d="M3 6.75C3 6.33579 3.33579 6 3.75 6H20.25C20.6642 6 21 6.33579 21 6.75C21 7.16421 20.6642 7.5 20.25 7.5H3.75C3.33579 7.5 3 7.16421 3 6.75ZM3 12C3 11.5858 3.33579 11.25 3.75 11.25H20.25C20.6642 11.25 21 11.5858 21 12C21 12.4142 20.6642 12.75 20.25 12.75H3.75C3.33579 7.5 3 7.16421 3 6.75ZM3 17.25C3 16.8358 3.33579 16.5 3.75 16.5H20.25C20.6642 16.5 21 16.8358 21 17.25C21 17.6642 20.6642 18 20.25 18H3.75C3.33579 18 3 17.6642 3 17.25Z" />
       </svg>
     </button>
 
     <!-- Breadcrumbs -->
-    <nav class="ml-4 flex items-center space-x-2 text-gray-600 text-base">
-      <ng-container *ngIf="currentRouteMode === 'setting'">
-        <!-- Settings-style breadcrumbs: < [Current Tab Name] -->
-        <a [routerLink]="['/dashboard']" class="hover:text-gray-900 flex items-center group -ml-1"> <!-- Added -ml-1 for tighter spacing -->
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 mr-0.5 text-gray-600 group-hover:text-gray-900"> <!-- Changed mr-1 to mr-0.5 -->
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </a>
-        <span *ngFor="let breadcrumb of breadcrumbs" class="font-semibold text-gray-900 ml-0.5"> <!-- Added ml-0.5 for tighter spacing -->
-          {{ breadcrumb.label }}
-        </span>
-      </ng-container>
-
-      <ng-container *ngIf="currentRouteMode === 'dashboard'">
-        <!-- Dashboard-style breadcrumbs: [Current Tab Name] -->
-        <span *ngFor="let breadcrumb of breadcrumbs" class="font-semibold text-gray-900">
-          {{ breadcrumb.label }}
-        </span>
+    <nav class="ml-4 flex items-center space-x-1 text-gray-600 text-base">
+      <ng-container *ngIf="breadcrumbs$ | async as breadcrumbs">
+        <ng-container *ngFor="let breadcrumb of breadcrumbs; let last = last">
+          <a
+            [routerLink]="breadcrumb.url"
+            class="flex items-center"
+            [class.text-gray-900]="breadcrumb.isLast"
+            [class.font-semibold]="breadcrumb.isLast"
+            [class.text-gray-600]="!breadcrumb.isLast"
+            [class.hover:text-blue-600]="!breadcrumb.isLast"
+            [class.px-1]="breadcrumb.isChevron"
+          >
+            <ng-container *ngIf="breadcrumb.isChevron">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+              </svg>
+            </ng-container>
+            <span>{{ breadcrumb.label }}</span>
+          </a>
+        </ng-container>
       </ng-container>
     </nav>
   </div>

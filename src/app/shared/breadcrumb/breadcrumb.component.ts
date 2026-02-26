@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { Observable } from 'rxjs';
-import { Breadcrumb, BreadcrumbService } from '../breadcrumb.service';
+import { BreadcrumbItem, BreadcrumbService } from '../breadcrumb.service'; // Use BreadcrumbItem
 
 @Component({
   selector: 'app-breadcrumb',
@@ -12,7 +12,7 @@ import { Breadcrumb, BreadcrumbService } from '../breadcrumb.service';
   styleUrl: './breadcrumb.component.css'
 })
 export class BreadcrumbComponent implements OnInit {
-  breadcrumbs$: Observable<Breadcrumb[]>;
+  breadcrumbs$: Observable<BreadcrumbItem[]>; // Updated type
 
   constructor(private breadcrumbService: BreadcrumbService) {
     this.breadcrumbs$ = this.breadcrumbService.breadcrumbs$;
