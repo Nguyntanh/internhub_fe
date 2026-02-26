@@ -51,11 +51,53 @@ export class Sidebar implements OnInit, OnDestroy {
   ];
 
   settingsMenuItems: MenuItem[] = [
-    { label: 'Quản trị Nhân sự', icon: 'M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0A8.966 8.966 0 0112 20.25a8.966 8.966 0 01-5.982-2.525M15 9.75a3 3 0 11-6 0 3 3 0 016 0z', routerLink: '/settings/hr', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } }, // Users icon
-    { label: 'Cấu hình Đánh giá', icon: 'M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6zM12 18a6 6 0 100-12 6 6 0 000 12z', routerLink: '/settings/config-review', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } }, // Gear icon
-    { label: 'Dữ liệu Đối tác', icon: 'M12 1.5v12m0 0l-3-3m3 3l3-3m-9 6h6m6 0a9 9 0 11-18 0 9 9 0 0118 0z', routerLink: '/settings/partner-data', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } }, // Data transfer/partnership icon
-    { label: 'Vận hành hệ thống', icon: 'M19.5 14.25v-2.625a.75.75 0 00-.75-.75H.75a.75.75 0 00-.75.75v2.625A.75.75 0 00.75 15h18A.75.75 0 0019.5 14.25zM21 4.5v15a.75.75 0 01-.75.75H.75a.75.75 0 01-.75-.75V4.5A.75.75 0 01.75 3h19.5a.75.75 0 01.75.75v.75z', routerLink: '/settings/system-operation', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } }, // Server icon
-    { label: 'Bảo mật & Tra cứu', icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z', routerLink: '/settings/security', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } }, // Shield with checkmark icon
+    {
+      label: 'Quản trị Nhân sự',
+      icon: 'M17.982 18.725A7.488 7.488 0 0012 15.75a7.488 7.488 0 00-5.982 2.975m11.963 0A8.966 8.966 0 0112 20.25a8.966 8.966 0 01-5.982-2.525M15 9.75a3 3 0 11-6 0 3 3 0 016 0z',
+      routerLink: '/settings/hr/accounts', // Default child route for parent
+      routerLinkActiveOptions: { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
+      children: [
+        { label: 'Quản lý Tài khoản Nội bộ', routerLink: '/settings/hr/accounts', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+        { label: 'Quản lý Thực tập sinh', routerLink: '/settings/hr/interns', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+        { label: 'Cơ cấu Tổ chức', routerLink: '/settings/hr/org-structure', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+      ]
+    },
+    {
+      label: 'Cấu hình Đánh giá',
+      icon: 'M10.5 6a7.5 7.5 0 107.5 7.5h-7.5V6zM12 18a6 6 0 100-12 6 6 0 000 12z',
+      routerLink: '/settings/evaluation/skills', // Default child route for parent
+      routerLinkActiveOptions: { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
+      children: [
+        { label: 'Thư viện Kỹ năng', routerLink: '/settings/evaluation/skills', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+      ]
+    },
+    {
+      label: 'Dữ liệu Đối tác',
+      icon: 'M12 1.5v12m0 0l-3-3m3 3l3-3m-9 6h6m6 0a9 9 0 11-18 0 9 9 0 0118 0z',
+      routerLink: '/settings/partners/list', // Default child route for parent
+      routerLinkActiveOptions: { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
+      children: [
+        { label: 'Danh mục Đối tác', routerLink: '/settings/partners/list', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+      ]
+    },
+    {
+      label: 'Vận hành hệ thống',
+      icon: 'M19.5 14.25v-2.625a.75.75 0 00-.75-.75H.75a.75.75 0 00-.75.75v2.625A.75.75 0 00.75 15h18A.75.75 0 0019.5 14.25zM21 4.5v15a.75.75 0 01-.75.75H.75a.75.75 0 01-.75-.75V4.5A.75.75 0 01.75 3h19.5a.75.75 0 01.75.75v.75z',
+      routerLink: '/settings/operation/process', // Default child route for parent
+      routerLinkActiveOptions: { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
+      children: [
+        { label: 'Cấu hình Quy trình', routerLink: '/settings/operation/process', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+      ]
+    },
+    {
+      label: 'Bảo mật & Tra cứu',
+      icon: 'M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z',
+      routerLink: '/settings/security/logs', // Default child route for parent
+      routerLinkActiveOptions: { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
+      children: [
+        { label: 'Nhật ký Hệ thống', routerLink: '/settings/security/logs', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+      ]
+    },
   ];
 
   currentMenuItems: MenuItem[] = [];

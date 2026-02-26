@@ -4,24 +4,33 @@ import { LoginComponent } from './login/login';
 import { Dashboard } from './dashboard/dashboard';
 import { MainLayout } from './dashboard/main-layout/main-layout'; // Import MainLayout
 
-// Import the new settings components
+// Import the existing settings components (now parent placeholders)
 import { Hr } from './settings/hr/hr';
 import { Security } from './settings/security/security';
 import { ConfigReview } from './settings/config-review/config-review';
 import { PartnerData } from './settings/partner-data/partner-data';
 import { SystemOperation } from './settings/system-operation/system-operation';
 
-// Import the new dashboard sub-components
+// Import the existing dashboard sub-components
 import { Execution } from './dashboard/execution/execution';
 import { Management } from './dashboard/management/management';
 import { Capacity } from './dashboard/capacity/capacity';
 import { Approval } from './dashboard/approval/approval';
 
-// Import new placeholder components for sub-menus
+// Import existing placeholder components for sub-menus
 import { InternsComponent } from './dashboard/management/interns/interns';
 import { UsersComponent } from './dashboard/management/users/users';
 import { ConfigComponent } from './dashboard/capacity/config/config';
 import { AnalyticsComponent } from './dashboard/capacity/analytics/analytics';
+
+// Import NEW placeholder components for multi-level settings sub-menus
+import { AccountsComponent } from './settings/hr/accounts/accounts';
+import { HrInternsComponent } from './settings/hr/interns/interns';
+import { OrgStructureComponent } from './settings/hr/org-structure/org-structure';
+import { EvaluationSkillsComponent } from './settings/evaluation/skills/skills';
+import { PartnersListComponent } from './settings/partners/list/list';
+import { OperationProcessComponent } from './settings/operation/process/process';
+import { SecurityLogsComponent } from './settings/security/logs/logs';
 
 
 export const routes: Routes = [
@@ -74,15 +83,57 @@ export const routes: Routes = [
   {
     path: 'settings',
     component: MainLayout,
-    data: { breadcrumb: 'Cài đặt' },
+    data: { breadcrumb: 'Cài đặt' }, // Top-level settings breadcrumb
     children: [
-      { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Redirect to HR management by default
-      { path: 'hr', component: Hr, data: { breadcrumb: 'Quản trị Nhân sự', mode: 'setting' } },
-      { path: 'config-review', component: ConfigReview, data: { breadcrumb: 'Cấu hình Đánh giá', mode: 'setting' } },
-      { path: 'partner-data', component: PartnerData, data: { breadcrumb: 'Dữ liệu Đối tác', mode: 'setting' } },
-      { path: 'system-operation', component: SystemOperation, data: { breadcrumb: 'Vận hành hệ thống', mode: 'setting' } },
-      { path: 'security', component: Security, data: { breadcrumb: 'Bảo mật & Tra cứu', mode: 'setting' } },
+      { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Default redirect for /settings
+
+      { // Quản trị Nhân sự
+        path: 'hr',
+        component: Hr, // Hr component as a parent for its sub-settings
+        data: { breadcrumb: 'Quản trị Nhân sự' },
+        children: [
+          { path: '', redirectTo: 'accounts', pathMatch: 'full' },
+          { path: 'accounts', component: AccountsComponent, data: { breadcrumb: 'Quản lý Tài khoản Nội bộ' } },
+          { path: 'interns', component: HrInternsComponent, data: { breadcrumb: 'Quản lý Thực tập sinh' } },
+          { path: 'org-structure', component: OrgStructureComponent, data: { breadcrumb: 'Cơ cấu Tổ chức' } },
+        ]
+      },
+      { // Cấu hình Đánh giá
+        path: 'evaluation', // New path for evaluation settings
+        component: ConfigReview, // Using existing ConfigReview component as parent
+        data: { breadcrumb: 'Cấu hình Đánh giá' },
+        children: [
+          { path: '', redirectTo: 'skills', pathMatch: 'full' },
+          { path: 'skills', component: EvaluationSkillsComponent, data: { breadcrumb: 'Thư viện Kỹ năng' } },
+        ]
+      },
+      { // Dữ liệu Đối tác
+        path: 'partners', // New path for partners settings
+        component: PartnerData, // Using existing PartnerData component as parent
+        data: { breadcrumb: 'Dữ liệu Đối tác' },
+        children: [
+          { path: '', redirectTo: 'list', pathMatch: 'full' },
+          { path: 'list', component: PartnersListComponent, data: { breadcrumb: 'Danh mục Đối tác' } },
+        ]
+      },
+      { // Vận hành hệ thống
+        path: 'operation', // New path for operation settings
+        component: SystemOperation, // Using existing SystemOperation component as parent
+        data: { breadcrumb: 'Vận hành hệ thống' },
+        children: [
+          { path: '', redirectTo: 'process', pathMatch: 'full' },
+          { path: 'process', component: OperationProcessComponent, data: { breadcrumb: 'Cấu hình Quy trình' } },
+        ]
+      },
+      { // Bảo mật & Tra cứu
+        path: 'security',
+        component: Security, // Using existing Security component as parent
+        data: { breadcrumb: 'Bảo mật & Tra cứu' },
+        children: [
+          { path: '', redirectTo: 'logs', pathMatch: 'full' },
+          { path: 'logs', component: SecurityLogsComponent, data: { breadcrumb: 'Nhật ký Hệ thống' } },
+        ]
+      },
     ],
   },
 ];
-
