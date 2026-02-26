@@ -7,26 +7,16 @@
 
   <!-- Navigation Menu -->
   <nav class="flex-1 px-2 py-4 space-y-3">
-    <a
-      *ngFor="let item of currentMenuItems"
-      [routerLink]="item.routerLink"
-      routerLinkActive="bg-gray-100 text-black font-semibold"
-      [routerLinkActiveOptions]="{ paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
-      class="flex items-center text-gray-700 rounded-md hover:bg-gray-100 text-lg"
-      [ngClass]="{'px-4 py-2': isSidebarVisible, 'justify-center py-2 px-2': !isSidebarVisible}"
-    >
-      <svg class="h-6 w-6" [class.mr-3]="isSidebarVisible" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"></path>
-      </svg>
-      <span *ngIf="isSidebarVisible">{{ item.label }}</span>
-    </a>
+    <!-- Main Menu rendering -->
+    <ng-container *ngTemplateOutlet="menuItemsTemplate; context: { items: currentMenuItems, level: 0 }"></ng-container>
   </nav>
 
   <!-- Settings Button (Footer) -->
+  <!-- This section will still handle the primary switch to settings, but the settingsMenuItems will be rendered by the same template -->
   <div class="px-2 py-4 border-t border-gray-200" *ngIf="!isSettingsRouteActive">
     <a
       [routerLink]="['/settings']"
-      routerLinkActive="bg-gray-100 text-black font-semibold"
+      [routerLinkActive]="['bg-gray-100', 'text-black', 'font-semibold']"
       [routerLinkActiveOptions]="{ paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' }"
       class="flex items-center text-gray-700 rounded-md hover:bg-gray-100 text-lg"
       [ngClass]="{'px-4 py-2': isSidebarVisible, 'justify-center py-2 px-2': !isSidebarVisible}"
@@ -39,3 +29,74 @@
     </a>
   </div>
 </div>
+
+<!-- Recursive Template for Menu Items -->
+<ng-template #menuItemsTemplate let-items="items" let-level="level">
+  <ng-container *ngFor="let item of items">
+    <!-- Parent menu item or single link -->
+    <a
+      *ngIf="item.routerLink"
+      [routerLink]="item.routerLink"
+      [routerLinkActive]="['bg-gray-100', 'text-black', 'font-semibold']"
+      [routerLinkActiveOptions]="getRouterLinkActiveOptions(item)"
+      class="flex items-center text-gray-700 rounded-md hover:bg-gray-100 text-lg cursor-pointer transition-all duration-300 ease-in-out"
+      [ngClass]="{
+        'px-4 py-2': isSidebarVisible,
+        'justify-center py-2 px-2': !isSidebarVisible,
+        'pl-8': level > 0 && isSidebarVisible,
+        'active-menu-item': isMenuItemActive(item)
+      }"
+      (click)="item.children ? toggleSubMenu(item) : null"
+    >
+      <!-- Icon for menu items -->
+      <ng-container *ngIf="item.icon">
+        <svg class="h-6 w-6" [class.mr-3]="isSidebarVisible" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"></path>
+        </svg>
+      </ng-container>
+
+      <span *ngIf="isSidebarVisible">{{ item.label }}</span>
+
+      <!-- Chevron Icon for sub-menus -->
+      <svg *ngIf="item.children && isSidebarVisible" class="h-5 w-5 ml-auto transition-transform duration-200"
+        [class.rotate-90]="item.expanded" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> <!-- Chevron right -->
+      </svg>
+    </a>
+
+    <!-- Div for parent menu items that don't have a direct link but act as toggles -->
+    <div
+      *ngIf="!item.routerLink && item.children"
+      class="flex items-center text-gray-700 rounded-md hover:bg-gray-100 text-lg cursor-pointer transition-all duration-300 ease-in-out"
+      [ngClass]="{
+        'px-4 py-2': isSidebarVisible,
+        'justify-center py-2 px-2': !isSidebarVisible,
+        'pl-8': level > 0 && isSidebarVisible,
+        'active-menu-item': isParentToggleActive(item)
+      }"
+      (click)="toggleSubMenu(item)"
+    >
+      <!-- Icon for menu items -->
+      <ng-container *ngIf="item.icon">
+        <svg class="h-6 w-6" [class.mr-3]="isSidebarVisible" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon"></path>
+        </svg>
+      </ng-container>
+
+      <span *ngIf="isSidebarVisible">{{ item.label }}</span>
+
+      <!-- Chevron Icon for sub-menus -->
+      <svg *ngIf="item.children && isSidebarVisible" class="h-5 w-5 ml-auto transition-transform duration-200"
+        [class.rotate-90]="item.expanded" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path> <!-- Chevron right -->
+      </svg>
+    </div>
+
+    <!-- Sub-menu -->
+    <div *ngIf="item.children && item.expanded" class="overflow-hidden transition-all duration-300 ease-in-out">
+      <div [ngClass]="{'pl-4': isSidebarVisible}"> <!-- Indentation for sub-menu container -->
+        <ng-container *ngTemplateOutlet="menuItemsTemplate; context: { items: item.children, level: level + 1 }"></ng-container>
+      </div>
+    </div>
+  </ng-container>
+</ng-template>

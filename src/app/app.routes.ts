@@ -17,6 +17,12 @@ import { Management } from './dashboard/management/management';
 import { Capacity } from './dashboard/capacity/capacity';
 import { Approval } from './dashboard/approval/approval';
 
+// Import new placeholder components for sub-menus
+import { InternsComponent } from './dashboard/management/interns/interns';
+import { UsersComponent } from './dashboard/management/users/users';
+import { ConfigComponent } from './dashboard/capacity/config/config';
+import { AnalyticsComponent } from './dashboard/capacity/analytics/analytics';
+
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -24,53 +30,59 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: MainLayout, // Use MainLayout as the parent component
+    data: { breadcrumb: 'Tổng quan' },
     children: [
       { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } }, // Render Dashboard inside MainLayout's <router-outlet>
     ],
   },
   {
-    path: 'execution',
+    path: 'tasks', // Changed from /execution to /tasks
     component: MainLayout,
-    data: { title: 'Thực thi', mode: 'dashboard' },
+    data: { breadcrumb: 'Thực thi' },
     children: [
-      { path: '', component: Execution } // Default for /execution
+      { path: '', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } } // Default for /tasks
     ]
   },
   {
     path: 'management',
     component: MainLayout,
-    data: { title: 'Quản lý', mode: 'dashboard' },
+    data: { breadcrumb: 'Quản lý' },
     children: [
-      { path: '', component: Management } // Default for /management
+      { path: '', redirectTo: 'interns', pathMatch: 'full' }, // Redirect to interns by default
+      { path: 'interns', component: InternsComponent, data: { breadcrumb: 'Hồ sơ Intern' } },
+      { path: 'users', component: UsersComponent, data: { breadcrumb: 'Đội ngũ (Users)' } },
     ]
   },
   {
-    path: 'capacity',
+    path: 'skills', // Changed from /capacity to /skills
     component: MainLayout,
-    data: { title: 'Năng lực', mode: 'dashboard' },
+    data: { breadcrumb: 'Năng lực' },
     children: [
-      { path: '', component: Capacity } // Default for /capacity
+      { path: '', redirectTo: 'config', pathMatch: 'full' }, // Redirect to config by default
+      { path: 'config', component: ConfigComponent, data: { breadcrumb: 'Cấu hình Skill' } },
+      { path: 'analytics', component: AnalyticsComponent, data: { breadcrumb: 'Radar Analytics' } },
     ]
   },
   {
     path: 'approval',
     component: MainLayout,
-    data: { title: 'Phê duyệt', mode: 'dashboard' },
+    data: { breadcrumb: 'Phê duyệt' },
     children: [
-      { path: '', component: Approval } // Default for /approval
+      { path: '', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } } // Default for /approval
     ]
   },
   {
     path: 'settings',
     component: MainLayout,
-    data: { title: 'Cài đặt', mode: 'setting' },
+    data: { breadcrumb: 'Cài đặt' },
     children: [
       { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Redirect to HR management by default
-      { path: 'hr', component: Hr, data: { title: 'Quản trị Nhân sự', mode: 'setting' } },
-      { path: 'config-review', component: ConfigReview, data: { title: 'Cấu hình Đánh giá', mode: 'setting' } },
-      { path: 'partner-data', component: PartnerData, data: { title: 'Dữ liệu Đối tác', mode: 'setting' } },
-      { path: 'system-operation', component: SystemOperation, data: { title: 'Vận hành hệ thống', mode: 'setting' } },
-      { path: 'security', component: Security, data: { title: 'Bảo mật & Tra cứu', mode: 'setting' } },
+      { path: 'hr', component: Hr, data: { breadcrumb: 'Quản trị Nhân sự', mode: 'setting' } },
+      { path: 'config-review', component: ConfigReview, data: { breadcrumb: 'Cấu hình Đánh giá', mode: 'setting' } },
+      { path: 'partner-data', component: PartnerData, data: { breadcrumb: 'Dữ liệu Đối tác', mode: 'setting' } },
+      { path: 'system-operation', component: SystemOperation, data: { breadcrumb: 'Vận hành hệ thống', mode: 'setting' } },
+      { path: 'security', component: Security, data: { breadcrumb: 'Bảo mật & Tra cứu', mode: 'setting' } },
     ],
   },
 ];
+
