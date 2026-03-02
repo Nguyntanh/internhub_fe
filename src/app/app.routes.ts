@@ -19,8 +19,8 @@ import { Approval } from './dashboard/approval/approval';
 
 // Import existing placeholder components for sub-menus
 import { InternsComponent } from './dashboard/management/interns/interns';
-import { UsersComponent } from './dashboard/management/users/users';
-import { ConfigComponent } from './dashboard/capacity/config/config';
+
+
 import { AnalyticsComponent } from './dashboard/capacity/analytics/analytics';
 
 // Import NEW placeholder components for multi-level settings sub-menus
@@ -59,7 +59,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'interns', pathMatch: 'full' }, // Redirect to interns by default
       { path: 'interns', component: InternsComponent, data: { title: 'Hồ sơ Intern' } },
-      { path: 'users', component: UsersComponent, data: { title: 'Đội ngũ (Users)' } },
+
     ]
   },
   {
@@ -67,8 +67,8 @@ export const routes: Routes = [
     component: MainLayout,
     data: { title: 'Năng lực' },
     children: [
-      { path: '', redirectTo: 'config', pathMatch: 'full' }, // Redirect to config by default
-      { path: 'config', component: ConfigComponent, data: { title: 'Cấu hình Skill' } },
+      { path: '', redirectTo: 'analytics', pathMatch: 'full' }, // Redirect to config by default
+
       { path: 'analytics', component: AnalyticsComponent, data: { title: 'Radar Analytics' } },
     ]
   },
