@@ -34,6 +34,10 @@ export class LoginComponent {
         this.authService.login({ email, password }).subscribe({
           next: (response) => {
             console.log('Login successful', response);
+
+            //Lưu JWT token
+            localStorage.setItem('token', response.accessToken);
+
             this.router.navigate(['/dashboard']);
           },
           error: (error) => {

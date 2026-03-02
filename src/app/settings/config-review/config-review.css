@@ -1,0 +1,51 @@
+.btn-secondary {
+  @apply border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors;
+}
+
+.btn-danger {
+  @apply border border-gray-200 rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-50 transition-colors;
+}
+
+.icon-btn {
+  @apply text-xs px-2 py-1 rounded hover:bg-gray-100 transition;
+}
+
+.icon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+
+  background-color: currentColor;
+
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+
+  vertical-align: middle;   /* 🔥 FIX LỆCH */
+}
+.icon-master {
+  mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/folder-plus.svg");
+  -webkit-mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/folder-plus.svg");
+}
+.icon-plus {
+  mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/plus-small.svg");
+  -webkit-mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/plus-small.svg");
+}
+
+.icon-edit {
+  mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/pencil.svg");
+  -webkit-mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/pencil.svg");
+}
+
+.icon-trash {
+  mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/trash.svg");
+  -webkit-mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/trash.svg");
+}
+
+.icon-chevron {
+  mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/chevron-right.svg");
+  -webkit-mask-image: url("https://unpkg.com/heroicons@2.0.18/24/outline/chevron-right.svg");
+}
