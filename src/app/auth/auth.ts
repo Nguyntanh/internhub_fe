@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, of, throwError, BehaviorSubject, map, tap } from 'rxjs';
 import { UserCreationRequest, ErrorDetails } from '../shared/models/user.model';
@@ -15,14 +16,16 @@ export class Auth {
   private currentUserSubject: BehaviorSubject<any | null>;
   public currentUser$: Observable<any | null>;
 
-  constructor(private http: HttpClient) {
-    // Khởi tạo currentUserSubject từ token trong localStorage (nếu có)
-    const token = localStorage.getItem('jwt_token');
+  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
     let user = null;
-    if (token) {
-      // TODO: Giải mã JWT token để lấy thông tin người dùng thực sự
-      // Ví dụ: user = jwtDecode(token);
-      user = { token: token }; // Tạm thời lưu trữ token như một phần của user
+    if (isPlatformBrowser(this.platformId)) {
+      // Khởi tạo currentUserSubject từ token trong localStorage (nếu có)
+      const token = localStorage.getItem('jwt_token');
+      if (token) {
+        // TODO: Giải mã JWT token để lấy thông tin người dùng thực sự
+        // Ví dụ: user = jwtDecode(token);
+        user = { token: token }; // Tạm thời lưu trữ token như một phần của user
+      }
     }
     this.currentUserSubject = new BehaviorSubject<any | null>(user);
     this.currentUser$ = this.currentUserSubject.asObservable();
@@ -48,8 +51,10 @@ export class Auth {
       tap((response: any) => {
         // Sau khi đăng nhập thành công
         if (response && response.token) {
-          // Lưu token vào localStorage
-          localStorage.setItem('jwt_token', response.token);
+          if (isPlatformBrowser(this.platformId)) {
+            // Lưu token vào localStorage
+            localStorage.setItem('jwt_token', response.token);
+          }
           // TODO: Giải mã JWT token để lấy thông tin người dùng thực sự
           // Ví dụ: this.currentUserSubject.next(jwtDecode(response.token));
           this.currentUserSubject.next({ token: response.token }); // Tạm thời cập nhật user với token
@@ -72,8 +77,10 @@ export class Auth {
 
   // Phương thức đăng xuất
   logout(): void {
-    // Xóa token khỏi localStorage
-    localStorage.removeItem('jwt_token');
+    if (isPlatformBrowser(this.platformId)) {
+      // Xóa token khỏi localStorage
+      localStorage.removeItem('jwt_token');
+    }
     // Cập nhật trạng thái người dùng thành null
     this.currentUserSubject.next(null);
   }

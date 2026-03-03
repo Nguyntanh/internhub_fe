@@ -1,12 +1,13 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { UserCreateComponent } from './user-create/user-create.component';
 
 @Component({
   selector: 'app-accounts',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, UserCreateComponent],
   template: `
-    <p>accounts works!</p>
+    <app-user-create></app-user-create>
   `,
   styles: ``
 })
