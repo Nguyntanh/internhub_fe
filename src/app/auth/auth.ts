@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, of, throwError, BehaviorSubject, map, tap } from 'rxjs';
+import { UserCreationRequest, ErrorDetails } from '../shared/models/user.model';
 // import { jwtDecode } from 'jwt-decode'; // Uncomment if using jwt-decode library
 
 @Injectable({
@@ -55,6 +56,17 @@ export class Auth {
         }
       }),
       catchError(this.handleError<any>('login'))
+    );
+  }
+
+  createUser(userData: UserCreationRequest): Observable<any> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+      }),
+    };
+    return this.http.post<any>('/api/admin/users', userData, httpOptions).pipe(
+      catchError(this.handleError<any>('createUser'))
     );
   }
 
