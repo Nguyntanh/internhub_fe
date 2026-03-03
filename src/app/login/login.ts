@@ -1,8 +1,9 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core'; // Import OnInit, OnDestroy
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../auth/auth'; // Import the Auth service
+import { Subject, takeUntil } from 'rxjs'; // Import Subject, takeUntil
 
 @Component({
   selector: 'app-login',
@@ -11,13 +12,29 @@ import { Auth } from '../auth/auth'; // Import the Auth service
   templateUrl: './login.html',
   styleUrl: './login.css',
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit, OnDestroy { // Implement OnInit, OnDestroy
   loginForm = new FormGroup({
     email: new FormControl('', [Validators.required, Validators.email]),
     password: new FormControl('', Validators.required),
   });
 
+  private destroy$ = new Subject<void>(); // Subject để quản lý việc hủy đăng ký
+
   constructor(private authService: Auth, private router: Router) {}
+
+  ngOnInit(): void {
+    // Nếu người dùng đã đăng nhập, chuyển hướng đến trang dashboard
+    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+      if (user) {
+        this.router.navigate(['/dashboard']);
+      }
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next(); // Gửi tín hiệu hủy đăng ký
+    this.destroy$.complete(); // Hoàn thành Subject
+  }
 
   onSubmit() {
     // Clear previous form-level and control-level API errors on new submission
@@ -34,7 +51,9 @@ export class LoginComponent {
         this.authService.login({ email, password }).subscribe({
           next: (response) => {
             console.log('Login successful', response);
-            this.router.navigate(['/dashboard']);
+            // AuthService đã tự động lưu token và cập nhật trạng thái người dùng
+            // HomeComponent sẽ tự điều hướng do AuthGuard hoặc subscription ở ngOnInit
+            // Không cần navigate ở đây nữa vì ngOnInit đã xử lý hoặc AuthGuard sẽ làm điều đó
           },
           error: (error) => {
             console.error('Login failed', error);
