@@ -23,12 +23,12 @@ export class LoginComponent implements OnInit, OnDestroy { // Implement OnInit, 
   constructor(private authService: Auth, private router: Router) {}
 
   ngOnInit(): void {
-    // Nếu người dùng đã đăng nhập, chuyển hướng đến trang dashboard
-    this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
-      if (user) {
-        this.router.navigate(['/dashboard']);
-      }
-    });
+    // // Nếu người dùng đã đăng nhập, chuyển hướng đến trang dashboard (Tạm thời tắt để debug)
+    // this.authService.currentUser$.pipe(takeUntil(this.destroy$)).subscribe(user => {
+    //   if (user) {
+    //     this.router.navigate(['/dashboard']);
+    //   }
+    // });
   }
 
   ngOnDestroy(): void {
@@ -52,8 +52,8 @@ export class LoginComponent implements OnInit, OnDestroy { // Implement OnInit, 
           next: (response) => {
             console.log('Login successful', response);
             // AuthService đã tự động lưu token và cập nhật trạng thái người dùng
-            // HomeComponent sẽ tự điều hướng do AuthGuard hoặc subscription ở ngOnInit
-            // Không cần navigate ở đây nữa vì ngOnInit đã xử lý hoặc AuthGuard sẽ làm điều đó
+            console.log('Attempting to navigate to /dashboard...'); // Thêm log này
+            this.router.navigate(['/dashboard']);
           },
           error: (error) => {
             console.error('Login failed', error);

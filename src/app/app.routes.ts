@@ -40,7 +40,7 @@ export const routes: Routes = [
   {
     path: 'dashboard',
     component: MainLayout, // Use MainLayout as the parent component
-    canActivate: [authGuard], // Bảo vệ route này và các route con của nó
+    // canActivate: [authGuard], // Bảo vệ route này và các route con của nó - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Tổng quan' },
     children: [
       { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } }, // Render Dashboard inside MainLayout's <router-outlet>
@@ -49,7 +49,7 @@ export const routes: Routes = [
   {
     path: 'tasks', // Changed from /execution to /tasks
     component: MainLayout,
-    canActivate: [authGuard], // Bảo vệ route này
+    // canActivate: [authGuard], // Bảo vệ route này - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Thực thi' },
     children: [
       { path: '', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } } // Default for /tasks
@@ -58,7 +58,7 @@ export const routes: Routes = [
   {
     path: 'management',
     component: MainLayout,
-    canActivate: [authGuard], // Bảo vệ route này
+    // canActivate: [authGuard], // Bảo vệ route này - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Quản lý' },
     children: [
       { path: '', redirectTo: 'interns', pathMatch: 'full' }, // Redirect to interns by default
@@ -69,7 +69,7 @@ export const routes: Routes = [
   {
     path: 'skills', // Changed from /capacity to /skills
     component: MainLayout,
-    canActivate: [authGuard], // Bảo vệ route này
+    // canActivate: [authGuard], // Bảo vệ route này - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Năng lực' },
     children: [
       { path: '', redirectTo: 'analytics', pathMatch: 'full' }, // Redirect to config by default
@@ -80,7 +80,7 @@ export const routes: Routes = [
   {
     path: 'approval',
     component: MainLayout,
-    canActivate: [authGuard], // Bảo vệ route này
+    // canActivate: [authGuard], // Bảo vệ route này - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Phê duyệt' },
     children: [
       { path: '', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } } // Default for /approval
@@ -89,7 +89,7 @@ export const routes: Routes = [
   {
     path: 'settings',
     component: MainLayout,
-    canActivate: [authGuard], // Bảo vệ route này và các route con của nó
+    // canActivate: [authGuard], // Bảo vệ route này và các route con của nó - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Cài đặt' }, // Top-level settings breadcrumb
     children: [
       { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Default redirect for /settings
