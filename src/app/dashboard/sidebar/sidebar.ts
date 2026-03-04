@@ -34,16 +34,16 @@ export class Sidebar implements OnInit, OnDestroy {
       routerLinkActiveOptions: { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
       children: [
         { label: 'Hồ sơ Intern', routerLink: '/management/interns', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
-        { label: 'Đội ngũ (Users)', routerLink: '/management/users', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+
       ]
     },
     {
       label: 'Năng lực',
       icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M10 16h.01', // Placeholder icon
-      routerLink: '/skills/config', // Default child route for parent
+      routerLink: '/skills/analytics', // Default child route for parent
       routerLinkActiveOptions: { paths: 'subset', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' },
       children: [
-        { label: 'Cấu hình Skill', routerLink: '/skills/config', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
+
         { label: 'Radar Analytics', routerLink: '/skills/analytics', routerLinkActiveOptions: { paths: 'exact', queryParams: 'ignored', matrixParams: 'ignored', fragment: 'ignored' } },
       ]
     },

@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-hr',
-  imports: [],
+  imports: [RouterOutlet],
   templateUrl: './hr.html',
   styleUrl: './hr.css',
 })
