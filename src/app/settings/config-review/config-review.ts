@@ -102,23 +102,35 @@ export class ConfigReview implements OnInit{
 
     const q = this.search.toLowerCase();
 
-    return this.masters.map(m => {
+    return this.masters
+      .map(m => {
+        const matchMaster = m.name.toLowerCase().includes(q);
 
-      const matchMaster = m.name.toLowerCase().includes(q);
-      const matchChildren = m.children?.filter(c =>
-        c.name.toLowerCase().includes(q)
-      );
+        const matchedChildren = m.children?.filter(c =>
+          c.name.toLowerCase().includes(q)
+        ) || [];
 
-      if (matchMaster || (matchChildren && matchChildren.length > 0)) {
-        return {
-          ...m,
-          open: true, // tự động mở khi search
-          children: matchChildren ?? m.children
-        };
-      }
+        //
+        if (matchMaster) {
+          return {
+            ...m,
+            open: true,
+            children: m.children
+          };
+        }
 
-      return null;
-    }).filter(m => m !== null) as Skill[];
+        //
+        if (matchedChildren.length > 0) {
+          return {
+            ...m,
+            open: true,
+            children: matchedChildren
+          };
+        }
+
+        return null;
+      })
+      .filter(m => m !== null) as Skill[];
   }
   openCreateMaster() {
     this.isEdit = false;
