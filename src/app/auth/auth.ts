@@ -10,6 +10,7 @@ import { UserCreationRequest, ErrorDetails } from '../shared/models/user.model';
 })
 export class Auth {
   private apiUrl = 'http://localhost:8090/api/auth/login'; // Your backend login API endpoint
+  private baseApiUrl = 'http://localhost:8090/api'; // Base URL for general backend API calls
 
   // BehaviorSubject để quản lý trạng thái người dùng hiện tại
   // Ban đầu sẽ kiểm tra localStorage xem đã có token chưa để khôi phục trạng thái
@@ -70,7 +71,7 @@ export class Auth {
         'Content-Type': 'application/json',
       }),
     };
-    return this.http.post<any>('/api/admin/users', userData, httpOptions).pipe(
+    return this.http.post<any>(`${this.baseApiUrl}/admin/users`, userData, httpOptions).pipe(
       catchError(this.handleError<any>('createUser'))
     );
   }
