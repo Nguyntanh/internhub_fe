@@ -32,14 +32,21 @@ import { HttpErrorResponse } from '@angular/common/http';
 export class UserCreateComponent implements OnInit {
   userForm!: FormGroup;
   roles = [
-    { id: 'admin', name: 'Admin' },
-    { id: 'user', name: 'User' },
-    { id: 'intern', name: 'Intern' },
+    { id: 1, name: 'ADMIN' },
+    { id: 2, name: 'HR' },
+    { id: 5, name: 'INTERN' },
+    { id: 3, name: 'MANAGER' },
+    { id: 4, name: 'MENTOR' },
   ];
   departments = [
-    { id: 'hr', name: 'Human Resources' },
-    { id: 'it', name: 'Information Technology' },
-    { id: 'sales', name: 'Sales' },
+    { id: 1, name: 'IT Department' },
+    { id: 2, name: 'Board of Directors' },
+    { id: 3, name: 'Software Engineering' },
+    { id: 4, name: 'Quality Control & QA' },
+    { id: 5, name: 'DevOps & Cloud' },
+    { id: 6, name: 'Data Science & AI' },
+    { id: 7, name: 'Product & Design' },
+    { id: 8, name: 'Human Resources & Admin' },
   ];
 
   constructor(
