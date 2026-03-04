@@ -51,14 +51,14 @@ export class Auth {
     return this.http.post<any>(this.apiUrl, credentials, httpOptions).pipe(
       tap((response: any) => {
         // Sau khi đăng nhập thành công
-        if (response && response.token) {
+        if (response && response.accessToken) {
           if (isPlatformBrowser(this.platformId)) {
             // Lưu token vào localStorage
-            localStorage.setItem('jwt_token', response.token);
+            localStorage.setItem('jwt_token', response.accessToken);
           }
           // TODO: Giải mã JWT token để lấy thông tin người dùng thực sự
           // Ví dụ: this.currentUserSubject.next(jwtDecode(response.token));
-          this.currentUserSubject.next({ token: response.token }); // Tạm thời cập nhật user với token
+          this.currentUserSubject.next({ token: response.accessToken }); // Tạm thời cập nhật user với token
         }
       }),
       catchError(this.handleError<any>('login'))
