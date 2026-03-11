@@ -37,22 +37,27 @@ export class ActivateAccountComponent implements OnInit {
       if (token) {
         this.authService.activateAccount(token).subscribe({
           next: () => {
-            this.activationStatus = 'success';
-            this.message = 'Account activated successfully! You can now log in.';
+            this.router.navigate(['/login']); // Redirect directly to login on success
           },
           error: (error: HttpErrorResponse) => {
-            this.activationStatus = 'failure';
-            console.error('Account activation failed:', error);
-            if (error.status === 400) {
-              this.message = error.error?.message || 'Invalid or expired activation token.';
-            } else {
-              this.message = 'Failed to activate account. Please try again later.';
-            }
+            setTimeout(() => {
+              this.activationStatus = 'failure';
+              console.error('Account activation failed:', error);
+              if (error.status === 404) { // Specifically handle 404
+                this.message = 'Activation link is invalid or has already been used.';
+              } else if (error.status === 400) {
+                this.message = error.error?.message || 'Invalid or expired activation token.';
+              } else {
+                this.message = 'Failed to activate account. Please try again later.';
+              }
+            }, 0);
           },
         });
       } else {
-        this.activationStatus = 'failure';
-        this.message = 'Activation token not found in the URL.';
+        setTimeout(() => {
+          this.activationStatus = 'failure';
+          this.message = 'Activation token not found in the URL.';
+        }, 0);
       }
     });
   }
