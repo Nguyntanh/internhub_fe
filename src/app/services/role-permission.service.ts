@@ -42,22 +42,22 @@ export class RolePermissionService {
   // Get a specific permission entry
   getRolePermission(roleId: number, functionId: number): Observable<RolePermissionResponse> {
     return this.http.get<RolePermissionResponse>(`${this.baseApiUrl}/${roleId}/${functionId}`, { headers: this.getAuthHeaders() }).pipe(
-      catchError(this.handleError(`getRolePermission(roleId=${roleId}, functionId=${functionId})`))
-    );
+      catchError(this.handleError<RolePermissionResponse>(`getRolePermission(roleId=${roleId}, functionId=${functionId})`))
+    ) as Observable<RolePermissionResponse>;
   }
 
   // Create or Update a role permission
   updateRolePermission(request: RolePermissionRequest): Observable<RolePermissionResponse> {
     return this.http.post<RolePermissionResponse>(this.baseApiUrl, request, { headers: this.getAuthHeaders() }).pipe(
-      catchError(this.handleError('updateRolePermission'))
-    );
+      catchError(this.handleError<RolePermissionResponse>('updateRolePermission'))
+    ) as Observable<RolePermissionResponse>;
   }
 
   // Delete a specific role permission
   deleteRolePermission(roleId: number, functionId: number): Observable<void> {
     return this.http.delete<void>(`${this.baseApiUrl}/${roleId}/${functionId}`, { headers: this.getAuthHeaders() }).pipe(
-      catchError(this.handleError('deleteRolePermission'))
-    );
+      catchError(this.handleError<void>('deleteRolePermission'))
+    ) as Observable<void>;
   }
 
   private handleError<T>(operation = 'operation', result?: T) {

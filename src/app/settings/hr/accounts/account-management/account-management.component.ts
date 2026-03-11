@@ -5,7 +5,7 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatCheckboxModule } from '@angular/material/checkbox'; // For interactive checkboxes
+import { MatCheckboxModule, MatCheckboxChange } from '@angular/material/checkbox'; // For interactive checkboxes
 import { MatRadioModule } from '@angular/material/radio'; // For mat-radio-group
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // For mat-spinner
 import { MatSnackBar } from '@angular/material/snack-bar'; // For notifications
@@ -64,23 +64,19 @@ export class AccountManagementComponent implements OnInit {
 
   loadPermissions(): void {
     this.isLoading = true;
-    // In a real scenario, this would fetch from rolePermissionService
-    // For now, we use the MOCK_ROLE_PERMISSIONS_FLAT data
-    // this.rolePermissionService.getAllRolePermissions().subscribe({
-    //   next: (flatPermissions) => {
-    //     this.permissionMatrix = this.buildPermissionMatrix(flatPermissions);
-    //     this.isLoading = false;
-    //   },
-    //   error: (err) => {
-    //     console.error('Failed to load permissions', err);
-    //     this.snackBar.open('Failed to load permissions.', 'Close', { duration: 3000 });
-    //     this.isLoading = false;
-    //   }
-    // });
-    setTimeout(() => { // Simulate API call delay
-      this.permissionMatrix = this.buildPermissionMatrix(MOCK_ROLE_PERMISSIONS_FLAT);
-      this.isLoading = false;
-    }, 500);
+    this.rolePermissionService.getAllRolePermissions().subscribe({
+      next: (flatPermissions) => {
+        this.permissionMatrix = this.buildPermissionMatrix(flatPermissions);
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Failed to load permissions', err);
+        this.snackBar.open('Failed to load permissions. Please check backend API.', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        this.isLoading = false;
+        // Optionally, load mock data on error for development/demonstration
+        this.permissionMatrix = this.buildPermissionMatrix(MOCK_ROLE_PERMISSIONS_FLAT);
+      }
+    });
   }
 
   // Maps flat RolePermissionResponse[] from Backend to structured PermissionMatrix for Frontend
@@ -162,8 +158,8 @@ export class AccountManagementComponent implements OnInit {
   }
 
   // Method called when a checkbox/toggle is changed
-  onPermissionChange(feature: RbacFeature, role: { id: number, name: string }, permissionType: 'canCreate' | 'canAccess' | 'canEdit' | 'canDelete', event: Event): void {
-    const isChecked = (event.target as HTMLInputElement).checked;
+  onPermissionChange(feature: RbacFeature, role: { id: number, name: string }, permissionType: 'canCreate' | 'canAccess' | 'canEdit' | 'canDelete', event: MatCheckboxChange): void {
+    const isChecked = event.checked;
 
     // Update local matrix optimistically
     const currentPermission = feature.permissions[role.id];
@@ -205,6 +201,10 @@ export class AccountManagementComponent implements OnInit {
 
   trackByFeatureId(index: number, feature: RbacFeature): number {
     return feature.functionId;
+  }
+
+  trackByGroup(index: number, group: RbacFeatureGroup): string {
+    return group.name; // Assuming group names are unique
   }
 
 

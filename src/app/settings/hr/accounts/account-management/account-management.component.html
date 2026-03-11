@@ -34,7 +34,7 @@
             </tr>
           </thead>
           <tbody>
-            <ng-container *ngFor="let group of permissionMatrix.groups; trackBy: trackByFeatureId">
+            <ng-container *ngFor="let group of permissionMatrix.groups; trackBy: trackByGroup">
               <tr class="group-header-row">
                 <td [attr.colspan]="roleDefinitions.length + 1">{{ group.name }}</td>
               </tr>
