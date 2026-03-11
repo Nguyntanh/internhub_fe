@@ -64,13 +64,16 @@ export class AccountManagementComponent implements OnInit {
 
   loadPermissions(): void {
     this.isLoading = true;
+    console.log('Attempting to load permissions from backend...');
     this.rolePermissionService.getAllRolePermissions().subscribe({
       next: (flatPermissions) => {
+        console.log('Permissions loaded successfully:', flatPermissions);
         this.permissionMatrix = this.buildPermissionMatrix(flatPermissions);
+        console.log('Final permissionMatrix assigned:', this.permissionMatrix);
         this.isLoading = false;
       },
       error: (err) => {
-        console.error('Failed to load permissions', err);
+        console.error('Failed to load permissions:', err);
         this.snackBar.open('Failed to load permissions. Please check backend API.', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
         this.isLoading = false;
         // Optionally, load mock data on error for development/demonstration
@@ -81,13 +84,14 @@ export class AccountManagementComponent implements OnInit {
 
   // Maps flat RolePermissionResponse[] from Backend to structured PermissionMatrix for Frontend
   private buildPermissionMatrix(flatPermissions: RolePermissionResponse[]): PermissionMatrix {
+    console.log('Building matrix from flat permissions:', flatPermissions);
     const matrix: PermissionMatrix = { groups: [] };
     const featureMap = new Map<number, RbacFeature>(); // Map functionId to RbacFeature
 
     // Initialize all features from FUNCTIONS_DATA
     FUNCTIONS_DATA.forEach(func => {
       const rbacFeature: RbacFeature = {
-        id: func.code.split('_')[0], // Extract E01, E02 etc. from code
+        id: func.code, // Use the full code, e.g., E01_USER_MGMT
         functionId: func.id,
         name: func.name,
         permissions: {},
@@ -104,6 +108,7 @@ export class AccountManagementComponent implements OnInit {
       });
       featureMap.set(func.id, rbacFeature);
     });
+    console.log('Feature map after initialization:', featureMap);
 
     // Populate permissions from flat data
     flatPermissions.forEach(perm => {
@@ -118,30 +123,32 @@ export class AccountManagementComponent implements OnInit {
         };
       }
     });
+    console.log('Feature map after populating permissions:', featureMap);
 
-    // Group features as per the original table structure (manual for now)
+    // Group features as per the original table structure
     const groupsConfig = [
-      { name: 'Quản trị Hệ thống', codes: ['E01_USER_MGMT', 'E02_DEPT_POS_CONFIG', 'E03_SKILL_CONFIG', 'E04_AUDIT_LOGS'] },
-      { name: 'Onboarding & Quản lý Intern', codes: ['E05_INTERN_IMPORT', 'E06_ASSIGN_MENTOR', 'E07_UNI_MGMT', 'E08_PERSONAL_DASHBOARD'] },
-      { name: 'Điều hành Micro-tasks', codes: ['E09_TASK_ACTION', 'E10_TODO_LIST', 'E11_TASK_SUBMISSION', 'E12_GRADING'] },
-      { name: 'Luồng Phê duyệt & Báo cáo', codes: ['E14_REALTIME_SCORE', 'E15_FINAL_EVALUATION', 'E16_FINAL_APPROVAL', 'E17_RADAR_CHART', 'E18_COMPARE_DASHBOARD', 'E19_EXPORT_REPORT'] },
-      // Add other functions if they don't fit into these primary groups (e.g., USER_MGMT, SKILL_LIB for E01, E03)
-      // Note: Backend functions data also contains USER_MGMT (id 21) and SKILL_LIB (id 22)
-      // For now, map E01_USER_MGMT etc. to their respective E01 format
+      { name: 'Quản trị Hệ thống', functionCodes: ['E01_USER_MGMT', 'E02_DEPT_POS_CONFIG', 'E03_SKILL_CONFIG', 'E04_AUDIT_LOGS'] },
+      { name: 'Onboarding & Quản lý Intern', functionCodes: ['E05_INTERN_IMPORT', 'E06_ASSIGN_MENTOR', 'E07_UNI_MGMT', 'E08_PERSONAL_DASHBOARD'] },
+      { name: 'Điều hành Micro-tasks', functionCodes: ['E09_TASK_ACTION', 'E10_TODO_LIST', 'E11_TASK_SUBMISSION', 'E12_GRADING'] },
+      { name: 'Luồng Phê duyệt & Báo cáo', functionCodes: ['E14_REALTIME_SCORE', 'E15_FINAL_EVALUATION', 'E16_FINAL_APPROVAL', 'E17_RADAR_CHART', 'E18_COMPARE_DASHBOARD', 'E19_EXPORT_REPORT'] },
+      // Add other functions that might not fit neatly into these primary groups
+      { name: 'Khác', functionCodes: ['USER_MGMT', 'SKILL_LIB'] } // Example for other codes
     ];
 
     groupsConfig.forEach(groupConfig => {
       const group: RbacFeatureGroup = {
         name: groupConfig.name,
-        features: groupConfig.codes
-          .map(code => FUNCTIONS_DATA.find(f => f.code === code)?.id) // Get functionId from code
+        features: groupConfig.functionCodes
+          .map(code => FUNCTION_CODE_TO_ID_MAP[code]) // Get functionId from code
           .map(functionId => functionId ? featureMap.get(functionId) : undefined)
           .filter((f): f is RbacFeature => f !== undefined),
       };
+      console.log('Group config:', groupConfig.name, 'features:', group.features.length, group.features);
       if (group.features.length > 0) {
         matrix.groups.push(group);
       }
     });
+    console.log('Final matrix:', matrix);
 
     return matrix;
   }

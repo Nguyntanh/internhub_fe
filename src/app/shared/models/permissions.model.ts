@@ -46,33 +46,33 @@ export const FUNCTION_ID_TO_NAME_MAP: { [id: number]: string } = FUNCTIONS_DATA.
 
 // Mock flat role permissions data from Backend (replace with actual API fetch)
 export const MOCK_ROLE_PERMISSIONS_FLAT: RolePermissionResponse[] = [
-  { id: 0, roleId: 1, functionId: 3, canAccess: true, canCreate: true, canEdit: true, canDelete: true },
-  { id: 0, roleId: 1, functionId: 4, canAccess: true, canCreate: true, canEdit: true, canDelete: true },
-  { id: 0, roleId: 1, functionId: 5, canAccess: true, canCreate: true, canEdit: true, canDelete: true },
-  { id: 0, roleId: 1, functionId: 6, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 2, functionId: 4, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 2, functionId: 7, canAccess: true, canCreate: true, canEdit: true, canDelete: true },
-  { id: 0, roleId: 2, functionId: 8, canAccess: true, canCreate: false, canEdit: true, canDelete: false },
-  { id: 0, roleId: 2, functionId: 9, canAccess: true, canCreate: true, canEdit: true, canDelete: true },
-  { id: 0, roleId: 2, functionId: 15, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 2, functionId: 16, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 2, functionId: 20, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 3, functionId: 4, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 3, functionId: 15, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 3, functionId: 17, canAccess: true, canCreate: true, canEdit: true, canDelete: true },
-  { id: 0, roleId: 3, functionId: 18, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 3, functionId: 19, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 3, functionId: 20, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 4, functionId: 5, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 4, functionId: 7, canAccess: true, canCreate: false, canEdit: true, canDelete: false },
-  { id: 0, roleId: 4, functionId: 11, canAccess: true, canCreate: true, canEdit: true, canDelete: true },
-  { id: 0, roleId: 4, functionId: 14, canAccess: true, canCreate: false, canEdit: true, canDelete: true },
-  { id: 0, roleId: 4, functionId: 16, canAccess: true, canCreate: false, canEdit: true, canDelete: false },
-  { id: 0, roleId: 4, functionId: 18, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 5, functionId: 10, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 5, functionId: 12, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
-  { id: 0, roleId: 5, functionId: 13, canAccess: true, canCreate: false, canEdit: true, canDelete: false },
-  { id: 0, roleId: 5, functionId: 18, canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 1, roleName: 'ADMIN', functionId: 3, functionCode: 'E01_USER_MGMT', functionName: 'Quản lý tài khoản nội bộ', canAccess: true, canCreate: true, canEdit: true, canDelete: true },
+  { id: 0, roleId: 1, roleName: 'ADMIN', functionId: 4, functionCode: 'E02_DEPT_POS_CONFIG', functionName: 'Cấu hình Phòng ban & Vị trí', canAccess: true, canCreate: true, canEdit: true, canDelete: true },
+  { id: 0, roleId: 1, roleName: 'ADMIN', functionId: 5, functionCode: 'E03_SKILL_CONFIG', functionName: 'Cấu hình Skill Tags & Trọng số', canAccess: true, canCreate: true, canEdit: true, canDelete: true },
+  { id: 0, roleId: 1, roleName: 'ADMIN', functionId: 6, functionCode: 'E04_AUDIT_LOGS', functionName: 'Truy xuất Audit Logs', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 2, roleName: 'HR', functionId: 4, functionCode: 'E02_DEPT_POS_CONFIG', functionName: 'Cấu hình Phòng ban & Vị trí', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 2, roleName: 'HR', functionId: 7, functionCode: 'E05_INTERN_IMPORT', functionName: 'Tạo/Import hồ sơ Intern', canAccess: true, canCreate: true, canEdit: true, canDelete: true },
+  { id: 0, roleId: 2, roleName: 'HR', functionId: 8, functionCode: 'E06_ASSIGN_MENTOR', functionName: 'Gán Mentor & Manager cho Intern', canAccess: true, canCreate: false, canEdit: true, canDelete: false },
+  { id: 0, roleId: 2, roleName: 'HR', functionId: 9, functionCode: 'E07_UNI_MGMT', functionName: 'Quản lý danh mục Trường ĐH', canAccess: true, canCreate: true, canEdit: true, canDelete: true },
+  { id: 0, roleId: 2, roleName: 'HR', functionId: 15, functionCode: 'E14_REALTIME_SCORE', functionName: 'Xem điểm số Real-time', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 2, roleName: 'HR', functionId: 16, functionCode: 'E15_FINAL_EVALUATION', functionName: 'Đánh giá tổng kết cuối kỳ', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 2, roleName: 'HR', functionId: 20, functionCode: 'E19_EXPORT_REPORT', functionName: 'Xuất báo cáo Excel/PDF', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 3, roleName: 'MANAGER', functionId: 4, functionCode: 'E02_DEPT_POS_CONFIG', functionName: 'Cấu hình Phòng ban & Vị trí', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 3, roleName: 'MANAGER', functionId: 15, functionCode: 'E14_REALTIME_SCORE', functionName: 'Xem điểm số Real-time', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 3, roleName: 'MANAGER', functionId: 17, functionCode: 'E16_FINAL_APPROVAL', functionName: 'Phê duyệt kết quả cuối cùng', canAccess: true, canCreate: true, canEdit: true, canDelete: true },
+  { id: 0, roleId: 3, roleName: 'MANAGER', functionId: 18, functionCode: 'E17_RADAR_CHART', functionName: 'Xem Biểu đồ Radar năng lực', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 3, roleName: 'MANAGER', functionId: 19, functionCode: 'E18_COMPARE_DASHBOARD', functionName: 'Dashboard so sánh Intern', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 3, roleName: 'MANAGER', functionId: 20, functionCode: 'E19_EXPORT_REPORT', functionName: 'Xuất báo cáo Excel/PDF', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 4, roleName: 'MENTOR', functionId: 5, functionCode: 'E03_SKILL_CONFIG', functionName: 'Cấu hình Skill Tags & Trọng số', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 4, roleName: 'MENTOR', functionId: 7, functionCode: 'E05_INTERN_IMPORT', functionName: 'Tạo/Import hồ sơ Intern', canAccess: true, canCreate: false, canEdit: true, canDelete: false },
+  { id: 0, roleId: 4, roleName: 'MENTOR', functionId: 11, functionCode: 'E09_TASK_ACTION', functionName: 'Giao & Duplicate Task', canAccess: true, canCreate: true, canEdit: true, canDelete: true },
+  { id: 0, roleId: 4, roleName: 'MENTOR', functionId: 14, functionCode: 'E12_GRADING', functionName: 'Chấm điểm & Feedback', canAccess: true, canCreate: false, canEdit: true, canDelete: true },
+  { id: 0, roleId: 4, roleName: 'MENTOR', functionId: 16, functionCode: 'E15_FINAL_EVALUATION', functionName: 'Đánh giá tổng kết cuối kỳ', canAccess: true, canCreate: false, canEdit: true, canDelete: false },
+  { id: 0, roleId: 4, roleName: 'MENTOR', functionId: 18, functionCode: 'E17_RADAR_CHART', functionName: 'Xem Biểu đồ Radar năng lực', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 5, roleName: 'INTERN', functionId: 10, functionCode: 'E08_PERSONAL_DASHBOARD', functionName: 'Dashboard lộ trình cá nhân', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 5, roleName: 'INTERN', functionId: 12, functionCode: 'E10_TODO_LIST', functionName: 'To-do list & Cảnh báo', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
+  { id: 0, roleId: 5, roleName: 'INTERN', functionId: 13, functionCode: 'E11_TASK_SUBMISSION', functionName: 'Nộp kết quả & Minh chứng', canAccess: true, canCreate: false, canEdit: true, canDelete: false },
+  { id: 0, roleId: 5, roleName: 'INTERN', functionId: 18, functionCode: 'E17_RADAR_CHART', functionName: 'Xem Biểu đồ Radar năng lực', canAccess: true, canCreate: false, canEdit: false, canDelete: false },
 ];
 
 
@@ -89,7 +89,10 @@ export interface RolePermissionRequest {
 export interface RolePermissionResponse {
   id: number; // Assuming the response has an ID for the specific permission entry
   roleId: number;
+  roleName: string; // Add this
   functionId: number;
+  functionCode: string; // Add this
+  functionName: string; // Add this
   canAccess: boolean;
   canCreate: boolean;
   canEdit: boolean;
