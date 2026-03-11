@@ -1,32 +1,42 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor
-} from '@angular/common/http';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { HttpRequest, HttpHandler, HttpEvent, HttpInterceptor } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Auth } from './auth'; // Import AuthService
 
 @Injectable()
 export class JwtInterceptor implements HttpInterceptor {
-
-  constructor(private authService: Auth) {}
+  constructor(
+    private readonly authService: Auth,
+    @Inject(PLATFORM_ID) private readonly platformId: Object,
+  ) {}
 
   intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    // Lấy token từ AuthService
-    const currentUser = this.authService.currentUserValue;
-    const isLoggedIn = currentUser && currentUser.token;
-    const isApiUrl = request.url.startsWith('http://localhost:8090/api/'); // Giả định tất cả các API call đến backend đều bắt đầu với đường dẫn này
+    // Skip if not browser (SSR)
+    if (!isPlatformBrowser(this.platformId)) {
+      console.log('[JWT] SSR - skipping token');
+      return next.handle(request);
+    }
 
-    // Kiểm tra nếu người dùng đã đăng nhập và yêu cầu không phải là đến trang login
-    // và request là đến API backend
-    if (isLoggedIn && isApiUrl && !request.url.includes('/auth/login')) {
-      // Clone request để thêm header Authorization
+    // Lấy token từ localStorage trực tiếp
+    const token = localStorage.getItem('jwt_token');
+    const isApiUrl = request.url.startsWith('http://localhost:8090/api/');
+
+    console.log(
+      '[JWT] Request:',
+      request.url.substring(0, 50),
+      '| Token exists:',
+      !!token,
+      '| isApiUrl:',
+      isApiUrl,
+    );
+
+    if (token && isApiUrl && !request.url.includes('/auth/login')) {
+      console.log('[JWT] Adding Authorization header');
       request = request.clone({
         setHeaders: {
-          Authorization: `Bearer ${currentUser.token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       });
     }
 

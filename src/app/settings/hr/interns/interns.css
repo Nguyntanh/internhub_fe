@@ -1,0 +1,617 @@
+/* =====================
+   Container
+   ===================== */
+.interns-container {
+  padding: 24px;
+  background-color: #f5f5f5;
+  min-height: 100vh;
+}
+
+/* =====================
+   Header
+   ===================== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.btn-create {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background-color: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.btn-create:hover {
+  background-color: #b91c1c;
+}
+
+.btn-create span {
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* =====================
+   Main Content
+   ===================== */
+.main-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* =====================
+   Filter
+   ===================== */
+.filter-section {
+  display: flex;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e5e5;
+  gap: 12px;
+}
+
+.filter-icon {
+  color: #666;
+  display: flex;
+  align-items: center;
+}
+
+.filter-input {
+  flex: 1;
+  max-width: 300px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 14px;
+  outline: none;
+}
+
+.filter-input:focus {
+  border-color: #3b82f6;
+}
+
+/* =====================
+   Loading State
+   ===================== */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 12px;
+  color: #666;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #e5e5e5;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* =====================
+   Error State
+   ===================== */
+.error-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  gap: 16px;
+  color: #dc2626;
+}
+
+.error-state button {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* =====================
+   Table
+   ===================== */
+.table-container {
+  overflow-x: auto;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.data-table th {
+  text-align: left;
+  padding: 14px 16px;
+  font-weight: 600;
+  color: #333;
+  background: #fafafa;
+  border-bottom: 2px solid #e5e5e5;
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e5e5;
+  color: #555;
+  vertical-align: middle;
+}
+
+.table-row:hover {
+  background: #f9fafb;
+}
+
+/* Column widths */
+.col-code {
+  width: 100px;
+}
+.col-name {
+  width: 180px;
+}
+.col-position {
+  width: 140px;
+}
+.col-email {
+  width: 200px;
+}
+.col-mentor,
+.col-manager {
+  width: 200px;
+}
+.col-actions {
+  width: 150px;
+}
+
+/* =====================
+   Cell Content
+   ===================== */
+.cell-code {
+  font-weight: 500;
+  color: #333;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: #666;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+.name {
+  font-weight: 500;
+  color: #333;
+}
+
+/* =====================
+   Supervisor Cell
+   ===================== */
+.cell-supervisor {
+  min-width: 180px;
+}
+
+.supervisor-display {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.supervisor-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f3f4f6;
+  padding: 6px 12px;
+  border-radius: 16px;
+  font-size: 13px;
+  color: #374151;
+}
+
+.supervisor-empty {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #9ca3af;
+  font-size: 13px;
+}
+
+.btn-edit {
+  background: none;
+  border: none;
+  padding: 2px;
+  cursor: pointer;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+
+.btn-edit:hover {
+  color: #374151;
+  background: #e5e7eb;
+}
+
+/* Supervisor edit mode */
+.supervisor-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.supervisor-edit select {
+  padding: 6px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 13px;
+  outline: none;
+  min-width: 160px;
+}
+
+.supervisor-edit select:focus {
+  border-color: #3b82f6;
+}
+
+.edit-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-save,
+.btn-cancel {
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-save {
+  background: #10b981;
+  color: white;
+}
+
+.btn-save:hover {
+  background: #059669;
+}
+
+.btn-cancel {
+  background: #ef4444;
+  color: white;
+}
+
+.btn-cancel:hover {
+  background: #dc2626;
+}
+
+/* =====================
+   Action Buttons
+   ===================== */
+.cell-actions {
+  text-align: center;
+}
+
+.action-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.btn-action {
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  background: white;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.btn-action:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+}
+
+.btn-view {
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.btn-view:hover {
+  background: #eff6ff;
+}
+
+.btn-edit-action {
+  color: #6b7280;
+}
+
+/* =====================
+   Empty State
+   ===================== */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  color: #9ca3af;
+}
+
+.empty-content p {
+  margin: 0;
+  font-size: 14px;
+}
+
+.btn-create-empty {
+  background: #dc2626;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-create-empty:hover {
+  background: #b91c1c;
+}
+
+/* =====================
+   Pagination
+   ===================== */
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.btn-page {
+  min-width: 32px;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.btn-page:hover:not(:disabled) {
+  background: #f3f4f6;
+  border-color: #9ca3af;
+}
+
+.btn-page.active {
+  background: #dc2626;
+  color: white;
+  border-color: #dc2626;
+}
+
+.btn-page:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.page-ellipsis {
+  color: #9ca3af;
+  padding: 0 4px;
+}
+
+/* =====================
+   Modal
+   ===================== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: white;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e5e5e5;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: #9ca3af;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.btn-close:hover {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.modal-body {
+  padding: 20px;
+}
+
+.intern-info {
+  background: #f9fafb;
+  padding: 16px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.info-row {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.info-row:last-child {
+  margin-bottom: 0;
+}
+
+.info-row label {
+  font-weight: 500;
+  color: #6b7280;
+  min-width: 100px;
+}
+
+.info-row span {
+  color: #374151;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #374151;
+}
+
+.form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  outline: none;
+  background: white;
+}
+
+.form-group select:focus {
+  border-color: #3b82f6;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid #e5e5e5;
+}
+
+.btn-cancel-modal {
+  padding: 10px 16px;
+  border: 1px solid #d1d5db;
+  background: white;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #374151;
+}
+
+.btn-cancel-modal:hover {
+  background: #f9fafb;
+}
+
+.btn-save-modal {
+  padding: 10px 16px;
+  border: none;
+  background: #dc2626;
+  color: white;
+  border-radius: 6px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn-save-modal:hover {
+  background: #b91c1c;
+}
