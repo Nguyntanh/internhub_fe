@@ -25,7 +25,7 @@ import { InternsComponent } from './dashboard/management/interns/interns';
 import { AnalyticsComponent } from './dashboard/capacity/analytics/analytics';
 
 // Import NEW placeholder components for multi-level settings sub-menus
-import { AccountsComponent } from './settings/hr/accounts/accounts';
+import { AccountManagementComponent } from './settings/hr/accounts/account-management/account-management.component';
 import { HrInternsComponent } from './settings/hr/interns/interns';
 import { OrgStructureComponent } from './settings/hr/org-structure/org-structure';
 import { EvaluationSkillsComponent } from './settings/evaluation/skills/skills';
@@ -102,7 +102,7 @@ export const routes: Routes = [
         data: { title: 'Quản trị Nhân sự' },
         children: [
           { path: '', redirectTo: 'accounts', pathMatch: 'full' },
-          { path: 'accounts', component: AccountsComponent, data: { title: 'Quản lý Tài khoản Nội bộ' } },
+          { path: 'accounts', component: AccountManagementComponent, data: { title: 'Quản lý Tài khoản & Phân quyền' } },
           { path: 'interns', component: HrInternsComponent, data: { title: 'Quản lý Thực tập sinh' } },
           { path: 'org-structure', component: OrgStructureComponent, data: { title: 'Cơ cấu Tổ chức' } },
         ]

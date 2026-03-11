@@ -1,0 +1,46 @@
+<div class="account-management-container">
+  <div class="header">
+    <h2 class="title">Quản lý Tài khoản & Phân quyền</h2>
+    <button mat-raised-button color="primary" (click)="openCreateUserDialog()">
+      <mat-icon>add</mat-icon> Thêm tài khoản mới
+    </button>
+  </div>
+
+  <mat-card class="rbac-matrix-card">
+    <mat-card-header>
+      <mat-card-title>Bảng Phân quyền (RBAC Matrix)</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <!-- RBAC Matrix will go here -->
+      <div class="table-responsive">
+      <table class="rbac-table">
+        <thead>
+          <tr>
+            <th class="sticky-col-1">Tính năng / Module</th>
+            <th *ngFor="let role of rolesHeader">{{ role }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let group of permissionMatrix.groups">
+            <tr class="group-header-row">
+              <td [attr.colspan]="rolesHeader.length + 1">{{ group.name }}</td>
+            </tr>
+            <tr *ngFor="let feature of group.features">
+              <td class="sticky-col-1 feature-name">{{ feature.name }} ({{ feature.id }})</td>
+              <td *ngFor="let role of rolesHeader">
+                <ng-container [ngSwitch]="role">
+                  <span *ngSwitchCase="'ADMIN'">{{ feature.permissions.ADMIN.raw }}</span>
+                  <span *ngSwitchCase="'HR'">{{ feature.permissions.HR.raw }}</span>
+                  <span *ngSwitchCase="'MENTOR'">{{ feature.permissions.MENTOR.raw }}</span>
+                  <span *ngSwitchCase="'MANAGER'">{{ feature.permissions.MANAGER.raw }}</span>
+                  <span *ngSwitchCase="'INTERN'">{{ feature.permissions.INTERN.raw }}</span>
+                </ng-container>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+    </mat-card-content>
+  </mat-card>
+</div>
