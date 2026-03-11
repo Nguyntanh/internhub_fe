@@ -11,8 +11,6 @@
       <mat-card-title>Bảng Phân quyền (RBAC Matrix)</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      DEBUG: isLoading = {{ isLoading | json }}<br>
-      DEBUG: permissionMatrix = {{ permissionMatrix | json }}<br>
       <div *ngIf="isLoading" class="loading-spinner">
         <mat-spinner></mat-spinner>
         <p>Đang tải quyền hạn...</p>
