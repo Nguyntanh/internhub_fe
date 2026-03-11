@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // For ngModel in mat-radio-group
 import { MatCardModule } from '@angular/material/card';
@@ -55,7 +55,8 @@ export class AccountManagementComponent implements OnInit {
   constructor(
     public dialog: MatDialog,
     private rolePermissionService: RolePermissionService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -71,6 +72,7 @@ export class AccountManagementComponent implements OnInit {
         this.permissionMatrix = this.buildPermissionMatrix(flatPermissions);
         console.log('Final permissionMatrix assigned:', this.permissionMatrix);
         this.isLoading = false;
+        this.cdr.detectChanges(); // Force change detection
       },
       error: (err) => {
         console.error('Failed to load permissions:', err);
@@ -78,6 +80,7 @@ export class AccountManagementComponent implements OnInit {
         this.isLoading = false;
         // Optionally, load mock data on error for development/demonstration
         this.permissionMatrix = this.buildPermissionMatrix(MOCK_ROLE_PERMISSIONS_FLAT);
+        this.cdr.detectChanges(); // Force change detection even on error
       }
     });
   }
