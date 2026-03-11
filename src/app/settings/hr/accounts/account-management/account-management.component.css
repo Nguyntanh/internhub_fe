@@ -86,3 +86,27 @@
 .rbac-table tbody td {
     background-color: inherit;
 }
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+}
+
+.permission-controls {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+}
+
+.permission-cell {
+  text-align: center; /* Center checkboxes */
+}
+
+.rbac-table th.role-header {
+  min-width: 100px; /* Ensure role headers have enough width */
+}

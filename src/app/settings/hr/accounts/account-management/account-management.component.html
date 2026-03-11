@@ -11,36 +11,46 @@
       <mat-card-title>Bảng Phân quyền (RBAC Matrix)</mat-card-title>
     </mat-card-header>
     <mat-card-content>
-      <!-- RBAC Matrix will go here -->
-      <div class="table-responsive">
-      <table class="rbac-table">
-        <thead>
-          <tr>
-            <th class="sticky-col-1">Tính năng / Module</th>
-            <th *ngFor="let role of rolesHeader">{{ role }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <ng-container *ngFor="let group of permissionMatrix.groups">
-            <tr class="group-header-row">
-              <td [attr.colspan]="rolesHeader.length + 1">{{ group.name }}</td>
+      <div *ngIf="isLoading" class="loading-spinner">
+        <mat-spinner></mat-spinner>
+        <p>Đang tải quyền hạn...</p>
+      </div>
+
+      <div *ngIf="!isLoading && permissionMatrix" class="permission-controls">
+        <mat-radio-group [(ngModel)]="selectedPermissionType" class="permission-radio-group">
+          <mat-radio-button value="canCreate">Create</mat-radio-button>
+          <mat-radio-button value="canAccess">Read (Access)</mat-radio-button>
+          <mat-radio-button value="canEdit">Update</mat-radio-button>
+          <mat-radio-button value="canDelete">Delete</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <div *ngIf="!isLoading && permissionMatrix" class="table-responsive">
+        <table class="rbac-table">
+          <thead>
+            <tr>
+              <th class="sticky-col-1">Tính năng / Module</th>
+              <th *ngFor="let roleDef of roleDefinitions" class="role-header">{{ roleDef.name }}</th>
             </tr>
-            <tr *ngFor="let feature of group.features">
-              <td class="sticky-col-1 feature-name">{{ feature.name }} ({{ feature.id }})</td>
-              <td *ngFor="let role of rolesHeader">
-                <ng-container [ngSwitch]="role">
-                  <span *ngSwitchCase="'ADMIN'">{{ feature.permissions.ADMIN.raw }}</span>
-                  <span *ngSwitchCase="'HR'">{{ feature.permissions.HR.raw }}</span>
-                  <span *ngSwitchCase="'MENTOR'">{{ feature.permissions.MENTOR.raw }}</span>
-                  <span *ngSwitchCase="'MANAGER'">{{ feature.permissions.MANAGER.raw }}</span>
-                  <span *ngSwitchCase="'INTERN'">{{ feature.permissions.INTERN.raw }}</span>
-                </ng-container>
-              </td>
-            </tr>
-          </ng-container>
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let group of permissionMatrix.groups; trackBy: trackByFeatureId">
+              <tr class="group-header-row">
+                <td [attr.colspan]="roleDefinitions.length + 1">{{ group.name }}</td>
+              </tr>
+              <tr *ngFor="let feature of group.features; trackBy: trackByFeatureId">
+                <td class="sticky-col-1 feature-name">{{ feature.name }} ({{ feature.id }})</td>
+                <td *ngFor="let roleDef of roleDefinitions; trackBy: trackByRoleId" class="permission-cell">
+                  <mat-checkbox
+                    [checked]="isPermissionEnabled(feature, roleDef.id, selectedPermissionType)"
+                    (change)="onPermissionChange(feature, roleDef, selectedPermissionType, $event)"
+                  ></mat-checkbox>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
     </mat-card-content>
   </mat-card>
 </div>
