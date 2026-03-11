@@ -32,11 +32,13 @@ import { EvaluationSkillsComponent } from './settings/evaluation/skills/skills';
 import { PartnersListComponent } from './settings/partners/list/list';
 import { OperationProcessComponent } from './settings/operation/process/process';
 import { SecurityLogsComponent } from './settings/security/logs/logs';
+import { ActivateAccountComponent } from './activate-account/activate-account.component'; // New import
 
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'activate', component: ActivateAccountComponent }, // New route
   {
     path: 'dashboard',
     component: MainLayout, // Use MainLayout as the parent component
