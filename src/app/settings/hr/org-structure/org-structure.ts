@@ -3,276 +3,369 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 
+// ── Khớp với InternshipPositionResponse.java ──
+interface InternshipPosition {
+  id: number;
+  name: string;
+  description?: string;
+  departmentId?: number;
+  departmentName?: string;
+}
+
+// ── Khớp với DepartmentResponse.java ──
 interface Department {
   id: number;
   name: string;
   description?: string;
   createdAt?: string;
+  positions?: InternshipPosition[];
+  memberNames?: string[];
+}
+
+// ── Khớp với DepartmentRequest.java ──
+interface DepartmentPayload {
+  name: string;
+  description?: string;
+  leaderIds?: number[];
+}
+
+// ── Khớp với InternshipPositionRequest.java ──
+interface PositionPayload {
+  name: string;
+  description?: string;
+  departmentId?: number | null;
 }
 
 @Component({
   selector: 'app-org-structure',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  template: `
-<div class="p-6">
-  <!-- Header -->
-  <div class="flex items-center justify-between mb-6">
-    <h1 class="text-2xl font-semibold text-gray-800">Danh sách phòng ban</h1>
-    <button
-      (click)="openAddModal()"
-      class="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium rounded-md transition-colors duration-200"
-    >
-      Thêm phòng ban
-    </button>
-  </div>
-
-  <!-- Error Message -->
-  <div *ngIf="errorMessage" class="mb-4 p-3 bg-red-100 text-red-700 rounded-md flex items-center justify-between">
-    <span>{{ errorMessage }}</span>
-    <button (click)="errorMessage = ''" class="text-red-500 hover:text-red-700 font-bold ml-4">✕</button>
-  </div>
-
-  <!-- Loading -->
-  <div *ngIf="isLoading" class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-600"></div>
-    <span class="ml-3 text-gray-500">Đang tải...</span>
-  </div>
-
-  <!-- Table -->
-  <div *ngIf="!isLoading" class="bg-white rounded-lg border border-gray-200 overflow-hidden">
-    <table class="w-full">
-      <thead>
-        <tr class="border-b border-gray-200">
-          <th class="text-left px-6 py-3 text-sm font-semibold text-gray-600 w-16">STT</th>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-gray-600 w-48">Phòng ban</th>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-gray-600">Tên</th>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-gray-600">Liên hệ</th>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-gray-600 w-28">Status</th>
-          <th class="text-left px-6 py-3 text-sm font-semibold text-gray-600 w-28">Hành động</th>
-        </tr>
-      </thead>
-      <tbody>
-        <ng-container *ngFor="let dept of departments; let i = index">
-          <tr class="border-b border-gray-100 hover:bg-gray-50">
-            <td class="px-6 py-4 text-sm text-gray-700 align-top">{{ i + 1 }}</td>
-            <td class="px-6 py-4 text-sm text-gray-800 font-medium align-top">{{ dept.name }}</td>
-            <td class="px-6 py-4 text-sm text-gray-400 align-top">—</td>
-            <td class="px-6 py-4 text-sm text-gray-400 align-top">—</td>
-            <td class="px-6 py-4 text-sm text-gray-400 align-top">—</td>
-            <td class="px-6 py-4 align-top">
-              <div class="flex items-center space-x-3">
-                <button (click)="openEditModal(dept)" class="text-blue-500 hover:text-blue-700 text-xs font-medium">Sửa</button>
-                <button (click)="confirmDelete(dept)" class="text-red-500 hover:text-red-700 text-xs font-medium">Xóa</button>
-              </div>
-            </td>
-          </tr>
-        </ng-container>
-
-        <tr *ngIf="departments.length === 0 && !isLoading">
-          <td colspan="6" class="px-6 py-12 text-center text-gray-400">
-            Chưa có phòng ban nào. Hãy thêm phòng ban đầu tiên.
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Add/Edit Modal -->
-<div *ngIf="showModal" class="fixed inset-0 z-50 flex items-center justify-center">
-  <div class="absolute inset-0 bg-black bg-opacity-40" (click)="closeModal()"></div>
-  <div class="relative bg-white rounded-lg shadow-xl w-full max-w-md mx-4 z-10">
-    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
-      <h2 class="text-lg font-semibold text-gray-800">
-        {{ isEditMode ? 'Chỉnh sửa phòng ban' : 'Thêm phòng ban mới' }}
-      </h2>
-      <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">✕</button>
-    </div>
-
-    <div class="px-6 py-4" [formGroup]="departmentForm">
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-          Tên phòng ban <span class="text-red-500">*</span>
-        </label>
-        <input
-          type="text"
-          formControlName="name"
-          placeholder="Nhập tên phòng ban"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          [class.border-red-400]="departmentForm.get('name')?.invalid && departmentForm.get('name')?.touched"
-        />
-        <p *ngIf="departmentForm.get('name')?.invalid && departmentForm.get('name')?.touched" class="mt-1 text-xs text-red-500">
-          Tên phòng ban là bắt buộc.
-        </p>
-      </div>
-
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 mb-1">Mô tả</label>
-        <textarea
-          formControlName="description"
-          rows="3"
-          placeholder="Nhập mô tả (tùy chọn)"
-          class="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-        ></textarea>
-      </div>
-    </div>
-
-    <div class="flex justify-end space-x-3 px-6 py-4 border-t border-gray-200">
-      <button (click)="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">
-        Hủy
-      </button>
-      <button
-        (click)="saveDepartment()"
-        [disabled]="departmentForm.invalid"
-        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {{ isEditMode ? 'Cập nhật' : 'Thêm mới' }}
-      </button>
-    </div>
-  </div>
-</div>
-
-<!-- Delete Confirm Modal -->
-<div *ngIf="showDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center">
-  <div class="absolute inset-0 bg-black bg-opacity-40" (click)="cancelDelete()"></div>
-  <div class="relative bg-white rounded-lg shadow-xl w-full max-w-sm mx-4 z-10">
-    <div class="p-6">
-      <h3 class="text-lg font-semibold text-gray-800 mb-2">Xác nhận xóa</h3>
-      <p class="text-sm text-gray-600 mb-6">
-        Bạn có chắc muốn xóa phòng ban <strong>{{ departmentToDelete?.name }}</strong>? Hành động này không thể hoàn tác.
-      </p>
-      <div class="flex justify-end space-x-3">
-        <button (click)="cancelDelete()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md">Hủy</button>
-        <button (click)="deleteDepartment()" class="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md">Xóa</button>
-      </div>
-    </div>
-  </div>
-</div>
-  `,
-  styles: []
+  templateUrl: './org-structure.html',
+  styleUrls: ['./org-structure.css']
 })
 export class OrgStructureComponent implements OnInit {
   private apiUrl = 'http://localhost:8090/api';
 
+  // ── Tab ──
+  activeTab: 'departments' | 'positions' = 'departments';
+
+  // ── Data ──
   departments: Department[] = [];
+  allPositions: InternshipPosition[] = [];
+
+  // ── UI state ──
   isLoading = false;
+  isLoadingPositions = false;
   errorMessage = '';
+  expandedDeptId: number | null = null;
 
-  showModal = false;
-  isEditMode = false;
-  selectedDepartment: Department | null = null;
-
-  showDeleteModal = false;
-  departmentToDelete: Department | null = null;
-
+  // ── Dept modal ──
+  showDeptModal = false;
+  isEditDeptMode = false;
+  selectedDept: Department | null = null;
   departmentForm = new FormGroup({
     name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
-    description: new FormControl('', [Validators.maxLength(1000)])
+    description: new FormControl('')
   });
 
+  // ── Delete dept modal ──
+  showDeleteDeptModal = false;
+  deptToDelete: Department | null = null;
+
+  // ── Position modal ──
+  showPositionModal = false;
+  isEditPositionMode = false;
+  selectedPosition: InternshipPosition | null = null;
+  targetDeptForPosition: Department | null = null;
+  positionForm = new FormGroup({
+    name: new FormControl('', [Validators.required, Validators.maxLength(100)]),
+    description: new FormControl('', [Validators.maxLength(1000)]),
+    departmentId: new FormControl<number | null>(null)
+  });
+
+  // ── Delete position modal ──
+  showDeletePositionModal = false;
+  positionToDelete: InternshipPosition | null = null;
+
+  // ── Toast notifications ──
+  toasts: { id: number; message: string; type: 'success' | 'error' }[] = [];
+  private toastCounter = 0;
+
   constructor(private http: HttpClient) {}
+
+  showToast(message: string, type: 'success' | 'error' = 'success'): void {
+    const id = ++this.toastCounter;
+    this.toasts.push({ id, message, type });
+    setTimeout(() => { this.toasts = this.toasts.filter(t => t.id !== id); }, 3000);
+  }
+
+  dismissToast(id: number): void {
+    this.toasts = this.toasts.filter(t => t.id !== id);
+  }
 
   ngOnInit(): void {
     this.loadDepartments();
   }
 
-  loadDepartments(): void {
-    this.isLoading = true;
+  // ──────────── Tab ────────────
+
+  switchTab(tab: 'departments' | 'positions'): void {
+    this.activeTab = tab;
     this.errorMessage = '';
-    this.http.get<Department[]>(`${this.apiUrl}/departments`)
-      .subscribe({
-        next: (data) => {
-          this.departments = data;
-          this.isLoading = false;
-        },
-        error: (err) => {
-          this.errorMessage = 'Không thể tải danh sách phòng ban.';
-          this.isLoading = false;
-          console.error(err);
-        }
-      });
-  }
-
-  openAddModal(): void {
-    this.isEditMode = false;
-    this.selectedDepartment = null;
-    this.departmentForm.reset();
-    this.showModal = true;
-  }
-
-  openEditModal(dept: Department): void {
-    this.isEditMode = true;
-    this.selectedDepartment = dept;
-    this.departmentForm.patchValue({ name: dept.name, description: dept.description || '' });
-    this.showModal = true;
-  }
-
-  closeModal(): void {
-    this.showModal = false;
-    this.departmentForm.reset();
-  }
-
-  saveDepartment(): void {
-    if (this.departmentForm.invalid) return;
-
-    const payload = {
-      name: this.departmentForm.value.name,
-      description: this.departmentForm.value.description || ''
-    };
-
-    if (this.isEditMode && this.selectedDepartment) {
-      this.http.put<Department>(
-        `${this.apiUrl}/departments/${this.selectedDepartment.id}`,
-        payload
-      ).subscribe({
-        next: (updated) => {
-          const idx = this.departments.findIndex(d => d.id === updated.id);
-          if (idx !== -1) this.departments[idx] = updated;
-          this.closeModal();
-        },
-        error: (err) => {
-          this.errorMessage = 'Cập nhật thất bại.';
-          console.error(err);
-        }
-      });
-    } else {
-      this.http.post<Department>(`${this.apiUrl}/departments`, payload)
-        .subscribe({
-          next: (created) => {
-            this.departments = [...this.departments, created];
-            this.closeModal();
-          },
-          error: (err) => {
-            this.errorMessage = 'Thêm phòng ban thất bại.';
-            console.error(err);
-          }
-        });
+    if (tab === 'positions') {
+      // Luôn load lại từ server khi chuyển tab — tránh stale cache
+      this.loadAllPositions();
     }
   }
 
-  confirmDelete(dept: Department): void {
-    this.departmentToDelete = dept;
-    this.showDeleteModal = true;
+  // ──────────── Load ────────────
+
+  loadDepartments(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.http.get<Department[]>(`${this.apiUrl}/departments`).subscribe({
+      next: (depts) => {
+        this.departments = depts;
+        this.isLoading = false;
+        // Đồng bộ allPositions từ departments ngay sau khi load
+        // để tab Vị trí thực tập có data ngay cả khi chưa chuyển tab
+        this.allPositions = depts.flatMap(d => d.positions ?? []);
+      },
+      error: () => { this.errorMessage = 'Không thể tải danh sách phòng ban.'; this.isLoading = false; }
+    });
   }
 
-  cancelDelete(): void {
-    this.showDeleteModal = false;
-    this.departmentToDelete = null;
+  loadAllPositions(): void {
+    this.isLoadingPositions = true;
+    this.http.get<InternshipPosition[]>(`${this.apiUrl}/positions`).subscribe({
+      next: (positions) => {
+        this.allPositions = positions;
+        // Cập nhật ngược lại dept.positions để 2 tab luôn đồng nhất
+        this.departments = this.departments.map(d => ({
+          ...d,
+          positions: positions.filter(p => p.departmentId === d.id)
+        }));
+        this.isLoadingPositions = false;
+      },
+      error: () => { this.errorMessage = 'Không thể tải danh sách vị trí.'; this.isLoadingPositions = false; }
+    });
   }
+
+  // ──────────── Helpers ────────────
+
+  getMemberCount(dept: Department): number { return dept.memberNames?.length ?? 0; }
+  getMemberNames(dept: Department): string[] { return dept.memberNames ?? []; }
+  getPositions(dept: Department): InternshipPosition[] { return dept.positions ?? []; }
+  getDeptName(departmentId?: number): string {
+    if (!departmentId) return '—';
+    return this.departments.find(d => d.id === departmentId)?.name ?? '—';
+  }
+
+  toggleExpand(deptId: number): void {
+    this.expandedDeptId = this.expandedDeptId === deptId ? null : deptId;
+  }
+
+  getInitials(name: string): string {
+    return name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+  }
+
+  getAvatarColor(name: string): string {
+    const palette = ['#3b82f6','#8b5cf6','#ec4899','#f59e0b','#10b981','#06b6d4','#f97316','#6366f1'];
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    return palette[Math.abs(hash) % palette.length];
+  }
+
+  // ──────────── Department CRUD ────────────
+
+  openAddDeptModal(): void {
+    this.isEditDeptMode = false;
+    this.selectedDept = null;
+    this.departmentForm.reset();
+    this.showDeptModal = true;
+  }
+
+  openEditDeptModal(dept: Department, event: Event): void {
+    event.stopPropagation();
+    this.isEditDeptMode = true;
+    this.selectedDept = dept;
+    this.departmentForm.patchValue({ name: dept.name, description: dept.description || '' });
+    this.showDeptModal = true;
+  }
+
+  closeDeptModal(): void { this.showDeptModal = false; this.departmentForm.reset(); }
+
+  saveDepartment(): void {
+    if (this.departmentForm.invalid) return;
+    const payload: DepartmentPayload = {
+      name: this.departmentForm.value.name!,
+      description: this.departmentForm.value.description || '',
+      leaderIds: []
+    };
+    if (this.isEditDeptMode && this.selectedDept) {
+      this.http.put<Department>(`${this.apiUrl}/departments/${this.selectedDept.id}`, payload).subscribe({
+        next: (updated) => {
+          updated.positions = this.selectedDept?.positions ?? [];
+          updated.memberNames = this.selectedDept?.memberNames ?? [];
+          const idx = this.departments.findIndex(d => d.id === updated.id);
+          if (idx !== -1) this.departments[idx] = updated;
+          this.closeDeptModal();
+          this.showToast(`Đã cập nhật phòng ban "${updated.name}" thành công.`);
+        },
+        error: () => { this.showToast('Cập nhật phòng ban thất bại.', 'error'); }
+      });
+    } else {
+      this.http.post<Department>(`${this.apiUrl}/departments`, payload).subscribe({
+        next: (created) => {
+          created.positions = [];
+          this.departments = [...this.departments, created];
+          this.closeDeptModal();
+          this.showToast(`Đã thêm phòng ban "${created.name}" thành công.`);
+        },
+        error: () => { this.showToast('Thêm phòng ban thất bại.', 'error'); }
+      });
+    }
+  }
+
+  confirmDeleteDept(dept: Department, event: Event): void {
+    event.stopPropagation();
+    this.deptToDelete = dept;
+    this.showDeleteDeptModal = true;
+  }
+
+  cancelDeleteDept(): void { this.showDeleteDeptModal = false; this.deptToDelete = null; }
 
   deleteDepartment(): void {
-    if (!this.departmentToDelete) return;
-    this.http.delete(`${this.apiUrl}/departments/${this.departmentToDelete.id}`)
-      .subscribe({
-        next: () => {
-          this.departments = this.departments.filter(d => d.id !== this.departmentToDelete!.id);
-          this.cancelDelete();
+    if (!this.deptToDelete) return;
+    this.http.delete(`${this.apiUrl}/departments/${this.deptToDelete.id}`).subscribe({
+      next: () => {
+        const deletedId = this.deptToDelete!.id;
+        const deletedName = this.deptToDelete!.name;
+        this.departments = this.departments.filter(d => d.id !== deletedId);
+        this.allPositions = this.allPositions.filter(p => p.departmentId !== deletedId);
+        if (this.expandedDeptId === deletedId) this.expandedDeptId = null;
+        this.cancelDeleteDept();
+        this.showToast(`Đã xóa phòng ban "${deletedName}".`);
+      },
+      error: () => { this.showToast('Xóa phòng ban thất bại.', 'error'); this.cancelDeleteDept(); }
+    });
+  }
+
+  // ──────────── Position CRUD ────────────
+
+  /** Từ tab Phòng ban — dept đã biết trước */
+  openAddPositionFromDept(dept: Department, event: Event): void {
+    event.stopPropagation();
+    this.isEditPositionMode = false;
+    this.selectedPosition = null;
+    this.targetDeptForPosition = dept;
+    this.positionForm.reset();
+    this.positionForm.patchValue({ departmentId: dept.id });
+    this.showPositionModal = true;
+  }
+
+  /** Từ tab Vị trí — người dùng tự chọn phòng ban */
+  openAddPositionFromTab(): void {
+    this.isEditPositionMode = false;
+    this.selectedPosition = null;
+    this.targetDeptForPosition = null;
+    this.positionForm.reset();
+    this.showPositionModal = true;
+  }
+
+  openEditPositionModal(position: InternshipPosition, dept: Department | null, event: Event): void {
+    event.stopPropagation();
+    this.isEditPositionMode = true;
+    this.selectedPosition = position;
+    this.targetDeptForPosition = dept;
+    this.positionForm.patchValue({
+      name: position.name,
+      description: position.description || '',
+      departmentId: position.departmentId ?? null
+    });
+    this.showPositionModal = true;
+  }
+
+  closePositionModal(): void {
+    this.showPositionModal = false;
+    this.positionForm.reset();
+    this.targetDeptForPosition = null;
+  }
+
+  savePosition(): void {
+    if (this.positionForm.invalid) return;
+
+    // Ưu tiên dept từ context (click từ panel phòng ban), sau đó mới lấy từ form select
+    const deptId: number | null =
+      this.targetDeptForPosition?.id
+      ?? (this.positionForm.value.departmentId as number | null)
+      ?? null;
+
+    const payload: PositionPayload = {
+      name: this.positionForm.value.name!,
+      description: this.positionForm.value.description || '',
+      departmentId: deptId
+    };
+
+    if (this.isEditPositionMode && this.selectedPosition) {
+      this.http.put<InternshipPosition>(`${this.apiUrl}/positions/${this.selectedPosition.id}`, payload).subscribe({
+        next: (updated) => {
+          this.departments = this.departments.map(d => ({
+            ...d,
+            positions: d.positions?.map(p => p.id === updated.id ? updated : p) ?? []
+          }));
+          const idx = this.allPositions.findIndex(p => p.id === updated.id);
+          if (idx !== -1) this.allPositions[idx] = updated;
+          this.closePositionModal();
+          this.showToast(`Đã cập nhật vị trí "${updated.name}" thành công.`);
+        },
+        error: () => { this.showToast('Cập nhật vị trí thất bại.', 'error'); }
+      });
+    } else {
+      this.http.post<InternshipPosition>(`${this.apiUrl}/positions`, payload).subscribe({
+        next: (created) => {
+          if (created.departmentId) {
+            this.departments = this.departments.map(d =>
+              d.id === created.departmentId
+                ? { ...d, positions: [...(d.positions ?? []), created] }
+                : d
+            );
+          }
+          this.allPositions = [...this.allPositions, created];
+          this.closePositionModal();
+          this.showToast(`Đã thêm vị trí "${created.name}" thành công.`);
         },
         error: (err) => {
-          this.errorMessage = 'Xóa thất bại.';
-          console.error(err);
+          console.error('Add position error:', err);
+          this.showToast('Thêm vị trí thất bại.', 'error');
         }
       });
+    }
+  }
+
+  confirmDeletePosition(position: InternshipPosition, event: Event): void {
+    event.stopPropagation();
+    this.positionToDelete = position;
+    this.showDeletePositionModal = true;
+  }
+
+  cancelDeletePosition(): void { this.showDeletePositionModal = false; this.positionToDelete = null; }
+
+  deletePosition(): void {
+    if (!this.positionToDelete) return;
+    this.http.delete(`${this.apiUrl}/positions/${this.positionToDelete.id}`).subscribe({
+      next: () => {
+        const deletedId = this.positionToDelete!.id;
+        const deletedName = this.positionToDelete!.name;
+        this.departments = this.departments.map(d => ({
+          ...d,
+          positions: d.positions?.filter(p => p.id !== deletedId) ?? []
+        }));
+        this.allPositions = this.allPositions.filter(p => p.id !== deletedId);
+        this.cancelDeletePosition();
+        this.showToast(`Đã xóa vị trí "${deletedName}".`);
+      },
+      error: () => { this.showToast('Xóa vị trí thất bại.', 'error'); this.cancelDeletePosition(); }
+    });
   }
 }
