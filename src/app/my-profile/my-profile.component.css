@@ -1,0 +1,210 @@
+.profile-container {
+  display: flex;
+  justify-content: center;
+  padding: 20px;
+  min-height: calc(100vh - 64px); /* Adjust based on your header height */
+  background-color: #f5f5f5;
+}
+
+.profile-card {
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.loading-card, .error-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  text-align: center;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+}
+
+.error-card mat-icon {
+  font-size: 48px;
+  height: 48px;
+  width: 48px;
+  margin-bottom: 10px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  background-color: #f9f9f9;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 20px;
+  border: 2px solid #ddd;
+}
+
+.profile-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-info h2 {
+  margin: 0 0 5px 0;
+  color: #333;
+}
+
+.profile-info p {
+  margin: 0;
+  color: #555;
+  font-size: 14px;
+}
+
+.profile-email {
+  margin-bottom: 8px !important;
+}
+
+.department-badge {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  background-color: #673ab7; /* Accent color */
+  color: white;
+  display: inline-block; /* To make it respect padding/margin */
+  margin-top: 5px;
+}
+
+mat-card-content {
+  padding: 20px;
+}
+
+.internship-card {
+  margin-top: 20px;
+  border: 1px solid #e0e0e0;
+  box-shadow: none;
+}
+
+.internship-card mat-card-header {
+  background-color: #f0f0f0;
+  padding: 15px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.internship-card mat-card-title {
+  font-size: 18px;
+  color: #333;
+}
+
+.internship-card mat-card-subtitle {
+  color: #666;
+}
+
+.internship-card mat-card-content p {
+  margin: 10px 0;
+  font-size: 14px;
+  color: #444;
+}
+
+.progress-section {
+  margin-top: 20px;
+  margin-bottom: 10px;
+}
+
+.progress-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #777;
+  margin-top: 5px;
+}
+
+mat-progress-bar {
+  height: 8px;
+  border-radius: 4px;
+}
+
+.status-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 20px;
+  padding-top: 15px;
+  border-top: 1px dashed #e0e0e0;
+}
+
+.days-remaining, .internship-status {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  padding: 5px 10px;
+  border-radius: 5px;
+}
+
+.days-remaining mat-icon, .internship-status mat-icon {
+  margin-right: 5px;
+  font-size: 18px;
+}
+
+.days-remaining-normal {
+  background-color: #e3f2fd; /* Light blue */
+  color: #2196f3;
+}
+
+.days-remaining-warning {
+  background-color: #ffebee; /* Light red */
+  color: #f44336;
+}
+
+.days-remaining-past {
+  background-color: #eeeeee; /* Grey */
+  color: #777777;
+}
+
+.status-in-progress {
+  background-color: #e8f5e9; /* Light green */
+  color: #4caf50;
+}
+
+.status-completed {
+  background-color: #e3f2fd; /* Light blue */
+  color: #2196f3;
+}
+
+.status-terminated {
+  background-color: #ffebee; /* Light red */
+  color: #f44336;
+}
+
+.status-default {
+  background-color: #f0f0f0;
+  color: #555;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #777;
+  background-color: #fdfdfd;
+  border: 1px dashed #e0e0e0;
+  border-radius: 8px;
+  margin-top: 20px;
+}
+
+.empty-state mat-icon {
+  font-size: 48px;
+  height: 48px;
+  width: 48px;
+  margin-bottom: 10px;
+  color: #999;
+}
+
+.logout-button {
+  margin-top: 20px;
+  width: 100%;
+}
