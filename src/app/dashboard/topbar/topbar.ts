@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, ActivatedRoute, RouterModule } from '@angular/router';
 import { filter, map, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs'; // Import Observable is not needed for this change.
+import { Auth } from '../../auth/auth'; // Import AuthService
 
 import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component'; // Import BreadcrumbComponent
 
@@ -23,6 +24,7 @@ export class Topbar implements OnInit, OnDestroy {
   constructor(
     public router: Router,
     private activatedRoute: ActivatedRoute,
+    private authService: Auth // Inject AuthService
   ) {}
 
   ngOnInit() {
@@ -56,5 +58,11 @@ export class Topbar implements OnInit, OnDestroy {
 
   onToggleSidebar() {
     this.toggleSidebar.emit();
+  }
+
+  // Phương thức xử lý đăng xuất
+  logout(): void {
+    this.authService.logout(); // Gọi phương thức logout từ AuthService
+    this.router.navigate(['/login']); // Điều hướng người dùng về trang đăng nhập
   }
 }
