@@ -13,6 +13,8 @@ import { Auth } from '../auth/auth'; // Import Auth Service
 import { UserService } from '../services/user.service';
 import { UserProfileResponse } from '../shared/models/user.model';
 import { HttpErrorResponse } from '@angular/common/http';
+import { throwError, TimeoutError } from 'rxjs'; // Import throwError and TimeoutError
+import { catchError, timeout } from 'rxjs/operators'; // Import catchError and timeout
 
 @Component({
   selector: 'app-my-profile',
@@ -44,14 +46,32 @@ export class MyProfileComponent implements OnInit {
   ) { }
 
   ngOnInit(): void {
-    this.userService.getUserProfile().subscribe({
+    this.userService.getUserProfile().pipe(
+      timeout(10000), // Set a timeout of 10 seconds
+      catchError((err) => { // Catch errors from timeout or original http call
+        if (err instanceof TimeoutError) {
+          this.error = 'Yêu cầu tải hồ sơ quá thời gian. Vui lòng kiểm tra kết nối mạng hoặc thử lại.';
+          console.error('MyProfileComponent - Timeout Error:', err);
+        } else if (err instanceof HttpErrorResponse) {
+          this.error = `Lỗi HTTP ${err.status}: ${err.message || 'Không thể tải thông tin hồ sơ.'}`;
+          console.error('MyProfileComponent - HTTP Error:', err);
+        } else {
+          this.error = 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
+          console.error('MyProfileComponent - Unknown Error in pipe:', err);
+        }
+        this.isLoading = false;
+        console.log('MyProfileComponent catchError - isLoading set to false. error:', this.error);
+        return throwError(() => err); // Re-throw for further handling if needed
+      })
+    ).subscribe({
       next: (data) => {
         this.userProfile = data;
         this.isLoading = false;
       },
-      error: (err: HttpErrorResponse) => {
-        console.error('Error fetching user profile:', err);
-        this.error = 'Không thể tải thông tin hồ sơ. Vui lòng thử lại sau.';
+      error: (err) => { // This error will now catch the timeout error or other http errors
+        // Error message and isLoading already handled in the pipe's catchError
+        // This block is primarily for RxJS error handling that might slip past the pipe's catchError,
+        // but given the structure, it's mostly redundant for setting error messages here.
         this.isLoading = false;
       }
     });
