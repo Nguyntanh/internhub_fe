@@ -23,11 +23,8 @@
         <p class="mat-body-1 profile-email">{{ userProfile.email }}</p>
         <span
           *ngIf="userProfile.departmentName"
-          matBadge="{{ userProfile.departmentName }}"
-          matBadgeColor="accent"
-          matBadgeOverlap="false"
-          class="department-badge"
-        ></span>
+          class="department-name-text"
+        >{{ userProfile.departmentName }}</span>
       </div>
     </div>
 

@@ -70,14 +70,11 @@
   margin-bottom: 8px !important;
 }
 
-.department-badge {
-  font-size: 12px;
-  padding: 4px 8px;
-  border-radius: 4px;
-  background-color: #673ab7; /* Accent color */
-  color: white;
-  display: inline-block; /* To make it respect padding/margin */
+.department-name-text {
+  font-size: 14px;
+  color: #555;
   margin-top: 5px;
+  display: block; /* Ensures it takes its own line if needed */
 }
 
 mat-card-content {
