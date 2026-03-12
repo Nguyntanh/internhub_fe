@@ -1,0 +1,112 @@
+.account-management-container {
+  padding: 20px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.header .title {
+  margin: 0;
+  font-size: 1.8em;
+  color: #3f51b5; /* Angular Material Primary */
+}
+
+.rbac-matrix-card {
+  margin-top: 20px;
+}
+
+.table-responsive {
+  overflow-x: auto; /* Enable horizontal scrolling for small screens */
+  margin-top: 20px;
+}
+
+.rbac-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 20px;
+  min-width: 800px; /* Ensure table doesn't get too small */
+}
+
+.rbac-table th,
+.rbac-table td {
+  border: 1px solid #e0e0e0; /* Light gray border */
+  padding: 12px 15px;
+  text-align: left;
+  vertical-align: middle;
+}
+
+.rbac-table thead th {
+  background-color: #f5f5f5; /* Light header background */
+  font-weight: bold;
+  color: #333;
+  position: sticky;
+  top: 0; /* Sticky header */
+  z-index: 10;
+}
+
+.rbac-table tbody tr:nth-child(even) {
+  background-color: #f9f9f9; /* Zebra striping */
+}
+
+.rbac-table tbody tr:hover {
+  background-color: #f0f0f0; /* Hover effect */
+}
+
+.group-header-row td {
+  background-color: #e0e0e0; /* Group header background */
+  font-weight: bold;
+  color: #000;
+  position: sticky;
+  left: 0; /* Sticky group header */
+  z-index: 11; /* Above column headers */
+}
+
+.feature-name {
+  white-space: nowrap; /* Prevent feature names from wrapping */
+}
+
+.sticky-col-1 {
+  position: sticky;
+  left: 0;
+  background-color: inherit; /* Inherit background for sticky effect */
+  z-index: 12; /* Above both column and group headers */
+}
+
+/* Specific background adjustment for sticky-col-1 when it's also a header */
+.rbac-table thead th.sticky-col-1 {
+  background-color: #f5f5f5; /* Maintain header background */
+  z-index: 13; /* Even higher */
+}
+
+/* Ensure background color is set for tbody cells to avoid transparency issues with sticky elements */
+.rbac-table tbody td {
+    background-color: inherit;
+}
+
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 50px;
+}
+
+.permission-controls {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  align-items: center;
+}
+
+.permission-cell {
+  text-align: center; /* Center checkboxes */
+}
+
+.rbac-table th.role-header {
+  min-width: 100px; /* Ensure role headers have enough width */
+}
