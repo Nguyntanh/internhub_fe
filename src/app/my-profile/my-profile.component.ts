@@ -83,7 +83,7 @@ export class MyProfileComponent implements OnInit {
   }
 
   getDefaultAvatar(): string {
-    return 'assets/images/default-avatar.png'; // Path to a default avatar image
+    return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=200'; // Using Gravatar as default avatar
   }
 
   getTranslatedStatus(status: string): string {
