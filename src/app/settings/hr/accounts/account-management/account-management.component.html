@@ -1,0 +1,56 @@
+<div class="account-management-container">
+  <div class="header">
+    <h2 class="title">Quản lý Tài khoản & Phân quyền</h2>
+    <button mat-raised-button color="primary" (click)="openCreateUserDialog()">
+      <mat-icon>add</mat-icon> Thêm tài khoản mới
+    </button>
+  </div>
+
+  <mat-card class="rbac-matrix-card">
+    <mat-card-header>
+      <mat-card-title>Bảng Phân quyền (RBAC Matrix)</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <div *ngIf="isLoading" class="loading-spinner">
+        <mat-spinner></mat-spinner>
+        <p>Đang tải quyền hạn...</p>
+      </div>
+
+      <div *ngIf="!isLoading && permissionMatrix" class="permission-controls">
+        <mat-radio-group [(ngModel)]="selectedPermissionType" class="permission-radio-group">
+          <mat-radio-button value="canCreate">Create</mat-radio-button>
+          <mat-radio-button value="canAccess">Read (Access)</mat-radio-button>
+          <mat-radio-button value="canEdit">Update</mat-radio-button>
+          <mat-radio-button value="canDelete">Delete</mat-radio-button>
+        </mat-radio-group>
+      </div>
+
+      <div *ngIf="!isLoading && permissionMatrix" class="table-responsive">
+        <table class="rbac-table">
+          <thead>
+            <tr>
+              <th class="sticky-col-1">Tính năng / Module</th>
+              <th *ngFor="let roleDef of roleDefinitions" class="role-header">{{ roleDef.name }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let group of permissionMatrix!.groups; trackBy: trackByGroup">
+              <tr class="group-header-row">
+                <td [attr.colspan]="roleDefinitions.length + 1">{{ group.name }}</td>
+              </tr>
+              <tr *ngFor="let feature of group.features; trackBy: trackByFeatureId">
+                <td class="sticky-col-1 feature-name">{{ feature.name }} ({{ feature.id }})</td>
+                <td *ngFor="let roleDef of roleDefinitions; trackBy: trackByRoleId" class="permission-cell">
+                  <mat-checkbox
+                    [checked]="isPermissionEnabled(feature, roleDef.id, selectedPermissionType)"
+                    (change)="onPermissionChange(feature, roleDef, selectedPermissionType, $event)"
+                  ></mat-checkbox>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>
