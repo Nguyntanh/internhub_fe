@@ -1,9 +1,9 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, afterNextRender, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { finalize } from 'rxjs/operators';
 
-// ── Khớp với InternshipPositionResponse.java ──
 interface InternshipPosition {
   id: number;
   name: string;
@@ -12,7 +12,6 @@ interface InternshipPosition {
   departmentName?: string;
 }
 
-// ── Khớp với DepartmentResponse.java ──
 interface Department {
   id: number;
   name: string;
@@ -22,14 +21,12 @@ interface Department {
   memberNames?: string[];
 }
 
-// ── Khớp với DepartmentRequest.java ──
 interface DepartmentPayload {
   name: string;
   description?: string;
   leaderIds?: number[];
 }
 
-// ── Khớp với InternshipPositionRequest.java ──
 interface PositionPayload {
   name: string;
   description?: string;
@@ -43,23 +40,20 @@ interface PositionPayload {
   templateUrl: './org-structure.html',
   styleUrls: ['./org-structure.css']
 })
-export class OrgStructureComponent implements OnInit {
+export class OrgStructureComponent {
   private apiUrl = 'http://localhost:8090/api';
 
-  // ── Tab ──
   activeTab: 'departments' | 'positions' = 'departments';
 
-  // ── Data ──
   departments: Department[] = [];
   allPositions: InternshipPosition[] = [];
 
-  // ── UI state ──
-  isLoading = false;
+  // ── Khởi tạo isLoading = true ngay từ đầu để tránh ExpressionChangedAfterItHasBeenCheckedError
+  isLoading = true;
   isLoadingPositions = false;
   errorMessage = '';
   expandedDeptId: number | null = null;
 
-  // ── Dept modal ──
   showDeptModal = false;
   isEditDeptMode = false;
   selectedDept: Department | null = null;
@@ -68,11 +62,9 @@ export class OrgStructureComponent implements OnInit {
     description: new FormControl('')
   });
 
-  // ── Delete dept modal ──
   showDeleteDeptModal = false;
   deptToDelete: Department | null = null;
 
-  // ── Position modal ──
   showPositionModal = false;
   isEditPositionMode = false;
   selectedPosition: InternshipPosition | null = null;
@@ -83,15 +75,17 @@ export class OrgStructureComponent implements OnInit {
     departmentId: new FormControl<number | null>(null)
   });
 
-  // ── Delete position modal ──
   showDeletePositionModal = false;
   positionToDelete: InternshipPosition | null = null;
 
-  // ── Toast notifications ──
   toasts: { id: number; message: string; type: 'success' | 'error' }[] = [];
   private toastCounter = 0;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private cdr: ChangeDetectorRef) {
+    afterNextRender(() => {
+      this.loadDepartments();
+    });
+  }
 
   showToast(message: string, type: 'success' | 'error' = 'success'): void {
     const id = ++this.toastCounter;
@@ -103,55 +97,55 @@ export class OrgStructureComponent implements OnInit {
     this.toasts = this.toasts.filter(t => t.id !== id);
   }
 
-  ngOnInit(): void {
-    this.loadDepartments();
-  }
-
-  // ──────────── Tab ────────────
-
   switchTab(tab: 'departments' | 'positions'): void {
     this.activeTab = tab;
     this.errorMessage = '';
     if (tab === 'positions') {
-      // Luôn load lại từ server khi chuyển tab — tránh stale cache
       this.loadAllPositions();
     }
   }
 
-  // ──────────── Load ────────────
-
   loadDepartments(): void {
     this.isLoading = true;
     this.errorMessage = '';
-    this.http.get<Department[]>(`${this.apiUrl}/departments`).subscribe({
-      next: (depts) => {
-        this.departments = depts;
+    this.http.get<Department[]>(`${this.apiUrl}/departments`)
+      .pipe(finalize(() => {
         this.isLoading = false;
-        // Đồng bộ allPositions từ departments ngay sau khi load
-        // để tab Vị trí thực tập có data ngay cả khi chưa chuyển tab
-        this.allPositions = depts.flatMap(d => d.positions ?? []);
-      },
-      error: () => { this.errorMessage = 'Không thể tải danh sách phòng ban.'; this.isLoading = false; }
-    });
+        this.cdr.detectChanges(); // thông báo Angular cập nhật UI
+      }))
+      .subscribe({
+        next: (depts) => {
+          this.departments = depts;
+          this.allPositions = depts.flatMap(d => d.positions ?? []);
+        },
+        error: (err) => {
+          console.error('Load departments error:', err);
+          this.errorMessage = 'Không thể tải danh sách phòng ban. Vui lòng thử lại.';
+        }
+      });
   }
 
   loadAllPositions(): void {
     this.isLoadingPositions = true;
-    this.http.get<InternshipPosition[]>(`${this.apiUrl}/positions`).subscribe({
-      next: (positions) => {
-        this.allPositions = positions;
-        // Cập nhật ngược lại dept.positions để 2 tab luôn đồng nhất
-        this.departments = this.departments.map(d => ({
-          ...d,
-          positions: positions.filter(p => p.departmentId === d.id)
-        }));
+    this.http.get<InternshipPosition[]>(`${this.apiUrl}/positions`)
+      .pipe(finalize(() => {
         this.isLoadingPositions = false;
-      },
-      error: () => { this.errorMessage = 'Không thể tải danh sách vị trí.'; this.isLoadingPositions = false; }
-    });
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (positions) => {
+          this.allPositions = positions;
+          this.departments = this.departments.map(d => ({
+            ...d,
+            positions: positions.filter(p => p.departmentId === d.id)
+          }));
+        },
+        error: (err) => {
+          console.error('Load positions error:', err);
+          this.errorMessage = 'Không thể tải danh sách vị trí.';
+        }
+      });
   }
-
-  // ──────────── Helpers ────────────
 
   getMemberCount(dept: Department): number { return dept.memberNames?.length ?? 0; }
   getMemberNames(dept: Department): string[] { return dept.memberNames ?? []; }
@@ -175,8 +169,6 @@ export class OrgStructureComponent implements OnInit {
     for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
     return palette[Math.abs(hash) % palette.length];
   }
-
-  // ──────────── Department CRUD ────────────
 
   openAddDeptModal(): void {
     this.isEditDeptMode = false;
@@ -251,9 +243,6 @@ export class OrgStructureComponent implements OnInit {
     });
   }
 
-  // ──────────── Position CRUD ────────────
-
-  /** Từ tab Phòng ban — dept đã biết trước */
   openAddPositionFromDept(dept: Department, event: Event): void {
     event.stopPropagation();
     this.isEditPositionMode = false;
@@ -264,7 +253,6 @@ export class OrgStructureComponent implements OnInit {
     this.showPositionModal = true;
   }
 
-  /** Từ tab Vị trí — người dùng tự chọn phòng ban */
   openAddPositionFromTab(): void {
     this.isEditPositionMode = false;
     this.selectedPosition = null;
@@ -295,7 +283,6 @@ export class OrgStructureComponent implements OnInit {
   savePosition(): void {
     if (this.positionForm.invalid) return;
 
-    // Ưu tiên dept từ context (click từ panel phòng ban), sau đó mới lấy từ form select
     const deptId: number | null =
       this.targetDeptForPosition?.id
       ?? (this.positionForm.value.departmentId as number | null)

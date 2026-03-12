@@ -91,7 +91,7 @@ export const routes: Routes = [
   {
     path: 'settings',
     component: MainLayout,
-    // canActivate: [authGuard], // Bảo vệ route này và các route con của nó - TẠM THỜI TẮT ĐỂ DEBUG
+    canActivate: [authGuard], // Bảo vệ route này và các route con của nó - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Cài đặt' }, // Top-level settings breadcrumb
     children: [
       { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Default redirect for /settings
