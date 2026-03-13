@@ -21,7 +21,6 @@ import { Approval } from './dashboard/approval/approval';
 // Import existing placeholder components for sub-menus
 import { InternsComponent } from './dashboard/management/interns/interns';
 
-
 import { AnalyticsComponent } from './dashboard/capacity/analytics/analytics';
 
 // Import NEW placeholder components for multi-level settings sub-menus
@@ -33,7 +32,6 @@ import { PartnersListComponent } from './settings/partners/list/list';
 import { OperationProcessComponent } from './settings/operation/process/process';
 import { SecurityLogsComponent } from './settings/security/logs/logs';
 import { ActivateAccountComponent } from './activate-account/activate-account.component'; // New import
-
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -54,8 +52,8 @@ export const routes: Routes = [
     // canActivate: [authGuard], // Bảo vệ route này - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Thực thi' },
     children: [
-      { path: '', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } } // Default for /tasks
-    ]
+      { path: '', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } }, // Default for /tasks
+    ],
   },
   {
     path: 'management',
@@ -65,8 +63,7 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'interns', pathMatch: 'full' }, // Redirect to interns by default
       { path: 'interns', component: InternsComponent, data: { title: 'Hồ sơ Intern' } },
-
-    ]
+    ],
   },
   {
     path: 'skills', // Changed from /capacity to /skills
@@ -77,7 +74,7 @@ export const routes: Routes = [
       { path: '', redirectTo: 'analytics', pathMatch: 'full' }, // Redirect to config by default
 
       { path: 'analytics', component: AnalyticsComponent, data: { title: 'Radar Analytics' } },
-    ]
+    ],
   },
   {
     path: 'approval',
@@ -85,8 +82,8 @@ export const routes: Routes = [
     // canActivate: [authGuard], // Bảo vệ route này - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Phê duyệt' },
     children: [
-      { path: '', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } } // Default for /approval
-    ]
+      { path: '', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } }, // Default for /approval
+    ],
   },
   {
     path: 'settings',
@@ -96,52 +93,77 @@ export const routes: Routes = [
     children: [
       { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Default redirect for /settings
 
-      { // Quản trị Nhân sự
+      {
+        // Quản trị Nhân sự
         path: 'hr',
         component: Hr, // Hr component as a parent for its sub-settings
         data: { title: 'Quản trị Nhân sự' },
         children: [
           { path: '', redirectTo: 'accounts', pathMatch: 'full' },
-          { path: 'accounts', component: AccountManagementComponent, data: { title: 'Quản lý Tài khoản & Phân quyền' } },
-          { path: 'interns', component: HrInternsComponent, data: { title: 'Quản lý Thực tập sinh' } },
-          { path: 'org-structure', component: OrgStructureComponent, data: { title: 'Cơ cấu Tổ chức' } },
-        ]
+          {
+            path: 'accounts',
+            component: AccountManagementComponent,
+            data: { title: 'Quản lý Tài khoản & Phân quyền' },
+          },
+          {
+            path: 'interns',
+            component: HrInternsComponent,
+            data: { title: 'Quản lý Thực tập sinh' },
+          },
+          {
+            path: 'org-structure',
+            component: OrgStructureComponent,
+            data: { title: 'Cơ cấu Tổ chức' },
+          },
+        ],
       },
-      { // Cấu hình Đánh giá
+      {
+        // Cấu hình Đánh giá
         path: 'evaluation', // New path for evaluation settings
         component: ConfigReview, // Using existing ConfigReview component as parent
         data: { title: 'Cấu hình Đánh giá' },
         children: [
           { path: '', redirectTo: 'skills', pathMatch: 'full' },
-          { path: 'skills', component: EvaluationSkillsComponent, data: { title: 'Thư viện Kỹ năng' } },
-        ]
+          {
+            path: 'skills',
+            component: EvaluationSkillsComponent,
+            data: { title: 'Thư viện Kỹ năng' },
+          },
+        ],
       },
-      { // Dữ liệu Đối tác
+      {
+        // Dữ liệu Đối tác
         path: 'partners', // New path for partners settings
         component: PartnerData, // Using existing PartnerData component as parent
         data: { title: 'Dữ liệu Đối tác' },
         children: [
           { path: '', redirectTo: 'list', pathMatch: 'full' },
           { path: 'list', component: PartnersListComponent, data: { title: 'Danh mục Đối tác' } },
-        ]
+        ],
       },
-      { // Vận hành hệ thống
+      {
+        // Vận hành hệ thống
         path: 'operation', // New path for operation settings
         component: SystemOperation, // Using existing SystemOperation component as parent
         data: { title: 'Vận hành hệ thống' },
         children: [
           { path: '', redirectTo: 'process', pathMatch: 'full' },
-          { path: 'process', component: OperationProcessComponent, data: { title: 'Cấu hình Quy trình' } },
-        ]
+          {
+            path: 'process',
+            component: OperationProcessComponent,
+            data: { title: 'Cấu hình Quy trình' },
+          },
+        ],
       },
-      { // Bảo mật & Tra cứu
+      {
+        // Bảo mật & Tra cứu
         path: 'security',
         component: Security, // Using existing Security component as parent
         data: { title: 'Bảo mật & Tra cứu' },
         children: [
           { path: '', redirectTo: 'logs', pathMatch: 'full' },
           { path: 'logs', component: SecurityLogsComponent, data: { title: 'Nhật ký Hệ thống' } },
-        ]
+        ],
       },
     ],
   },
