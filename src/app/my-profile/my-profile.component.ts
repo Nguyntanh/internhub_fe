@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // Import ChangeDetectorRef
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -7,6 +7,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatBadgeModule } from '@angular/material/badge'; // For department badge
 import { MatTooltipModule } from '@angular/material/tooltip'; // For progress bar tooltip
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // Import MatSnackBar and MatSnackBarModule
 import { Router } from '@angular/router'; // Import Router
 import { Auth } from '../auth/auth'; // Import Auth Service
 
@@ -27,7 +28,8 @@ import { catchError, timeout } from 'rxjs/operators'; // Import catchError and t
     MatProgressSpinnerModule,
     MatProgressBarModule,
     MatBadgeModule,
-    MatTooltipModule // For tooltips
+    MatTooltipModule, // For tooltips
+    MatSnackBarModule // Add MatSnackBarModule for notifications
   ],
   providers: [DatePipe], // Provide DatePipe here if not provided globally
   templateUrl: './my-profile.component.html',
@@ -42,25 +44,30 @@ export class MyProfileComponent implements OnInit {
     private userService: UserService,
     private datePipe: DatePipe,
     private authService: Auth, // Inject Auth Service
-    private router: Router // Inject Router
+    private router: Router, // Inject Router
+    private snackBar: MatSnackBar, // Inject MatSnackBar
+    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
   ) { }
 
   ngOnInit(): void {
     this.userService.getUserProfile().pipe(
       timeout(10000), // Set a timeout of 10 seconds
       catchError((err) => { // Catch errors from timeout or original http call
+        let errorMessage = 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
         if (err instanceof TimeoutError) {
-          this.error = 'Yêu cầu tải hồ sơ quá thời gian. Vui lòng kiểm tra kết nối mạng hoặc thử lại.';
+          errorMessage = 'Yêu cầu tải hồ sơ quá thời gian. Vui lòng kiểm tra kết nối mạng hoặc thử lại.';
           console.error('MyProfileComponent - Timeout Error:', err);
         } else if (err instanceof HttpErrorResponse) {
-          this.error = `Lỗi HTTP ${err.status}: ${err.message || 'Không thể tải thông tin hồ sơ.'}`;
+          errorMessage = `Lỗi HTTP ${err.status}: ${err.message || 'Không thể tải thông tin hồ sơ.'}`;
           console.error('MyProfileComponent - HTTP Error:', err);
         } else {
-          this.error = 'Đã xảy ra lỗi không xác định. Vui lòng thử lại.';
           console.error('MyProfileComponent - Unknown Error in pipe:', err);
         }
+        this.error = errorMessage; // Keep error message for template display
+        this.snackBar.open(errorMessage, 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
         this.isLoading = false;
         console.log('MyProfileComponent catchError - isLoading set to false. error:', this.error);
+        this.cdr.detectChanges(); // Force change detection on error
         return throwError(() => err); // Re-throw for further handling if needed
       })
     ).subscribe({
@@ -68,7 +75,9 @@ export class MyProfileComponent implements OnInit {
         console.log('MyProfileComponent - Data received:', data); // Log the received data
         this.userProfile = data;
         this.isLoading = false;
+        this.error = null; // Clear any previous error
         console.log('MyProfileComponent - After data assignment: isLoading=', this.isLoading, 'userProfile=', this.userProfile); // Log state
+        this.cdr.detectChanges(); // Force change detection on success
       },
       error: (err) => { // This error will now catch the timeout error or other http errors
         // Error message and isLoading already handled in the pipe's catchError
@@ -76,6 +85,7 @@ export class MyProfileComponent implements OnInit {
         // but given the structure, it's mostly redundant for setting error messages here.
         this.isLoading = false;
         console.log('MyProfileComponent - Error block: isLoading=', this.isLoading, 'error=', this.error); // Log state
+        this.cdr.detectChanges(); // Force change detection on error
       }
     });
   }
