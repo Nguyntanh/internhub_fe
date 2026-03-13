@@ -10,12 +10,42 @@ import { MatTooltipModule } from '@angular/material/tooltip'; // For progress ba
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // Import MatSnackBar and MatSnackBarModule
 import { Router } from '@angular/router'; // Import Router
 import { Auth } from '../auth/auth'; // Import Auth Service
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidatorFn } from '@angular/forms'; // Import form modules
+import { MatExpansionModule } from '@angular/material/expansion'; // Import MatExpansionModule
+import { MatFormFieldModule } from '@angular/material/form-field'; // Import MatFormFieldModule
+import { MatInputModule } from '@angular/material/input'; // Import MatInputModule
 
 import { UserService } from '../services/user.service';
 import { UserProfileResponse } from '../shared/models/user.model';
 import { HttpErrorResponse } from '@angular/common/http';
 import { throwError, TimeoutError } from 'rxjs'; // Import throwError and TimeoutError
-import { catchError, timeout } from 'rxjs/operators'; // Import catchError and timeout
+import { catchError, timeout, finalize } from 'rxjs/operators'; // Import catchError, timeout, and finalize
+
+/** Custom validator to check if two fields match */
+export function passwordMatchValidator(controlName: string, checkControlName: string): ValidatorFn {
+  return (control: AbstractControl): { [key: string]: any } | null => {
+    const group = control as FormGroup;
+    const controlName_ = group.controls[controlName];
+    const checkControlName_ = group.controls[checkControlName];
+
+    if (!controlName_ || !checkControlName_) {
+      return null;
+    }
+
+    if (checkControlName_.errors && !checkControlName_.errors['mismatch']) {
+      return null;
+    }
+
+    if (controlName_.value !== checkControlName_.value) {
+      checkControlName_.setErrors({ mismatch: true });
+      return { mismatch: true };
+    } else {
+      checkControlName_.setErrors(null);
+      return null;
+    }
+  };
+}
+
 
 @Component({
   selector: 'app-my-profile',
@@ -29,7 +59,11 @@ import { catchError, timeout } from 'rxjs/operators'; // Import catchError and t
     MatProgressBarModule,
     MatBadgeModule,
     MatTooltipModule, // For tooltips
-    MatSnackBarModule // Add MatSnackBarModule for notifications
+    MatSnackBarModule, // Add MatSnackBarModule for notifications
+    ReactiveFormsModule, // Add ReactiveFormsModule for forms
+    MatExpansionModule, // Add MatExpansionModule
+    MatFormFieldModule, // Import MatFormFieldModule for mat-form-field
+    MatInputModule // Import MatInputModule for matInput
   ],
   providers: [DatePipe], // Provide DatePipe here if not provided globally
   templateUrl: './my-profile.component.html',
@@ -39,6 +73,16 @@ export class MyProfileComponent implements OnInit {
   userProfile: UserProfileResponse | null = null;
   isLoading: boolean = true;
   error: string | null = null;
+  internshipProgress: number = 0; // New property to store calculated progress
+
+  // Change Password functionality
+  changePasswordForm: FormGroup;
+  hideOldPassword = true;
+  hideNewPassword = true;
+  hideConfirmPassword = true;
+  isChangingPassword = false;
+  panelOpenState = false; // To control expansion panel state
+
 
   constructor(
     private userService: UserService,
@@ -46,8 +90,15 @@ export class MyProfileComponent implements OnInit {
     private authService: Auth, // Inject Auth Service
     private router: Router, // Inject Router
     private snackBar: MatSnackBar, // Inject MatSnackBar
-    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
-  ) { }
+    private cdr: ChangeDetectorRef, // Inject ChangeDetectorRef
+    private fb: FormBuilder // Inject FormBuilder
+  ) {
+    this.changePasswordForm = this.fb.group({
+      oldPassword: ['', [Validators.required]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
+      confirmPassword: ['', [Validators.required]]
+    }, { validators: passwordMatchValidator('newPassword', 'confirmPassword') });
+  }
 
   ngOnInit(): void {
     this.userService.getUserProfile().pipe(
@@ -74,6 +125,7 @@ export class MyProfileComponent implements OnInit {
       next: (data) => {
         console.log('MyProfileComponent - Data received:', data); // Log the received data
         this.userProfile = data;
+        this.internshipProgress = this.calculateProgress(); // Calculate and store progress
         this.isLoading = false;
         this.error = null; // Clear any previous error
         console.log('MyProfileComponent - After data assignment: isLoading=', this.isLoading, 'userProfile=', this.userProfile); // Log state
@@ -90,10 +142,50 @@ export class MyProfileComponent implements OnInit {
     });
   }
 
+  onSubmitChangePassword(): void {
+    if (this.changePasswordForm.invalid) {
+      this.changePasswordForm.markAllAsTouched();
+      this.snackBar.open('Vui lòng kiểm tra lại thông tin mật khẩu.', 'Đóng', { duration: 3000, panelClass: ['warning-snackbar'] });
+      return;
+    }
+
+    this.isChangingPassword = true;
+    const { oldPassword, newPassword } = this.changePasswordForm.value;
+
+    this.authService.changePassword(oldPassword, newPassword).pipe(
+      finalize(() => {
+        this.isChangingPassword = false;
+        this.cdr.detectChanges(); // Ensure UI updates after finalization
+      })
+    ).subscribe({
+      next: () => {
+        this.snackBar.open('Mật khẩu đã được thay đổi thành công!', 'Đóng', { duration: 3000, panelClass: ['success-snackbar'] });
+        this.changePasswordForm.reset();
+        this.panelOpenState = false; // Close the panel on success
+        this.cdr.detectChanges(); // Force update after form reset and panel close
+      },
+      error: (err: HttpErrorResponse) => {
+        let errorMessage = 'Đã xảy ra lỗi khi thay đổi mật khẩu. Vui lòng thử lại.';
+        if (err.status === 400) {
+          errorMessage = 'Mật khẩu cũ không chính xác hoặc định dạng mật khẩu mới không hợp lệ.';
+        } else if (err.status === 401) {
+          errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+          this.authService.logout();
+          this.router.navigate(['/login']);
+        } else if (err.error && err.error.message) {
+          errorMessage = err.error.message; // Use error message from backend if available
+        }
+        this.snackBar.open(errorMessage, 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
+        console.error('Error changing password:', err);
+      }
+    });
+  }
+
   logout(): void {
     this.authService.logout(); // Call logout method from AuthService
     this.router.navigate(['/login']); // Redirect user to login page
   }
+
 
   getDefaultAvatar(): string {
     return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=200'; // Using Gravatar as default avatar
