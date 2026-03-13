@@ -205,3 +205,70 @@ mat-progress-bar {
   margin-top: 20px;
   width: 100%;
 }
+
+/* Styles for Account Security Section */
+.security-panel {
+  margin-top: 20px; /* Space from the content above */
+  border: 1px solid #e0e0e0;
+  box-shadow: none;
+}
+
+.security-panel .mat-expansion-panel-header {
+  background-color: #f0f0f0;
+  padding: 0 15px;
+}
+
+.security-panel .mat-panel-title,
+.security-panel .mat-panel-description {
+  display: flex;
+  align-items: center;
+  font-size: 16px;
+}
+
+.security-panel .mat-panel-title mat-icon {
+  margin-right: 8px;
+  color: #555;
+}
+
+.password-change-form {
+  padding: 15px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px; /* Space between form fields */
+}
+
+.full-width {
+  width: 100%;
+}
+
+.change-password-button {
+  margin-top: 10px; /* Space from the last form field */
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.change-password-button mat-icon {
+  margin-right: 8px;
+}
+
+.change-password-button mat-spinner {
+  margin-left: 8px;
+}
+
+/* Specific styles for snackbar messages */
+.success-snackbar {
+  background-color: #4CAF50 !important; /* Green */
+  color: white !important;
+}
+
+.error-snackbar {
+  background-color: #f44336 !important; /* Red */
+  color: white !important;
+}
+
+.warning-snackbar {
+  background-color: #ff9800 !important; /* Orange */
+  color: white !important;
+}
