@@ -7,20 +7,20 @@ export interface UserCreationRequest {
 }
 
 export interface UserProfileResponse {
-  id: number;
+  id?: number; // Added based on expected data
   name: string;
   email: string;
-  avatarUrl?: string; // Optional: URL to user's avatar image
-  departmentName?: string; // Optional: Department name for badge
-  internshipProfile?: {
-    id: number;
-    positionName: string;
-    universityName: string;
-    mentorName: string;
-    startDate: string; // YYYY-MM-DD
-    endDate: string; // YYYY-MM-DD
-    status: 'IN_PROGRESS' | 'TERMINATED' | 'COMPLETED' | string; // Backend status
-  };
+  avatar?: string; // Changed from avatarUrl to avatar to match backend
+  departmentName?: string;
+  positionName?: string; // Moved from internshipProfile
+  universityName?: string; // Moved from internshipProfile
+  mentorName?: string; // Moved from internshipProfile
+  startDate?: string; // Moved from internshipProfile
+  endDate?: string; // Moved from internshipProfile
+  status?: 'IN_PROGRESS' | 'TERMINATED' | 'COMPLETED' | string; // Moved from internshipProfile
+  daysRemaining?: number; // Added based on backend response
+  major?: string; // Added based on backend response
+  phone?: string; // Added based on backend response
 }
 
 export interface ErrorDetails {

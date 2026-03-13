@@ -14,7 +14,7 @@
     <!-- Header Section -->
     <div class="profile-header">
       <img
-        [src]="userProfile.avatarUrl || getDefaultAvatar()"
+        [src]="userProfile.avatar || getDefaultAvatar()"
         alt="User Avatar"
         class="profile-avatar"
       />
@@ -30,22 +30,22 @@
 
     <mat-card-content>
       <!-- Internship Profile Section -->
-      <div *ngIf="userProfile.internshipProfile; else emptyInternshipState">
+      <div *ngIf="userProfile.positionName; else emptyInternshipState">
         <h3 class="mat-subheading-2">Thông tin thực tập</h3>
         <mat-card class="internship-card">
           <mat-card-header>
-            <mat-card-title>{{ userProfile.internshipProfile.positionName }}</mat-card-title>
-            <mat-card-subtitle>{{ userProfile.internshipProfile.universityName }}</mat-card-subtitle>
+            <mat-card-title>{{ userProfile.positionName }}</mat-card-title>
+            <mat-card-subtitle>{{ userProfile.universityName }}</mat-card-subtitle>
           </mat-card-header>
           <mat-card-content>
             <p>
               <strong>Người hướng dẫn:</strong>
-              {{ userProfile.internshipProfile.mentorName }}
+              {{ userProfile.mentorName }}
             </p>
             <p>
               <strong>Thời gian:</strong>
-              {{ getFormattedDate(userProfile.internshipProfile.startDate) }} -
-              {{ getFormattedDate(userProfile.internshipProfile.endDate) }}
+              {{ getFormattedDate(userProfile.startDate!) }} -
+              {{ getFormattedDate(userProfile.endDate!) }}
             </p>
 
             <!-- Progress Bar -->
@@ -72,9 +72,9 @@
                   Đã kết thúc
                 </span>
               </div>
-              <div class="internship-status" [ngClass]="getStatusColorClass(userProfile.internshipProfile.status)">
+              <div class="internship-status" [ngClass]="getStatusColorClass(userProfile.status!)">
                 <mat-icon>info</mat-icon>
-                <span>{{ getTranslatedStatus(userProfile.internshipProfile.status) }}</span>
+                <span>{{ getTranslatedStatus(userProfile.status!) }}</span>
               </div>
             </div>
           </mat-card-content>

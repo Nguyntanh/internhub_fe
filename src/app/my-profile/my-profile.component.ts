@@ -65,14 +65,17 @@ export class MyProfileComponent implements OnInit {
       })
     ).subscribe({
       next: (data) => {
+        console.log('MyProfileComponent - Data received:', data); // Log the received data
         this.userProfile = data;
         this.isLoading = false;
+        console.log('MyProfileComponent - After data assignment: isLoading=', this.isLoading, 'userProfile=', this.userProfile); // Log state
       },
       error: (err) => { // This error will now catch the timeout error or other http errors
         // Error message and isLoading already handled in the pipe's catchError
         // This block is primarily for RxJS error handling that might slip past the pipe's catchError,
         // but given the structure, it's mostly redundant for setting error messages here.
         this.isLoading = false;
+        console.log('MyProfileComponent - Error block: isLoading=', this.isLoading, 'error=', this.error); // Log state
       }
     });
   }
@@ -113,10 +116,10 @@ export class MyProfileComponent implements OnInit {
   }
 
   calculateProgress(): number {
-    if (!this.userProfile?.internshipProfile) {
+    if (!this.userProfile?.startDate || !this.userProfile?.endDate) {
       return 0;
     }
-    const { startDate, endDate } = this.userProfile.internshipProfile;
+    const { startDate, endDate } = this.userProfile;
     const start = new Date(startDate);
     const end = new Date(endDate);
     const now = new Date();
@@ -135,10 +138,10 @@ export class MyProfileComponent implements OnInit {
   }
 
   getDaysRemaining(): { days: number, colorClass: string } {
-    if (!this.userProfile?.internshipProfile) {
+    if (!this.userProfile?.endDate) {
       return { days: 0, colorClass: '' };
     }
-    const endDate = new Date(this.userProfile.internshipProfile.endDate);
+    const endDate = new Date(this.userProfile.endDate);
     const now = new Date();
     // Reset time components to only compare dates
     endDate.setHours(0, 0, 0, 0);
