@@ -1,13 +1,20 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core'; // Add ChangeDetectorRef
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Import MatProgressSpinnerModule
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar'; // Import MatSnackBar and MatSnackBarModule
 import { Subject, debounceTime, takeUntil } from 'rxjs';
 import { AuditLogService, AuditLogItem, PagedResult, LogFilter } from './audit-log.service';
 
 @Component({
   selector: 'app-security-logs',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    MatProgressSpinnerModule, // Add MatProgressSpinnerModule
+    MatSnackBarModule // Add MatSnackBarModule
+  ],
   templateUrl: './logs.html',
   styleUrls: ['./logs.css'],
 })
@@ -31,13 +38,23 @@ export class SecurityLogsComponent implements OnInit, OnDestroy {
   private readonly search$ = new Subject<void>();
   private readonly destroy$ = new Subject<void>();
 
-  constructor(private readonly svc: AuditLogService) {}
+  constructor(
+    private readonly svc: AuditLogService,
+    private snackBar: MatSnackBar, // Inject MatSnackBar
+    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
+  ) {}
 
   ngOnInit(): void {
     this.svc.getActions().subscribe({
       next: (data: string[]) => {
         this.actions = data;
+        this.cdr.detectChanges(); // Trigger change detection
       },
+      error: (err) => {
+        console.error('Failed to load actions:', err);
+        this.snackBar.open('Failed to load actions. Please try again later.', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        this.cdr.detectChanges(); // Trigger change detection
+      }
     });
     this.loadLogs();
     this.search$.pipe(debounceTime(400), takeUntil(this.destroy$)).subscribe(() => {
@@ -58,9 +75,13 @@ export class SecurityLogsComponent implements OnInit, OnDestroy {
         this.paged = data;
         this.logs = data.content;
         this.loading = false;
+        this.cdr.detectChanges(); // Trigger change detection
       },
-      error: () => {
+      error: (err) => {
+        console.error('Failed to load audit logs:', err);
+        this.snackBar.open('Failed to load audit logs. Please check your connection.', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
         this.loading = false;
+        this.cdr.detectChanges(); // Trigger change detection
       },
     });
   }
