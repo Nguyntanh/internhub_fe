@@ -1,8 +1,8 @@
 export interface UserCreationRequest {
   name: string;
   email: string;
-  roleId: string;
-  departmentId: string;
+  roleId: number;
+  departmentId: number;
   phone: string;
 }
 
