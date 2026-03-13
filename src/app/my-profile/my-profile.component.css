@@ -238,6 +238,16 @@ mat-progress-bar {
   gap: 15px; /* Space between form fields */
 }
 
+.password-fields-row {
+  display: flex;
+  flex-wrap: nowrap; /* Force items to stay on a single line */
+  gap: 15px; /* Space between form fields in a row */
+}
+
+.password-fields-row .mat-form-field {
+  flex: 1 1 0; /* Make each mat-form-field grow and shrink equally, distributing space */
+}
+
 .full-width {
   width: 100%;
 }

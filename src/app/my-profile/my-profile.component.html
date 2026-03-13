@@ -105,77 +105,79 @@
         </mat-expansion-panel-header>
 
         <form [formGroup]="changePasswordForm" (ngSubmit)="onSubmitChangePassword()" class="password-change-form">
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Mật khẩu hiện tại</mat-label>
-            <input
-              matInput
-              [type]="hideOldPassword ? 'password' : 'text'"
-              formControlName="oldPassword"
-              required
-            />
-            <button
-              mat-icon-button
-              matSuffix
-              (click)="hideOldPassword = !hideOldPassword"
-              [attr.aria-label]="'Hide password'"
-              [attr.aria-pressed]="hideOldPassword"
-            >
-              <mat-icon>{{ hideOldPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            <mat-error *ngIf="changePasswordForm.get('oldPassword')?.hasError('required') && changePasswordForm.get('oldPassword')?.touched">
-              Mật khẩu hiện tại là bắt buộc.
-            </mat-error>
-          </mat-form-field>
+          <div class="password-fields-row">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Mật khẩu hiện tại</mat-label>
+              <input
+                matInput
+                [type]="hideOldPassword ? 'password' : 'text'"
+                formControlName="oldPassword"
+                required
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="hideOldPassword = !hideOldPassword"
+                [attr.aria-label]="'Hide password'"
+                [attr.aria-pressed]="hideOldPassword"
+              >
+                <mat-icon>{{ hideOldPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error *ngIf="changePasswordForm.get('oldPassword')?.hasError('required') && changePasswordForm.get('oldPassword')?.touched">
+                Mật khẩu hiện tại là bắt buộc.
+              </mat-error>
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Mật khẩu mới</mat-label>
-            <input
-              matInput
-              [type]="hideNewPassword ? 'password' : 'text'"
-              formControlName="newPassword"
-              required
-            />
-            <button
-              mat-icon-button
-              matSuffix
-              (click)="hideNewPassword = !hideNewPassword"
-              [attr.aria-label]="'Hide password'"
-              [attr.aria-pressed]="hideNewPassword"
-            >
-              <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            <mat-error *ngIf="changePasswordForm.get('newPassword')?.hasError('required') && changePasswordForm.get('newPassword')?.touched">
-              Mật khẩu mới là bắt buộc.
-            </mat-error>
-            <mat-error *ngIf="changePasswordForm.get('newPassword')?.hasError('minlength') && changePasswordForm.get('newPassword')?.touched">
-              Mật khẩu mới phải có ít nhất 8 ký tự.
-            </mat-error>
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Mật khẩu mới</mat-label>
+              <input
+                matInput
+                [type]="hideNewPassword ? 'password' : 'text'"
+                formControlName="newPassword"
+                required
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="hideNewPassword = !hideNewPassword"
+                [attr.aria-label]="'Hide password'"
+                [attr.aria-pressed]="hideNewPassword"
+              >
+                <mat-icon>{{ hideNewPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error *ngIf="changePasswordForm.get('newPassword')?.hasError('required') && changePasswordForm.get('newPassword')?.touched">
+                Mật khẩu mới là bắt buộc.
+              </mat-error>
+              <mat-error *ngIf="changePasswordForm.get('newPassword')?.hasError('minlength') && changePasswordForm.get('newPassword')?.touched">
+                Mật khẩu mới phải có ít nhất 8 ký tự.
+              </mat-error>
+            </mat-form-field>
 
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Xác nhận mật khẩu mới</mat-label>
-            <input
-              matInput
-              [type]="hideConfirmPassword ? 'password' : 'text'"
-              formControlName="confirmPassword"
-              required
-            />
-            <button
-              mat-icon-button
-              matSuffix
-              (click)="hideConfirmPassword = !hideConfirmPassword"
-              [attr.aria.label]="'Hide password'"
-              [attr.aria-pressed]="hideConfirmPassword"
-            >
-              <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
-            </button>
-            <mat-error *ngIf="changePasswordForm.get('confirmPassword')?.hasError('required') && changePasswordForm.get('confirmPassword')?.touched">
-              Xác nhận mật khẩu mới là bắt buộc.
-            </mat-error>
-            <mat-error *ngIf="changePasswordForm.get('confirmPassword')?.hasError('mismatch') && changePasswordForm.get('confirmPassword')?.touched">
-              Mật khẩu xác nhận không khớp với mật khẩu mới.
-            </mat-error>
-          </mat-form-field>
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Xác nhận mật khẩu mới</mat-label>
+              <input
+                matInput
+                [type]="hideConfirmPassword ? 'password' : 'text'"
+                formControlName="confirmPassword"
+                required
+              />
+              <button
+                mat-icon-button
+                matSuffix
+                (click)="hideConfirmPassword = !hideConfirmPassword"
+                [attr.aria.label]="'Hide password'"
+                [attr.aria-pressed]="hideConfirmPassword"
+              >
+                <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-error *ngIf="changePasswordForm.get('confirmPassword')?.hasError('required') && changePasswordForm.get('confirmPassword')?.touched">
+                Xác nhận mật khẩu mới là bắt buộc.
+              </mat-error>
+              <mat-error *ngIf="changePasswordForm.get('confirmPassword')?.hasError('mismatch') && changePasswordForm.get('confirmPassword')?.touched">
+                Mật khẩu xác nhận không khớp với mật khẩu mới.
+              </mat-error>
+            </mat-form-field>
+          </div>
 
           <button
             mat-raised-button
