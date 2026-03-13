@@ -8,10 +8,11 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+import { HttpErrorResponse } from '@angular/common/http';
 
 import { Auth } from '../../../../../auth/auth';
 import { UserCreationRequest, ErrorDetails } from '../../../../../shared/models/user.model';
-import { HttpErrorResponse } from '@angular/common/http';
+import { DepartmentService, Department } from '../../../../../services/department.service'; // Import DepartmentService and Department
 
 @Component({
   selector: 'app-create-user-dialog',
@@ -40,23 +41,15 @@ export class CreateUserDialogComponent implements OnInit {
     { id: 3, name: 'MANAGER' },
     { id: 4, name: 'MENTOR' },
   ];
-  departments = [
-    { id: 1, name: 'IT Department' },
-    { id: 2, name: 'Board of Directors' },
-    { id: 3, name: 'Software Engineering' },
-    { id: 4, name: 'Quality Control & QA' },
-    { id: 5, name: 'DevOps & Cloud' },
-    { id: 6, name: 'Data Science & AI' },
-    { id: 7, name: 'Product & Design' },
-    { id: 8, name: 'Human Resources & Admin' },
-  ];
+  departments: Department[] = []; // Initialize as an empty array of type Department
 
   constructor(
     private fb: FormBuilder,
     private authService: Auth,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<CreateUserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any // In case any initial data needs to be passed
+    @Inject(MAT_DIALOG_DATA) public data: any, // In case any initial data needs to be passed
+    private departmentService: DepartmentService // Inject DepartmentService
   ) {}
 
   ngOnInit(): void {
@@ -66,6 +59,19 @@ export class CreateUserDialogComponent implements OnInit {
       roleId: ['', [Validators.required]],
       departmentId: ['', [Validators.required]],
       phone: ['', [Validators.required, Validators.pattern(/^\d{10,15}$/)]],
+    });
+    this.loadDepartments(); // Call loadDepartments in ngOnInit
+  }
+
+  loadDepartments(): void {
+    this.departmentService.getAllDepartments().subscribe({
+      next: (departments) => {
+        this.departments = departments;
+      },
+      error: (error) => {
+        console.error('Error loading departments:', error);
+        this.snackBar.open('Failed to load departments.', 'Close', { duration: 3000, panelClass: ['error-snackbar'] });
+      }
     });
   }
 
