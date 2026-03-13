@@ -95,4 +95,15 @@ export class Auth {
       return throwError(() => error);
     };
   }
+
+  activateAccount(token: string): Observable<any> {
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+      }),
+    };
+    return this.http.get<any>(`${this.baseApiUrl}/auth/activate?token=${token}`, httpOptions).pipe(
+      catchError(this.handleError<any>('activateAccount'))
+    );
+  }
 }

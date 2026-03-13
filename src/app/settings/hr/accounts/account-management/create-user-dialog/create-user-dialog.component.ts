@@ -1,19 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
+import { MatCardModule } from '@angular/material/card'; // MatCard for general structure if desired within dialog
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
-import { Router } from '@angular/router';
-import { Auth } from '../../../../auth/auth'; // Adjust path as needed
-import { UserCreationRequest, ErrorDetails } from '../../../../shared/models/user.model'; // Adjust path as needed
+import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
+
+import { Auth } from '../../../../../auth/auth';
+import { UserCreationRequest, ErrorDetails } from '../../../../../shared/models/user.model';
 import { HttpErrorResponse } from '@angular/common/http';
 
 @Component({
-  selector: 'app-user-create',
+  selector: 'app-create-user-dialog',
   standalone: true,
   imports: [
     CommonModule,
@@ -25,11 +26,12 @@ import { HttpErrorResponse } from '@angular/common/http';
     MatButtonModule,
     MatSelectModule,
     MatSnackBarModule,
+    MatDialogModule, // Add this here
   ],
-  templateUrl: './user-create.component.html',
-  styleUrls: ['./user-create.component.css'], // Assuming a CSS file will be created
+  templateUrl: './create-user-dialog.component.html',
+  styleUrls: ['./create-user-dialog.component.css'],
 })
-export class UserCreateComponent implements OnInit {
+export class CreateUserDialogComponent implements OnInit {
   userForm!: FormGroup;
   roles = [
     { id: 1, name: 'ADMIN' },
@@ -52,8 +54,9 @@ export class UserCreateComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private authService: Auth,
-    private router: Router,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    public dialogRef: MatDialogRef<CreateUserDialogComponent>,
+    @Inject(MAT_DIALOG_DATA) public data: any // In case any initial data needs to be passed
   ) {}
 
   ngOnInit(): void {
@@ -70,9 +73,9 @@ export class UserCreateComponent implements OnInit {
     if (this.userForm.valid) {
       const userData: UserCreationRequest = this.userForm.value;
       this.authService.createUser(userData).subscribe({
-        next: (response) => {
+        next: (response: any) => {
           this.snackBar.open('User created successfully!', 'Close', { duration: 3000 });
-          this.router.navigate(['/settings/hr/accounts']); // Navigate back to accounts list
+          this.dialogRef.close(true); // Close dialog and pass true for success
         },
         error: (error: HttpErrorResponse) => {
           console.error('Error creating user:', error);
@@ -91,11 +94,16 @@ export class UserCreateComponent implements OnInit {
             errorMessage = `Error: ${error.message}`;
           }
           this.snackBar.open(errorMessage, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+          this.dialogRef.close(false); // Close dialog and pass false for failure, or keep open. For now, close.
         },
       });
     } else {
       this.snackBar.open('Please fill in all required fields correctly.', 'Close', { duration: 3000 });
     }
+  }
+
+  onCancel(): void {
+    this.dialogRef.close(); // Close dialog without returning data
   }
 
   // Helper for form validation messages
