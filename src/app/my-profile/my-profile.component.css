@@ -8,7 +8,8 @@
 
 .profile-card {
   width: 100%;
-  max-width: 800px;
+  max-width: 90%; /* Adjust to 90% of its parent container */
+  max-width: 1000px; /* Optional: Set an absolute max-width to prevent it from getting too wide */
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   border-radius: 8px;
 }
