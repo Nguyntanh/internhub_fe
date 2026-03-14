@@ -13,11 +13,21 @@
   <mat-card *ngIf="userProfile && !isLoading && !error" class="profile-card">
     <!-- Header Section -->
     <div class="profile-header">
-      <img
-        [src]="userProfile.avatar || getDefaultAvatar()"
-        alt="User Avatar"
-        class="profile-avatar"
-      />
+      <div class="avatar-upload-container" (click)="fileInput.click()">
+        <img
+          [src]="userProfile.avatar || getDefaultAvatar()"
+          alt="User Avatar"
+          class="profile-avatar"
+        />
+        <input
+          type="file"
+          #fileInput
+          (change)="onFileSelected($event)"
+          accept="image/jpeg,image/png"
+          style="display: none;"
+        />
+        <!-- Overlay and camera icon will be handled by CSS -->
+      </div>
       <div class="profile-info">
         <h2 class="mat-h2">{{ userProfile.name }}</h2>
         <p class="mat-body-1 profile-email">{{ userProfile.email }}</p>

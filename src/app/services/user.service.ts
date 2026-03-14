@@ -15,15 +15,26 @@ export class UserService {
     // In a real application, you would get the JWT token from a service (e.g., AuthService)
     // and include it in the Authorization header.
     // Assuming JwtInterceptor is handling this automatically for now.
+    // For multipart/form-data, do NOT manually set Content-Type; the browser will handle it.
     return new HttpHeaders({
-      'Content-Type': 'application/json',
-      // 'Authorization': `Bearer ${yourAuthService.getToken()}`
+      // 'Content-Type': 'application/json', // Not needed for FormData
+      // 'Authorization': `Bearer ${yourAuthService.getToken()}` // Handled by interceptor
     });
   }
 
   getUserProfile(): Observable<UserProfileResponse> {
     return this.http.get<UserProfileResponse>(`${this.baseApiUrl}/profile`, { headers: this.getAuthHeaders() }).pipe(
       catchError(this.handleError<UserProfileResponse>('getUserProfile'))
+    );
+  }
+
+  // New method to upload avatar
+  uploadAvatar(formData: FormData): Observable<{ newAvatarUrl: string }> {
+    // HttpHeaders are intentionally left minimal here.
+    // The browser will set the correct 'Content-Type: multipart/form-data' with boundary.
+    // The JWT Interceptor should add the Authorization header.
+    return this.http.patch<{ newAvatarUrl: string }>(`${this.baseApiUrl}/profile/avatar`, formData).pipe(
+      catchError(this.handleError<{ newAvatarUrl: string }>('uploadAvatar'))
     );
   }
 

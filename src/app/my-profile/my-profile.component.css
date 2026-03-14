@@ -43,13 +43,70 @@
 }
 
 .profile-avatar {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-right: 20px;
-  border: 2px solid #ddd;
+  /* Original profile-avatar styles removed as they are now handled by .avatar-upload-container and its child .profile-avatar */
+  display: none; /* Hide the original img element if it's not wrapped */
 }
+
+/* Styling for Avatar Upload */
+.avatar-upload-container {
+  position: relative;
+  width: 80px; /* Match avatar size */
+  height: 80px; /* Match avatar size */
+  border-radius: 50%;
+  overflow: hidden;
+  cursor: pointer;
+  margin-right: 20px; /* Keep spacing with profile-info */
+  border: 2px solid #ddd; /* Keep existing border */
+  display: flex; /* To center overlay/icon if needed */
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0; /* Prevent it from shrinking */
+}
+
+.avatar-upload-container .profile-avatar {
+  width: 100%; /* Fill container */
+  height: 100%; /* Fill container */
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+  margin-right: 0; /* Reset margin from original .profile-avatar */
+}
+
+.avatar-upload-container::before { /* Overlay */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 50%; /* Match container border-radius */
+}
+
+.avatar-upload-container::after { /* Camera Icon */
+  content: '\e412'; /* Material icon code for 'photo_camera' */
+  font-family: 'Material Icons'; /* Ensure Material Icons font is loaded */
+  font-size: 32px;
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none; /* Allow click to pass through to container */
+}
+
+.avatar-upload-container:hover .profile-avatar {
+  opacity: 0.7; /* Slightly dim the avatar on hover */
+}
+
+.avatar-upload-container:hover::before,
+.avatar-upload-container:hover::after {
+  opacity: 1; /* Show overlay and camera icon on hover */
+}
+
 
 .profile-info {
   display: flex;

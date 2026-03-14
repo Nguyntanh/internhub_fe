@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core'; // Import ChangeDetectorRef
+import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core'; // Import ChangeDetectorRef, ViewChild, ElementRef
 import { CommonModule, DatePipe } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,8 +18,8 @@ import { MatInputModule } from '@angular/material/input'; // Import MatInputModu
 import { UserService } from '../services/user.service';
 import { UserProfileResponse } from '../shared/models/user.model';
 import { HttpErrorResponse } from '@angular/common/http';
-import { throwError, TimeoutError } from 'rxjs'; // Import throwError and TimeoutError
-import { catchError, timeout, finalize } from 'rxjs/operators'; // Import catchError, timeout, and finalize
+import { throwError, TimeoutError, of } from 'rxjs'; // Import throwError, TimeoutError, of
+import { catchError, timeout, finalize, tap } from 'rxjs/operators'; // Import catchError, timeout, finalize, tap
 
 /** Custom validator to check if two fields match */
 export function passwordMatchValidator(controlName: string, checkControlName: string): ValidatorFn {
@@ -70,6 +70,8 @@ export function passwordMatchValidator(controlName: string, checkControlName: st
   styleUrls: ['./my-profile.component.css']
 })
 export class MyProfileComponent implements OnInit {
+  @ViewChild('fileInput') fileInput!: ElementRef; // Reference to the hidden file input
+
   userProfile: UserProfileResponse | null = null;
   isLoading: boolean = true;
   error: string | null = null;
@@ -82,6 +84,11 @@ export class MyProfileComponent implements OnInit {
   hideConfirmPassword = true;
   isChangingPassword = false;
   panelOpenState = false; // To control expansion panel state
+
+  // Avatar Upload functionality
+  selectedFile: File | null = null;
+  avatarPreviewUrl: string | ArrayBuffer | null = null;
+  isUploadingAvatar = false;
 
 
   constructor(
@@ -122,15 +129,18 @@ export class MyProfileComponent implements OnInit {
         return throwError(() => err); // Re-throw for further handling if needed
       })
     ).subscribe({
-      next: (data) => {
-        console.log('MyProfileComponent - Data received:', data); // Log the received data
-        this.userProfile = data;
-        this.internshipProgress = this.calculateProgress(); // Calculate and store progress
-        this.isLoading = false;
-        this.error = null; // Clear any previous error
-        console.log('MyProfileComponent - After data assignment: isLoading=', this.isLoading, 'userProfile=', this.userProfile); // Log state
-        this.cdr.detectChanges(); // Force change detection on success
-      },
+                next: (data) => {
+                  console.log('MyProfileComponent - Data received:', data); // Log the received data
+                  this.userProfile = data;
+                  this.internshipProgress = this.calculateProgress(); // Calculate and store progress
+                  // Initialize avatar preview with current avatar
+                  this.avatarPreviewUrl = this.userProfile.avatar || this.getDefaultAvatar();
+                  this.isLoading = false;
+                  this.error = null; // Clear any previous error
+                  console.log('MyProfileComponent - After data assignment: isLoading=', this.isLoading, 'userProfile=', this.userProfile); // Log state
+                  this.cdr.detectChanges(); // Force change detection on success
+                },
+      
       error: (err) => { // This error will now catch the timeout error or other http errors
         // Error message and isLoading already handled in the pipe's catchError
         // This block is primarily for RxJS error handling that might slip past the pipe's catchError,
@@ -138,6 +148,94 @@ export class MyProfileComponent implements OnInit {
         this.isLoading = false;
         console.log('MyProfileComponent - Error block: isLoading=', this.isLoading, 'error=', this.error); // Log state
         this.cdr.detectChanges(); // Force change detection on error
+      }
+    });
+  }
+
+  // Method to handle file selection for avatar upload
+  onFileSelected(event: Event): void {
+    const element = event.target as HTMLInputElement;
+    const file = element.files?.item(0);
+
+    if (file) {
+      // Validate file type
+      const allowedTypes = ['image/jpeg', 'image/png'];
+      if (!allowedTypes.includes(file.type)) {
+        this.snackBar.open('Chỉ chấp nhận file ảnh JPG, JPEG, PNG.', 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
+        // Reset file input
+        this.fileInput.nativeElement.value = '';
+        return;
+      }
+
+      // Validate file size (max 5MB)
+      const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+      if (file.size > maxSize) {
+        this.snackBar.open('File ảnh quá lớn. Kích thước tối đa là 5MB.', 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
+        // Reset file input
+        this.fileInput.nativeElement.value = '';
+        return;
+      }
+
+      this.selectedFile = file;
+
+      // Create preview URL
+      const reader = new FileReader();
+      reader.onload = () => {
+        this.avatarPreviewUrl = reader.result;
+        this.cdr.detectChanges(); // Force update preview
+      };
+      reader.readAsDataURL(file);
+
+      // Upload the avatar
+      this.uploadAvatar();
+    } else {
+      this.selectedFile = null;
+      this.avatarPreviewUrl = this.userProfile?.avatar || this.getDefaultAvatar(); // Revert to current avatar or default
+    }
+  }
+
+  // Method to upload the selected avatar
+  uploadAvatar(): void {
+    if (!this.selectedFile) {
+      this.snackBar.open('Không có file ảnh nào được chọn để tải lên.', 'Đóng', { duration: 3000, panelClass: ['warning-snackbar'] });
+      return;
+    }
+
+    this.isUploadingAvatar = true;
+    const formData = new FormData();
+    formData.append('file', this.selectedFile, this.selectedFile.name);
+
+    this.userService.uploadAvatar(formData).pipe(
+      finalize(() => {
+        this.isUploadingAvatar = false;
+        this.fileInput.nativeElement.value = ''; // Clear file input after upload attempt
+        this.selectedFile = null; // Clear selected file
+        this.cdr.detectChanges(); // Ensure UI updates after finalization
+      })
+    ).subscribe({
+      next: (response) => {
+        if (this.userProfile) {
+          this.userProfile.avatar = response.newAvatarUrl; // Update avatar URL
+        }
+        this.snackBar.open('Cập nhật ảnh đại diện thành công!', 'Đóng', { duration: 3000, panelClass: ['success-snackbar'] });
+        // No need to reset avatarPreviewUrl here, it should already be updated or reflect the new avatar
+        this.cdr.detectChanges(); // Force update after successful upload
+      },
+      error: (err: HttpErrorResponse) => {
+        let errorMessage = 'Đã xảy ra lỗi khi tải ảnh đại diện. Vui lòng thử lại.';
+        if (err.status === 400) {
+          errorMessage = err.error?.message || 'Yêu cầu không hợp lệ. Vui lòng kiểm tra định dạng hoặc kích thước file.';
+        } else if (err.status === 401) {
+          errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+          this.authService.logout();
+          this.router.navigate(['/login']);
+        } else if (err.error && err.error.message) {
+          errorMessage = err.error.message;
+        }
+        this.snackBar.open(errorMessage, 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
+        console.error('Error uploading avatar:', err);
+        // Revert preview to current avatar if upload fails
+        this.avatarPreviewUrl = this.userProfile?.avatar || this.getDefaultAvatar();
       }
     });
   }
@@ -164,20 +262,23 @@ export class MyProfileComponent implements OnInit {
         this.panelOpenState = false; // Close the panel on success
         this.cdr.detectChanges(); // Force update after form reset and panel close
       },
-      error: (err: HttpErrorResponse) => {
-        let errorMessage = 'Đã xảy ra lỗi khi thay đổi mật khẩu. Vui lòng thử lại.';
-        if (err.status === 400) {
-          errorMessage = 'Mật khẩu cũ không chính xác hoặc định dạng mật khẩu mới không hợp lệ.';
-        } else if (err.status === 401) {
-          errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
-          this.authService.logout();
-          this.router.navigate(['/login']);
-        } else if (err.error && err.error.message) {
-          errorMessage = err.error.message; // Use error message from backend if available
-        }
-        this.snackBar.open(errorMessage, 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
-        console.error('Error changing password:', err);
-      }
+                error: (err: HttpErrorResponse) => {
+                  let errorMessage = 'Đã xảy ra lỗi khi thay đổi mật khẩu.'; // More generic message
+                  if (err.status === 400) {
+                    // If 400 and password seems to have changed on backend, this message is more appropriate
+                    errorMessage = err.error?.message || 'Mật khẩu cũ không đúng hoặc mật khẩu mới không hợp lệ. Vui lòng kiểm tra lại.';
+                  } else if (err.status === 401) {
+                    errorMessage = 'Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.';
+                    this.authService.logout();
+                    this.router.navigate(['/login']);
+                  } else if (err.error && err.error.message) {
+                    errorMessage = err.error.message;
+                  }
+                  // Add suggestion to try logging in with new password if it's a confusing 400 error.
+                  this.snackBar.open(errorMessage + ' Nếu bạn gặp vấn đề, hãy thử đăng nhập bằng mật khẩu mới vừa đổi.', 'Đóng', { duration: 7000, panelClass: ['error-snackbar'] });
+                  console.error('Error changing password:', err);
+                }
+      
     });
   }
 
