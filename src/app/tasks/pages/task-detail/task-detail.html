@@ -1,0 +1,83 @@
+<div *ngIf="task">
+
+  <h2>{{task?.title}}</h2>
+
+  <p>{{task?.description}}</p>
+
+  <p>Status: {{task?.status}}</p>
+
+  <hr>
+
+  <h3>Skills Required</h3>
+
+  <div *ngFor="let skill of task?.skills">
+
+    <p>
+      <strong>{{skill.skillName}}</strong>
+      (Weight: {{skill.weight}})
+    </p>
+
+  </div>
+
+  <hr>
+
+  <h3>Submit Task</h3>
+
+  <input
+    type="text"
+    placeholder="Github repository link"
+    [(ngModel)]="submissionLink"
+  />
+
+  <br><br>
+
+  <textarea
+    placeholder="Submission note"
+    rows="3"
+    [(ngModel)]="submissionNote"
+  ></textarea>
+
+  <br><br>
+
+  <button (click)="submitTask()">
+    Submit Task
+  </button>
+
+  <hr>
+
+  <h3>Review Skills</h3>
+
+  <div *ngFor="let skill of task?.skills">
+
+    <p>
+      <strong>{{skill.skillName}}</strong>
+      (Weight: {{skill.weight}})
+    </p>
+
+    <label>Score</label>
+
+    <input
+      type="number"
+      min="0"
+      max="10"
+      [(ngModel)]="skill.score"
+    />
+
+    <br><br>
+
+    <label>Comment</label>
+
+    <input
+      type="text"
+      [(ngModel)]="skill.comment"
+    />
+
+    <hr>
+
+  </div>
+
+  <button (click)="reviewTask()">
+    Submit Review
+  </button>
+
+</div>

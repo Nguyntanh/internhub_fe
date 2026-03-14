@@ -33,6 +33,9 @@ import { OperationProcessComponent } from './settings/operation/process/process'
 import { SecurityLogsComponent } from './settings/security/logs/logs';
 import { ActivateAccountComponent } from './activate-account/activate-account.component'; // New import
 
+import { TaskListComponent } from './tasks/pages/task-list/task-list';
+import { TaskDetailComponent } from './tasks/pages/task-detail/task-detail';
+
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'login', component: LoginComponent },
@@ -47,14 +50,22 @@ export const routes: Routes = [
     ],
   },
   {
-    path: 'tasks', // Changed from /execution to /tasks
-    component: MainLayout,
-    // canActivate: [authGuard], // Bảo vệ route này - TẠM THỜI TẮT ĐỂ DEBUG
-    data: { title: 'Thực thi' },
-    children: [
-      { path: '', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } }, // Default for /tasks
-    ],
-  },
+      path: 'tasks',
+      component: MainLayout,
+      data: { title: 'Thực thi' },
+      children: [
+        {
+          path: '',
+          component: TaskListComponent,
+          data: { title: 'Task List' }
+        },
+        {
+          path: ':id',
+          component: TaskDetailComponent,
+          data: { title: 'Task Detail' }
+        }
+      ],
+    },
   {
     path: 'management',
     component: MainLayout,

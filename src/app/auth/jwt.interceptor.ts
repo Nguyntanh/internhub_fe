@@ -1,35 +1,29 @@
-import { Injectable } from '@angular/core';
-import {
-  HttpRequest,
-  HttpHandler,
-  HttpEvent,
-  HttpInterceptor
-} from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { Auth } from './auth'; // Import AuthService
+import { Injectable, PLATFORM_ID, inject } from '@angular/core'
+import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http'
+import { Observable } from 'rxjs'
+import { isPlatformBrowser } from '@angular/common'
 
 @Injectable()
 export class JwtInterceptor implements HttpInterceptor {
 
-  constructor(private authService: Auth) {}
+  private platformId = inject(PLATFORM_ID)
 
-  intercept(request: HttpRequest<unknown>, next: HttpHandler): Observable<HttpEvent<unknown>> {
-    // Lấy token từ AuthService
-    const currentUser = this.authService.currentUserValue;
-    const isLoggedIn = currentUser && currentUser.token;
-    const isApiUrl = request.url.startsWith('http://localhost:8090/api/'); // Giả định tất cả các API call đến backend đều bắt đầu với đường dẫn này
+  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
 
-    // Kiểm tra nếu người dùng đã đăng nhập và yêu cầu không phải là đến trang login
-    // và request là đến API backend
-    if (isLoggedIn && isApiUrl && !request.url.includes('/auth/login')) {
-      // Clone request để thêm header Authorization
-      request = request.clone({
-        setHeaders: {
-          Authorization: `Bearer ${currentUser.token}`
-        }
-      });
+    let token: string | null = null
+
+    if (isPlatformBrowser(this.platformId)) {
+      token = localStorage.getItem('jwt_token')
     }
 
-    return next.handle(request);
+    if (token) {
+      req = req.clone({
+        setHeaders: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+    }
+
+    return next.handle(req)
   }
 }
