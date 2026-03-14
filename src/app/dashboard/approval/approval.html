@@ -102,19 +102,21 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                   d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
           </svg>
-          <span>Đánh giá đã được <strong>gửi phê duyệt</strong> — không thể chỉnh sửa thêm.</span>
+          <span>Đánh giá đã được <strong>gửi phê duyệt</strong> bằng
+            <strong>{{ activeTab === 'upload' ? 'tệp đính kèm' : 'nhận xét văn bản' }}</strong>
+            — không thể chỉnh sửa thêm.</span>
         </div>
 
         <!-- 2 tab -->
         <div class="flex gap-2 mb-4">
-          <button type="button" (click)="activeTab = 'upload'"
+          <button type="button" (click)="switchTab('upload')"
                   class="px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
                   [class.bg-gray-800]="activeTab === 'upload'" [class.text-white]="activeTab === 'upload'"
                   [class.border-gray-800]="activeTab === 'upload'" [class.bg-white]="activeTab !== 'upload'"
                   [class.text-gray-700]="activeTab !== 'upload'" [class.border-gray-300]="activeTab !== 'upload'">
             Tải tệp lên
           </button>
-          <button type="button" (click)="activeTab = 'write'"
+          <button type="button" (click)="switchTab('write')"
                   class="px-4 py-2 text-sm font-medium rounded-lg border transition-colors"
                   [class.bg-gray-800]="activeTab === 'write'" [class.text-white]="activeTab === 'write'"
                   [class.border-gray-800]="activeTab === 'write'" [class.bg-white]="activeTab !== 'write'"
@@ -191,10 +193,21 @@
       <!-- ──── VIEW MANAGER: chỉ đọc ──── -->
       <ng-container *ngIf="currentRole === 'MANAGER'">
         <div *ngIf="evaluation?.overallComment; else noComment">
-          <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nhận xét của Mentor</p>
-          <div class="bg-gray-50 rounded-xl px-4 py-4 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap border border-gray-100">
-            {{ evaluation?.overallComment }}
-          </div>
+          <!-- Hiển thị theo loại đánh giá -->
+          <ng-container *ngIf="activeTab === 'upload'">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Tệp đính kèm & ghi chú của Mentor</p>
+            <div class="bg-gray-50 rounded-xl px-4 py-4 text-sm text-gray-800 leading-relaxed border border-gray-100">
+              <p class="text-xs text-gray-400 italic mb-2">(Mentor đã gửi kèm tệp đính kèm)</p>
+              <p *ngIf="evaluation?.overallComment && evaluation?.overallComment !== '(Đã gửi kèm tệp đính kèm)'"
+                 class="whitespace-pre-wrap">{{ evaluation?.overallComment }}</p>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="activeTab === 'write'">
+            <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Nhận xét của Mentor</p>
+            <div class="bg-gray-50 rounded-xl px-4 py-4 text-sm text-gray-800 leading-relaxed whitespace-pre-wrap border border-gray-100">
+              {{ evaluation?.overallComment }}
+            </div>
+          </ng-container>
           <p class="text-xs text-gray-400 mt-2">
             Gửi lúc {{ evaluation?.submittedAt | date:'dd/MM/yyyy HH:mm' }}
             <span *ngIf="evaluation?.mentorName"> bởi <strong>{{ evaluation?.mentorName }}</strong></span>

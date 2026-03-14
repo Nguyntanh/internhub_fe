@@ -40,6 +40,7 @@ interface EvaluationResponse {
   skillSummaries?: SkillSummary[];
   totalTasksReviewed?: number;
   totalTasksAll?: number;
+  evaluationType?: 'write' | 'upload'; // lưu local, không từ backend
 }
 
 interface Toast {
@@ -64,7 +65,7 @@ export class Approval {
   selectedInternId: number | null = null;
   evaluation: EvaluationResponse | null = null;
 
-  activeTab: 'write' | 'upload' = 'write';
+  activeTab: 'write' | 'upload' = 'upload';
   overallComment = '';
   uploadNote = '';
   // Mỗi slot = 1 hàng có nút Tải tệp + Camera + X
@@ -170,6 +171,9 @@ export class Approval {
           this.zone.run(() => {
             this.evaluation = data;
             this.overallComment = data.overallComment ?? '';
+            // Restore tab đã dùng lần trước cho intern này
+            const savedType = localStorage.getItem(`eval_type_${data.internId}`) as 'write' | 'upload' | null;
+            this.activeTab = savedType ?? 'upload';
             this.cdr.detectChanges();
           });
         },
@@ -209,6 +213,14 @@ export class Approval {
   }
 
   /** Kiểm tra có thể submit không — tuỳ theo tab đang active */
+  switchTab(tab: 'write' | 'upload'): void {
+    this.activeTab = tab;
+    // Lưu lựa chọn tab cho intern này
+    if (this.selectedInternId) {
+      localStorage.setItem(`eval_type_${this.selectedInternId}`, tab);
+    }
+  }
+
   hasNoFiles(): boolean {
     return !this.uploadSlots || this.uploadSlots.every(s => !s.file);
   }
