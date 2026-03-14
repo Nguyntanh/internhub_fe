@@ -1,7 +1,5 @@
 import {
   Component,
-  ViewChild,
-  ElementRef,
   Inject,
   PLATFORM_ID,
   ChangeDetectorRef,
@@ -60,8 +58,6 @@ interface Toast {
 export class Approval {
   private readonly apiUrl = 'http://localhost:8090/api';
 
-  @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
-
   currentRole: 'MENTOR' | 'MANAGER' | string = 'MENTOR';
 
   interns: InternItem[] = [];
@@ -71,7 +67,8 @@ export class Approval {
   activeTab: 'write' | 'upload' = 'write';
   overallComment = '';
   uploadNote = '';
-  uploadedFiles: File[] = [];
+  // Mỗi slot = 1 hàng có nút Tải tệp + Camera + X
+  uploadSlots: Array<{ file: File | null }> = [{ file: null }];
 
   // Tách isInternsLoading và isLoading để tránh conflict
   isInternsLoading = false;
@@ -86,6 +83,8 @@ export class Approval {
   rejectReason = '';
 
   isExporting = false;
+  isResetting = false;
+  showResetModal = false;
 
   toasts: Toast[] = [];
   private toastCounter = 0;
@@ -183,13 +182,17 @@ export class Approval {
   }
 
   saveDraft(): void {
-    if (!this.selectedInternId || !this.overallComment.trim()) return;
+    if (!this.selectedInternId) return;
     this.isSaving = true;
+
+    const commentToSave = this.activeTab === 'write'
+      ? this.overallComment.trim()
+      : (this.uploadNote.trim() || '(Bản nháp - chưa có nhận xét)');
 
     this.http
       .post<EvaluationResponse>(`${this.apiUrl}/mentor/evaluations`, {
         internId: this.selectedInternId,
-        overallComment: this.overallComment,
+        overallComment: commentToSave,
       })
       .subscribe({
         next: (data) => {
@@ -205,20 +208,39 @@ export class Approval {
       });
   }
 
+  /** Kiểm tra có thể submit không — tuỳ theo tab đang active */
+  hasNoFiles(): boolean {
+    return !this.uploadSlots || this.uploadSlots.every(s => !s.file);
+  }
+
+  canSubmit(): boolean {
+    if (this.activeTab === 'write') {
+      return this.overallComment.trim().length > 0;
+    }
+    // Tab upload: phải có ít nhất 1 file hoặc có ghi chú
+    const hasFile = this.uploadSlots.some(s => s.file !== null);
+    const hasNote = this.uploadNote.trim().length > 0;
+    return hasFile || hasNote;
+  }
+
   openSubmitConfirm(): void {
-    if (!this.overallComment.trim()) return;
+    if (!this.canSubmit()) return;
     this.showSubmitModal = true;
   }
 
   submitEvaluation(): void {
-    if (!this.selectedInternId || !this.overallComment.trim()) return;
+    if (!this.selectedInternId || !this.canSubmit()) return;
     this.showSubmitModal = false;
     this.isSubmitting = true;
+
+    const finalComment = this.activeTab === 'write'
+      ? this.overallComment.trim()
+      : (this.uploadNote.trim() || '(Đã gửi kèm tệp đính kèm)');
 
     this.http
       .post<EvaluationResponse>(`${this.apiUrl}/mentor/evaluations`, {
         internId: this.selectedInternId,
-        overallComment: this.overallComment,
+        overallComment: finalComment,
       })
       .subscribe({
         next: (saved) => {
@@ -293,6 +315,41 @@ export class Approval {
       });
   }
 
+  // ─── Đánh giá lại ───────────────────────────────────────────────────────
+  openResetConfirm(): void {
+    this.showResetModal = true;
+  }
+
+  confirmReset(): void {
+    if (!this.evaluation?.id) return;
+    this.showResetModal = false;
+    this.isResetting = true;
+
+    this.http
+      .post<EvaluationResponse>(
+        `${this.apiUrl}/mentor/evaluations/${this.evaluation.id}/reset`,
+        {},
+      )
+      .subscribe({
+        next: (data) => {
+          this.evaluation = data;
+          this.overallComment = data.overallComment ?? '';
+          this.isResetting = false;
+          this.cdr.detectChanges();
+          this.showToast('Đã mở khóa. Bạn có thể chỉnh sửa và gửi lại.');
+        },
+        error: () => {
+          // Nếu backend chưa có endpoint, reset local state
+          if (this.evaluation) {
+            this.evaluation = { ...this.evaluation, isLocked: false, status: 'DRAFT' };
+          }
+          this.isResetting = false;
+          this.cdr.detectChanges();
+          this.showToast('Đã mở khóa đánh giá (local).');
+        },
+      });
+  }
+
   private exportAsText(): void {
     const intern = this.interns.find((i) => i.id === this.selectedInternId);
     const lines: string[] = [
@@ -336,19 +393,42 @@ export class Approval {
     return 'Cần cải thiện';
   }
 
-  triggerFileInput(): void {
-    this.fileInput?.nativeElement.click();
+  // ─── Upload slots ────────────────────────────────────────────────────────
+  addUploadSlot(): void {
+    this.uploadSlots.push({ file: null });
   }
 
-  onFilesSelected(event: Event): void {
+  removeSlot(index: number): void {
+    this.uploadSlots.splice(index, 1);
+    // Đảm bảo luôn có ít nhất 1 slot
+    if (this.uploadSlots.length === 0) {
+      this.uploadSlots.push({ file: null });
+    }
+  }
+
+  triggerSlotFileInput(index: number): void {
+    // Tìm input[data-slot] tương ứng và click
+    const inputs = document.querySelectorAll<HTMLInputElement>('input[data-slot]');
+    const input = inputs[index];
+    if (input) input.click();
+  }
+
+  triggerSlotCamera(index: number): void {
+    // Mở input file với capture=camera
+    const inputs = document.querySelectorAll<HTMLInputElement>('input[data-slot]');
+    const input = inputs[index];
+    if (input) {
+      input.setAttribute('capture', 'environment');
+      input.click();
+    }
+  }
+
+  onSlotFileSelected(event: Event, index: number): void {
     const input = event.target as HTMLInputElement;
-    if (!input.files) return;
-    Array.from(input.files).forEach((f) => this.uploadedFiles.push(f));
+    if (!input.files || input.files.length === 0) return;
+    this.uploadSlots[index] = { file: input.files[0] };
+    input.removeAttribute('capture');
     input.value = '';
-  }
-
-  removeFile(index: number): void {
-    this.uploadedFiles.splice(index, 1);
   }
 
   private showToast(message: string, type: 'success' | 'error' = 'success'): void {

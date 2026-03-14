@@ -136,43 +136,48 @@
 
         <!-- Tab Tải tệp -->
         <div *ngIf="activeTab === 'upload'">
+          <!-- Danh sách slot upload — mỗi slot có nút Tải tệp + Camera + X -->
           <div class="space-y-2 mb-3">
-            <div *ngFor="let f of uploadedFiles; let i = index"
-                 class="flex items-center justify-between px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg">
-              <div class="flex items-center gap-2 min-w-0">
-                <button type="button" (click)="triggerFileInput()"
-                        class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 px-2.5 py-1.5 rounded-lg hover:bg-white transition-colors shrink-0">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
-                  </svg>
-                  Tải tệp
-                </button>
-                <button type="button"
-                        class="flex items-center gap-1.5 text-xs text-gray-600 border border-gray-300 px-2.5 py-1.5 rounded-lg hover:bg-white transition-colors shrink-0">
-                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
-                  </svg>
-                  Sử dụng camera
-                </button>
-                <span class="text-xs text-gray-500 truncate">{{ f.name }}</span>
-              </div>
-              <button type="button" (click)="removeFile(i)" [disabled]="!!evaluation?.isLocked"
-                      class="ml-2 text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40">
+            <div *ngFor="let slot of uploadSlots; let i = index"
+                 class="flex items-center gap-2">
+              <!-- Nút Tải tệp -->
+              <button type="button" (click)="triggerSlotFileInput(i)" [disabled]="!!evaluation?.isLocked"
+                      class="flex items-center gap-1.5 text-sm text-gray-700 border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-40 shrink-0">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                Tải tệp
+              </button>
+              <!-- Nút Camera -->
+              <button type="button" (click)="triggerSlotCamera(i)" [disabled]="!!evaluation?.isLocked"
+                      class="flex items-center gap-1.5 text-sm text-gray-700 border border-gray-300 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-40 shrink-0">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z M15 13a3 3 0 11-6 0 3 3 0 016 0z"/>
+                </svg>
+                Sử dụng camera
+              </button>
+              <!-- Tên file nếu đã chọn -->
+              <span *ngIf="slot.file" class="text-xs text-gray-500 truncate flex-1 min-w-0">{{ slot.file.name }}</span>
+              <!-- Nút X xóa slot -->
+              <button type="button" (click)="removeSlot(i)" [disabled]="!!evaluation?.isLocked"
+                      class="ml-auto text-gray-400 hover:text-red-500 transition-colors disabled:opacity-40 shrink-0">
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                 </svg>
               </button>
+              <!-- Hidden input riêng cho từng slot -->
+              <input type="file" class="hidden" [attr.data-slot]="i" (change)="onSlotFileSelected($event, i)"/>
             </div>
           </div>
 
-          <button type="button" (click)="triggerFileInput()" [disabled]="!!evaluation?.isLocked"
-                  class="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-40">
+          <!-- Nút thêm slot mới -->
+          <button type="button" (click)="addUploadSlot()" [disabled]="!!evaluation?.isLocked"
+                  class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 transition-colors disabled:opacity-40">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
             </svg>
             Thêm tệp khác
           </button>
-          <input #fileInput type="file" multiple class="hidden" (change)="onFilesSelected($event)"/>
 
           <div class="mt-4">
             <textarea [(ngModel)]="uploadNote" [disabled]="!!evaluation?.isLocked" rows="3"
@@ -224,19 +229,37 @@
       </button>
       <div *ngIf="currentRole === 'MANAGER'"></div>
 
-      <!-- Xuất file -->
-      <button type="button" (click)="exportReport()" [disabled]="isExporting || !evaluation"
-              class="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50">
-        <svg *ngIf="!isExporting" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
-        </svg>
-        <svg *ngIf="isExporting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-        </svg>
-        {{ isExporting ? 'Đang xuất...' : 'Xuất file' }}
-      </button>
+      <!-- Nhóm nút phải: Đánh giá lại + Xuất file -->
+      <div class="flex items-center gap-2">
+        <!-- Đánh giá lại: chỉ hiện với MENTOR khi đã locked -->
+        <button *ngIf="currentRole === 'MENTOR' && evaluation?.isLocked"
+                type="button" (click)="openResetConfirm()" [disabled]="isResetting"
+                class="px-4 py-2 text-sm font-medium text-orange-600 bg-orange-50 border border-orange-200 rounded-lg hover:bg-orange-100 transition-colors flex items-center gap-2 disabled:opacity-50">
+          <svg *ngIf="!isResetting" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          <svg *ngIf="isResetting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          {{ isResetting ? 'Đang mở khóa...' : 'Đánh giá lại' }}
+        </button>
+
+        <!-- Xuất file -->
+        <button type="button" (click)="exportReport()" [disabled]="isExporting || !evaluation"
+                class="px-5 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50">
+          <svg *ngIf="!isExporting" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 10v6m0 0l-3-3m3 3l3-3M3 17V7a2 2 0 012-2h6l2 2h6a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          </svg>
+          <svg *ngIf="isExporting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          {{ isExporting ? 'Đang xuất...' : 'Xuất file' }}
+        </button>
+      </div>
     </div>
   </div>
 
@@ -246,7 +269,7 @@
   <ng-container *ngIf="currentRole === 'MENTOR'">
     <div *ngIf="!evaluation?.isLocked" class="flex justify-end">
       <button type="button" (click)="openSubmitConfirm()"
-              [disabled]="!overallComment.trim() || isSubmitting"
+              [disabled]="!canSubmit() || isSubmitting"
               class="px-6 py-2.5 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
         <svg *ngIf="isSubmitting" class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
@@ -328,8 +351,28 @@
       </div>
     </div>
     <div class="bg-gray-50 rounded-lg px-4 py-3 mb-5 text-sm text-gray-700 border border-gray-100">
-      <p class="font-medium text-gray-400 text-xs uppercase tracking-wide mb-1">Nhận xét tổng kết</p>
-      <p class="line-clamp-3">{{ overallComment }}</p>
+      <!-- Tab Viết đánh giá -->
+      <ng-container *ngIf="activeTab === 'write'">
+        <p class="font-medium text-gray-400 text-xs uppercase tracking-wide mb-1">Nhận xét tổng kết</p>
+        <p class="line-clamp-3">{{ overallComment }}</p>
+      </ng-container>
+      <!-- Tab Tải tệp lên -->
+      <ng-container *ngIf="activeTab === 'upload'">
+        <p class="font-medium text-gray-400 text-xs uppercase tracking-wide mb-1">Tệp đính kèm</p>
+        <ul class="space-y-1 mb-2">
+          <li *ngFor="let slot of uploadSlots" class="text-xs text-gray-600 flex items-center gap-1.5">
+            <ng-container *ngIf="slot.file">
+              <svg class="w-3.5 h-3.5 text-blue-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"/>
+              </svg>
+              {{ slot.file.name }}
+            </ng-container>
+          </li>
+          <li *ngIf="hasNoFiles()" class="text-xs text-gray-400 italic">Chưa có tệp nào được chọn</li>
+        </ul>
+        <p *ngIf="uploadNote.trim()" class="font-medium text-gray-400 text-xs uppercase tracking-wide mb-1 mt-2">Nhận xét kèm theo</p>
+        <p *ngIf="uploadNote.trim()" class="line-clamp-3">{{ uploadNote }}</p>
+      </ng-container>
     </div>
     <div class="flex justify-end gap-3">
       <button type="button" (click)="showSubmitModal = false"
@@ -389,6 +432,38 @@
               [class.bg-green-600]="pendingDecision === 'APPROVE'" [class.hover:bg-green-700]="pendingDecision === 'APPROVE'"
               [class.bg-red-600]="pendingDecision === 'REJECT'" [class.hover:bg-red-700]="pendingDecision === 'REJECT'">
         {{ pendingDecision === 'APPROVE' ? 'Phê duyệt' : 'Từ chối' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL: Xác nhận đánh giá lại ══ -->
+<div *ngIf="showResetModal" class="fixed inset-0 z-50 flex items-center justify-center">
+  <div class="absolute inset-0 bg-black/40" (click)="showResetModal = false"></div>
+  <div class="relative bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 z-10">
+    <div class="flex items-start gap-3 mb-5">
+      <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center shrink-0">
+        <svg class="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+        </svg>
+      </div>
+      <div>
+        <h3 class="text-base font-semibold text-gray-900">Xác nhận đánh giá lại</h3>
+        <p class="text-sm text-gray-500 mt-1">
+          Hành động này sẽ <strong>mở khóa đánh giá</strong> và cho phép chỉnh sửa lại.<br/>
+          Các micro-tasks cũng sẽ được <strong>mở khóa</strong> trở lại.
+        </p>
+      </div>
+    </div>
+    <div class="flex justify-end gap-3">
+      <button type="button" (click)="showResetModal = false"
+              class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+        Hủy
+      </button>
+      <button type="button" (click)="confirmReset()"
+              class="px-5 py-2 text-sm font-semibold text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors">
+        Xác nhận mở khóa
       </button>
     </div>
   </div>
