@@ -17,23 +17,28 @@ import { Execution } from './dashboard/execution/execution';
 import { Management } from './dashboard/management/management';
 import { Capacity } from './dashboard/capacity/capacity';
 import { Approval } from './dashboard/approval/approval';
-import { AnalyticsComponent } from './dashboard/capacity/analytics/analytics';
 
 // Import existing placeholder components for sub-menus
 import { InternsComponent } from './dashboard/management/interns/interns';
 
+import { AnalyticsComponent } from './dashboard/capacity/analytics/analytics';
+
 // Import NEW placeholder components for multi-level settings sub-menus
-import { AccountsComponent } from './settings/hr/accounts/accounts';
+import { AccountManagementComponent } from './settings/hr/accounts/account-management/account-management.component';
 import { HrInternsComponent } from './settings/hr/interns/interns';
 import { OrgStructureComponent } from './settings/hr/org-structure/org-structure';
 import { EvaluationSkillsComponent } from './settings/evaluation/skills/skills';
 import { PartnersListComponent } from './settings/partners/list/list';
 import { OperationProcessComponent } from './settings/operation/process/process';
 import { SecurityLogsComponent } from './settings/security/logs/logs';
+import { ActivateAccountComponent } from './activate-account/activate-account.component'; // New import
+
+import { MyProfileComponent } from './my-profile/my-profile.component'; // Import MyProfileComponent
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'login', component: LoginComponent },
+  { path: 'activate', component: ActivateAccountComponent }, // New route
   {
     path: 'dashboard',
     component: MainLayout, // Use MainLayout as the parent component
@@ -42,6 +47,15 @@ export const routes: Routes = [
     children: [
       { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } }, // Render Dashboard inside MainLayout's <router-outlet>
     ],
+  },
+  {
+    path: 'profile', // New route for user profile
+    component: MainLayout, // Use MainLayout for consistent authenticated layout
+    // canActivate: [authGuard], // Assuming profile page requires authentication
+    data: { title: 'Hồ sơ của tôi' },
+    children: [
+      { path: '', component: MyProfileComponent, data: { title: 'Hồ sơ cá nhân' } }
+    ]
   },
   {
     path: 'tasks', // Changed from /execution to /tasks
@@ -85,7 +99,7 @@ export const routes: Routes = [
   {
     path: 'settings',
     component: MainLayout,
-    // canActivate: [authGuard], // Bảo vệ route này và các route con của nó - TẠM THỜI TẮT ĐỂ DEBUG
+    canActivate: [authGuard], // Bảo vệ route này và các route con của nó - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Cài đặt' }, // Top-level settings breadcrumb
     children: [
       { path: '', redirectTo: 'hr', pathMatch: 'full' }, // Default redirect for /settings
@@ -99,8 +113,8 @@ export const routes: Routes = [
           { path: '', redirectTo: 'accounts', pathMatch: 'full' },
           {
             path: 'accounts',
-            component: AccountsComponent,
-            data: { title: 'Quản lý Tài khoản Nội bộ' },
+            component: AccountManagementComponent,
+            data: { title: 'Quản lý Tài khoản & Phân quyền' },
           },
           {
             path: 'interns',
