@@ -4,6 +4,13 @@ import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } 
 import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 
+interface MemberInfo {
+  id: number;
+  name: string;
+  email: string;
+  roleName?: string;
+}
+
 interface InternshipPosition {
   id: number;
   name: string;
@@ -19,6 +26,17 @@ interface Department {
   createdAt?: string;
   positions?: InternshipPosition[];
   memberNames?: string[];
+  members?: MemberInfo[];
+}
+
+// Minimal user shape returned from /api/admin/users or a new endpoint
+interface UserItem {
+  id: number;
+  name: string;
+  email: string;
+  roleName?: string;
+  departmentId?: number;
+  departmentName?: string;
 }
 
 interface DepartmentPayload {
@@ -48,12 +66,12 @@ export class OrgStructureComponent {
   departments: Department[] = [];
   allPositions: InternshipPosition[] = [];
 
-  // ── Khởi tạo isLoading = true ngay từ đầu để tránh ExpressionChangedAfterItHasBeenCheckedError
   isLoading = true;
   isLoadingPositions = false;
   errorMessage = '';
   expandedDeptId: number | null = null;
 
+  // ── Department modal ──────────────────────────────────────────────────────
   showDeptModal = false;
   isEditDeptMode = false;
   selectedDept: Department | null = null;
@@ -65,6 +83,7 @@ export class OrgStructureComponent {
   showDeleteDeptModal = false;
   deptToDelete: Department | null = null;
 
+  // ── Position modal ────────────────────────────────────────────────────────
   showPositionModal = false;
   isEditPositionMode = false;
   selectedPosition: InternshipPosition | null = null;
@@ -78,6 +97,19 @@ export class OrgStructureComponent {
   showDeletePositionModal = false;
   positionToDelete: InternshipPosition | null = null;
 
+  // ── Member management ─────────────────────────────────────────────────────
+  showAddMemberModal = false;
+  addMemberTargetDept: Department | null = null;
+  allUsers: UserItem[] = [];
+  isLoadingUsers = false;
+  memberSearchQuery = '';
+  selectedUserIdToAdd: number | null = null;
+
+  showMoveMemberModal = false;
+  moveMemberTarget: { member: MemberInfo; fromDept: Department } | null = null;
+  moveTargetDepartmentId: number | null = null;
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
   toasts: { id: number; message: string; type: 'success' | 'error' }[] = [];
   private toastCounter = 0;
 
@@ -87,6 +119,7 @@ export class OrgStructureComponent {
     });
   }
 
+  // ── Toast helpers ─────────────────────────────────────────────────────────
   showToast(message: string, type: 'success' | 'error' = 'success'): void {
     const id = ++this.toastCounter;
     this.toasts.push({ id, message, type });
@@ -97,6 +130,7 @@ export class OrgStructureComponent {
     this.toasts = this.toasts.filter(t => t.id !== id);
   }
 
+  // ── Tab ───────────────────────────────────────────────────────────────────
   switchTab(tab: 'departments' | 'positions'): void {
     this.activeTab = tab;
     this.errorMessage = '';
@@ -105,13 +139,14 @@ export class OrgStructureComponent {
     }
   }
 
+  // ── Load data ─────────────────────────────────────────────────────────────
   loadDepartments(): void {
     this.isLoading = true;
     this.errorMessage = '';
     this.http.get<Department[]>(`${this.apiUrl}/departments`)
       .pipe(finalize(() => {
         this.isLoading = false;
-        this.cdr.detectChanges(); // thông báo Angular cập nhật UI
+        this.cdr.detectChanges();
       }))
       .subscribe({
         next: (depts) => {
@@ -147,13 +182,11 @@ export class OrgStructureComponent {
       });
   }
 
-  getMemberCount(dept: Department): number { return dept.memberNames?.length ?? 0; }
+  // ── Utility ───────────────────────────────────────────────────────────────
+  getMemberCount(dept: Department): number { return dept.members?.length ?? dept.memberNames?.length ?? 0; }
   getMemberNames(dept: Department): string[] { return dept.memberNames ?? []; }
+  getMembers(dept: Department): MemberInfo[] { return dept.members ?? []; }
   getPositions(dept: Department): InternshipPosition[] { return dept.positions ?? []; }
-  getDeptName(departmentId?: number): string {
-    if (!departmentId) return '—';
-    return this.departments.find(d => d.id === departmentId)?.name ?? '—';
-  }
 
   toggleExpand(deptId: number): void {
     this.expandedDeptId = this.expandedDeptId === deptId ? null : deptId;
@@ -170,6 +203,7 @@ export class OrgStructureComponent {
     return palette[Math.abs(hash) % palette.length];
   }
 
+  // ── Department CRUD ───────────────────────────────────────────────────────
   openAddDeptModal(): void {
     this.isEditDeptMode = false;
     this.selectedDept = null;
@@ -198,6 +232,7 @@ export class OrgStructureComponent {
       this.http.put<Department>(`${this.apiUrl}/departments/${this.selectedDept.id}`, payload).subscribe({
         next: (updated) => {
           updated.positions = this.selectedDept?.positions ?? [];
+          updated.members   = this.selectedDept?.members ?? [];
           updated.memberNames = this.selectedDept?.memberNames ?? [];
           const idx = this.departments.findIndex(d => d.id === updated.id);
           if (idx !== -1) this.departments[idx] = updated;
@@ -210,6 +245,7 @@ export class OrgStructureComponent {
       this.http.post<Department>(`${this.apiUrl}/departments`, payload).subscribe({
         next: (created) => {
           created.positions = [];
+          created.members = [];
           this.departments = [...this.departments, created];
           this.closeDeptModal();
           this.showToast(`Đã thêm phòng ban "${created.name}" thành công.`);
@@ -239,10 +275,14 @@ export class OrgStructureComponent {
         this.cancelDeleteDept();
         this.showToast(`Đã xóa phòng ban "${deletedName}".`);
       },
-      error: () => { this.showToast('Xóa phòng ban thất bại.', 'error'); this.cancelDeleteDept(); }
+      error: (err) => {
+        this.showToast('Xóa phòng ban thất bại. Vui lòng thử lại.', 'error');
+        this.cancelDeleteDept();
+      }
     });
   }
 
+  // ── Position CRUD ─────────────────────────────────────────────────────────
   openAddPositionFromDept(dept: Department, event: Event): void {
     event.stopPropagation();
     this.isEditPositionMode = false;
@@ -354,5 +394,129 @@ export class OrgStructureComponent {
       },
       error: () => { this.showToast('Xóa vị trí thất bại.', 'error'); this.cancelDeletePosition(); }
     });
+  }
+
+  // ── Member management ─────────────────────────────────────────────────────
+
+  /** Open "Add member" modal for a department */
+  openAddMemberModal(dept: Department, event: Event): void {
+    event.stopPropagation();
+    this.addMemberTargetDept = dept;
+    this.selectedUserIdToAdd = null;
+    this.memberSearchQuery = '';
+    this.showAddMemberModal = true;
+    this.loadAllUsers();
+  }
+
+  closeAddMemberModal(): void {
+    this.showAddMemberModal = false;
+    this.addMemberTargetDept = null;
+    this.selectedUserIdToAdd = null;
+    this.memberSearchQuery = '';
+  }
+
+  loadAllUsers(): void {
+    this.isLoadingUsers = true;
+    // Use the admin users endpoint – returns UserResponse[]
+    // If you have a separate /api/users endpoint that's lighter, swap it here.
+    this.http.get<UserItem[]>(`${this.apiUrl}/admin/users/all`)
+      .pipe(finalize(() => {
+        this.isLoadingUsers = false;
+        this.cdr.detectChanges();
+      }))
+      .subscribe({
+        next: (users) => { this.allUsers = users; },
+        error: () => {
+          // Fallback: try a different endpoint
+          this.showToast('Không thể tải danh sách người dùng.', 'error');
+        }
+      });
+  }
+
+  /** Users not already in the target department, filtered by search */
+  get filteredUsersToAdd(): UserItem[] {
+    if (!this.addMemberTargetDept) return [];
+    const existingIds = new Set((this.addMemberTargetDept.members ?? []).map(m => m.id));
+    return this.allUsers.filter(u =>
+      !existingIds.has(u.id) &&
+      (this.memberSearchQuery === '' ||
+        u.name.toLowerCase().includes(this.memberSearchQuery.toLowerCase()) ||
+        u.email.toLowerCase().includes(this.memberSearchQuery.toLowerCase()))
+    );
+  }
+
+  confirmAddMember(): void {
+    if (!this.addMemberTargetDept || !this.selectedUserIdToAdd) return;
+    const deptId = this.addMemberTargetDept.id;
+    const userId = this.selectedUserIdToAdd;
+
+    this.http.post<Department>(`${this.apiUrl}/departments/${deptId}/members`, { userId }).subscribe({
+      next: (updated) => {
+        this.departments = this.departments.map(d => d.id === deptId ? { ...d, ...updated } : d);
+        // Update expanded dept reference
+        if (this.expandedDeptId === deptId) {
+          const dept = this.departments.find(d => d.id === deptId);
+          if (dept) this.addMemberTargetDept = dept;
+        }
+        this.closeAddMemberModal();
+        this.showToast('Đã thêm nhân sự vào phòng ban thành công.');
+      },
+      error: () => { this.showToast('Thêm nhân sự thất bại.', 'error'); }
+    });
+  }
+
+  /** Confirm remove member */
+  confirmRemoveMember(member: MemberInfo, dept: Department, event: Event): void {
+    event.stopPropagation();
+    if (!confirm(`Bạn có chắc muốn xóa "${member.name}" khỏi phòng ban này?`)) return;
+
+    this.http.delete<Department>(`${this.apiUrl}/departments/${dept.id}/members/${member.id}`).subscribe({
+      next: (updated) => {
+        this.departments = this.departments.map(d => d.id === dept.id ? { ...d, ...updated } : d);
+        this.showToast(`Đã xóa "${member.name}" khỏi phòng ban.`);
+        this.cdr.detectChanges();
+      },
+      error: () => { this.showToast('Xóa nhân sự thất bại.', 'error'); }
+    });
+  }
+
+  /** Open "Move member" modal */
+  openMoveMemberModal(member: MemberInfo, dept: Department, event: Event): void {
+    event.stopPropagation();
+    this.moveMemberTarget = { member, fromDept: dept };
+    this.moveTargetDepartmentId = null;
+    this.showMoveMemberModal = true;
+  }
+
+  closeMoveMemberModal(): void {
+    this.showMoveMemberModal = false;
+    this.moveMemberTarget = null;
+    this.moveTargetDepartmentId = null;
+  }
+
+  confirmMoveMember(): void {
+    if (!this.moveMemberTarget) return;
+    const { member, fromDept } = this.moveMemberTarget;
+    const targetId = this.moveTargetDepartmentId;
+
+    this.http.patch<void>(
+      `${this.apiUrl}/departments/members/${member.id}/move`,
+      { targetDepartmentId: targetId }
+    ).subscribe({
+      next: () => {
+        // Refresh departments list
+        this.loadDepartments();
+        this.closeMoveMemberModal();
+        const targetName = this.departments.find(d => d.id === targetId)?.name ?? 'phòng ban mới';
+        this.showToast(`Đã chuyển "${member.name}" sang ${targetName}.`);
+      },
+      error: () => { this.showToast('Chuyển nhân sự thất bại.', 'error'); }
+    });
+  }
+
+  /** Other departments the member can be moved to */
+  get otherDepartments(): Department[] {
+    if (!this.moveMemberTarget) return this.departments;
+    return this.departments.filter(d => d.id !== this.moveMemberTarget!.fromDept.id);
   }
 }
