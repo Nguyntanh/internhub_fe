@@ -141,14 +141,16 @@ export class MyProfileComponent implements OnInit {
                   // Initialize avatar preview with current avatar (now guaranteed to be full URL or default)
                   this.avatarPreviewUrl = this.userProfile.avatar || this.userService.getDefaultAvatar();
                   // Notify UserService about the current user's avatar, delayed to prevent ExpressionChangedAfterItHasBeenCheckedError
-                  Promise.resolve().then(() => {
+                  setTimeout(() => {
+                    const avatarToUpdate = this.userProfile?.avatar || this.userService.getDefaultAvatar();
+                    console.log('MyProfileComponent: ngOnInit - Updating UserService avatar with (setTimeout):', avatarToUpdate);
                     if (this.userProfile) { // Add null check for userProfile
-                      this.userService.updateUserAvatar(this.userProfile.avatar || this.userService.getDefaultAvatar());
+                      this.userService.updateUserAvatar(avatarToUpdate);
                     } else {
                       // If userProfile is null, send default avatar
                       this.userService.updateUserAvatar(this.userService.getDefaultAvatar());
                     }
-                  });
+                  }, 0);
                   this.isLoading = false;
                   this.error = null; // Clear any previous error
                   console.log('MyProfileComponent - After data assignment: isLoading=', this.isLoading, 'userProfile=', this.userProfile); // Log state
@@ -230,11 +232,14 @@ export class MyProfileComponent implements OnInit {
       next: (response) => {
         if (this.userProfile) {
           this.userProfile.avatar = this.backendAssetBaseUrl + response.newAvatarUrl; // Update avatar URL with full path
-          Promise.resolve().then(() => {
+          const newFullAvatarUrl = this.userProfile.avatar;
+          console.log('MyProfileComponent: uploadAvatar success - New full avatar URL:', newFullAvatarUrl);
+          setTimeout(() => {
             if (this.userProfile) { // Add null check for userProfile
-              this.userService.updateUserAvatar(this.userProfile.avatar || this.userService.getDefaultAvatar()); // Notify service about the new avatar
+              console.log('MyProfileComponent: uploadAvatar success - Updating UserService avatar with (setTimeout):', newFullAvatarUrl);
+              this.userService.updateUserAvatar(newFullAvatarUrl); // Notify service about the new avatar
             }
-          });
+          }, 0);
         }
         this.snackBar.open('Cập nhật ảnh đại diện thành công!', 'Đóng', { duration: 3000, panelClass: ['success-snackbar'] });
         // No need to reset avatarPreviewUrl here, it should already be updated or reflect the new avatar

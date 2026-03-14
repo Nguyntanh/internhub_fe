@@ -59,6 +59,7 @@ export class Topbar implements OnInit, OnDestroy {
     this.userService.currentUserAvatar$.pipe(
       takeUntil(this.destroy$)
     ).subscribe(avatarUrl => {
+      console.log('Topbar: Received avatarUrl from UserService:', avatarUrl);
       this.userAvatarUrl = avatarUrl;
     });
   }
