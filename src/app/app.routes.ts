@@ -33,6 +33,8 @@ import { OperationProcessComponent } from './settings/operation/process/process'
 import { SecurityLogsComponent } from './settings/security/logs/logs';
 import { ActivateAccountComponent } from './activate-account/activate-account.component'; // New import
 
+import { MyProfileComponent } from './my-profile/my-profile.component'; // Import MyProfileComponent
+
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'login', component: LoginComponent },
@@ -45,6 +47,15 @@ export const routes: Routes = [
     children: [
       { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } }, // Render Dashboard inside MainLayout's <router-outlet>
     ],
+  },
+  {
+    path: 'profile', // New route for user profile
+    component: MainLayout, // Use MainLayout for consistent authenticated layout
+    // canActivate: [authGuard], // Assuming profile page requires authentication
+    data: { title: 'Hồ sơ của tôi' },
+    children: [
+      { path: '', component: MyProfileComponent, data: { title: 'Hồ sơ cá nhân' } }
+    ]
   },
   {
     path: 'tasks', // Changed from /execution to /tasks

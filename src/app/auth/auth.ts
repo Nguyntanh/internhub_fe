@@ -86,6 +86,27 @@ export class Auth {
     this.currentUserSubject.next(null);
   }
 
+  // Phương thức thay đổi mật khẩu
+  changePassword(oldPassword: string, newPassword: string): Observable<any> {
+    const token = this.currentUserValue?.token; // Lấy token từ BehaviorSubject
+    if (!token) {
+      return throwError(() => new Error('No JWT token found. User not authenticated.'));
+    }
+
+    const httpOptions = {
+      headers: new HttpHeaders({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }),
+    };
+
+    const body = { oldPassword, newPassword };
+
+    return this.http.post<any>(`${this.baseApiUrl}/user/change-password`, body, httpOptions).pipe(
+      catchError(this.handleError<any>('changePassword'))
+    );
+  }
+
   private handleError<T>(operation = 'operation', result?: T) {
     return (error: any): Observable<T> => {
       console.error(error); // Ghi lỗi ra console

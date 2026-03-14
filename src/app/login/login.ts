@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../auth/auth'; // Import the Auth service
+import { UserService } from '../services/user.service'; // Import UserService
 import { Subject, takeUntil } from 'rxjs'; // Import Subject, takeUntil
 
 @Component({
@@ -19,8 +20,9 @@ export class LoginComponent implements OnInit, OnDestroy { // Implement OnInit, 
   });
 
   private destroy$ = new Subject<void>(); // Subject để quản lý việc hủy đăng ký
+  private backendAssetBaseUrl: string = 'http://localhost:8090'; // Base URL for backend assets
 
-  constructor(private authService: Auth, private router: Router) {}
+  constructor(private authService: Auth, private router: Router, private userService: UserService) {}
 
   ngOnInit(): void {
     // // Nếu người dùng đã đăng nhập, chuyển hướng đến trang dashboard (Tạm thời tắt để debug)
@@ -52,8 +54,25 @@ export class LoginComponent implements OnInit, OnDestroy { // Implement OnInit, 
           next: (response) => {
             console.log('Login successful', response);
             // AuthService đã tự động lưu token và cập nhật trạng thái người dùng
-            console.log('Attempting to navigate to /dashboard...'); // Thêm log này
-            this.router.navigate(['/dashboard']);
+
+            // Fetch user profile to get the avatar and update UserService
+            this.userService.getUserProfile().subscribe({
+              next: (profileData) => {
+                let avatarUrl = profileData.avatar;
+                if (avatarUrl && avatarUrl.startsWith('/')) {
+                  avatarUrl = this.backendAssetBaseUrl + avatarUrl;
+                }
+                console.log('LoginComponent: Fetched user profile, updating UserService avatar with:', avatarUrl);
+                this.userService.updateUserAvatar(avatarUrl || this.userService.getDefaultAvatar());
+                console.log('Attempting to navigate to /dashboard...');
+                this.router.navigate(['/dashboard']);
+              },
+              error: (profileError) => {
+                console.error('Login successful but failed to fetch user profile for avatar sync', profileError);
+                // Even if profile fetch fails, still navigate to dashboard
+                this.router.navigate(['/dashboard']);
+              }
+            });
           },
           error: (error) => {
             console.error('Login failed', error);
