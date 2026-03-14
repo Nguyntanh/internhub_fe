@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, catchError, throwError } from 'rxjs';
+import { Observable, catchError, throwError, BehaviorSubject } from 'rxjs';
 import { UserProfileResponse } from '../shared/models/user.model';
 
 @Injectable({
@@ -8,6 +8,15 @@ import { UserProfileResponse } from '../shared/models/user.model';
 })
 export class UserService {
   private baseApiUrl = 'http://localhost:8090/api/user'; // Base URL for user-related APIs
+
+  // Default avatar for consistency across components
+  public getDefaultAvatar(): string {
+    return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=200';
+  }
+
+  // BehaviorSubject to share current user avatar across components
+  private _userAvatarSource = new BehaviorSubject<string>(this.getDefaultAvatar());
+  currentUserAvatar$ = this._userAvatarSource.asObservable();
 
   constructor(private http: HttpClient) { }
 
@@ -36,6 +45,11 @@ export class UserService {
     return this.http.patch<{ newAvatarUrl: string }>(`${this.baseApiUrl}/profile/avatar`, formData).pipe(
       catchError(this.handleError<{ newAvatarUrl: string }>('uploadAvatar'))
     );
+  }
+
+  // Method to update the avatar URL across components
+  updateUserAvatar(avatarUrl: string) {
+    this._userAvatarSource.next(avatarUrl);
   }
 
   private handleError<T>(operation = 'operation', result?: T) {

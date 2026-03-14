@@ -93,7 +93,7 @@ export class MyProfileComponent implements OnInit {
 
 
   constructor(
-    private userService: UserService,
+    public userService: UserService,
     private datePipe: DatePipe,
     private authService: Auth, // Inject Auth Service
     private router: Router, // Inject Router
@@ -139,7 +139,16 @@ export class MyProfileComponent implements OnInit {
                     this.userProfile.avatar = this.backendAssetBaseUrl + this.userProfile.avatar;
                   }
                   // Initialize avatar preview with current avatar (now guaranteed to be full URL or default)
-                  this.avatarPreviewUrl = this.userProfile.avatar || this.getDefaultAvatar();
+                  this.avatarPreviewUrl = this.userProfile.avatar || this.userService.getDefaultAvatar();
+                  // Notify UserService about the current user's avatar, delayed to prevent ExpressionChangedAfterItHasBeenCheckedError
+                  Promise.resolve().then(() => {
+                    if (this.userProfile) { // Add null check for userProfile
+                      this.userService.updateUserAvatar(this.userProfile.avatar || this.userService.getDefaultAvatar());
+                    } else {
+                      // If userProfile is null, send default avatar
+                      this.userService.updateUserAvatar(this.userService.getDefaultAvatar());
+                    }
+                  });
                   this.isLoading = false;
                   this.error = null; // Clear any previous error
                   console.log('MyProfileComponent - After data assignment: isLoading=', this.isLoading, 'userProfile=', this.userProfile); // Log state
@@ -195,7 +204,7 @@ export class MyProfileComponent implements OnInit {
       this.uploadAvatar();
     } else {
       this.selectedFile = null;
-      this.avatarPreviewUrl = this.userProfile?.avatar || this.getDefaultAvatar(); // Revert to current avatar or default
+              this.avatarPreviewUrl = this.userProfile?.avatar || this.userService.getDefaultAvatar(); // Revert to current avatar or default
     }
   }
 
@@ -221,6 +230,11 @@ export class MyProfileComponent implements OnInit {
       next: (response) => {
         if (this.userProfile) {
           this.userProfile.avatar = this.backendAssetBaseUrl + response.newAvatarUrl; // Update avatar URL with full path
+          Promise.resolve().then(() => {
+            if (this.userProfile) { // Add null check for userProfile
+              this.userService.updateUserAvatar(this.userProfile.avatar || this.userService.getDefaultAvatar()); // Notify service about the new avatar
+            }
+          });
         }
         this.snackBar.open('Cập nhật ảnh đại diện thành công!', 'Đóng', { duration: 3000, panelClass: ['success-snackbar'] });
         // No need to reset avatarPreviewUrl here, it should already be updated or reflect the new avatar
@@ -240,7 +254,7 @@ export class MyProfileComponent implements OnInit {
         this.snackBar.open(errorMessage, 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
         console.error('Error uploading avatar:', err);
         // Revert preview to current avatar if upload fails
-        this.avatarPreviewUrl = this.userProfile?.avatar || this.getDefaultAvatar();
+        this.avatarPreviewUrl = this.userProfile?.avatar || this.userService.getDefaultAvatar();
       }
     });
   }
@@ -293,9 +307,7 @@ export class MyProfileComponent implements OnInit {
   }
 
 
-  getDefaultAvatar(): string {
-    return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=200'; // Using Gravatar as default avatar
-  }
+
 
   getTranslatedStatus(status: string): string {
     switch (status) {

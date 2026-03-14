@@ -15,7 +15,7 @@
     <div class="profile-header">
       <div class="avatar-upload-container" (click)="fileInput.click()">
         <img
-          [src]="userProfile.avatar || getDefaultAvatar()"
+          [src]="userProfile.avatar || userService.getDefaultAvatar()"
           alt="User Avatar"
           class="profile-avatar"
         />

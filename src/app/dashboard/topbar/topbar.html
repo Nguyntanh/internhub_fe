@@ -29,7 +29,7 @@
     <div class="relative">
       <img
         class="h-8 w-8 rounded-full object-cover border-2 border-gray-300 cursor-pointer"
-        src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=200"
+        [src]="userAvatarUrl || userService.getDefaultAvatar()"
         alt="User Avatar"
         (click)="navigateToProfile()"
       />
