@@ -89,6 +89,7 @@ export class MyProfileComponent implements OnInit {
   selectedFile: File | null = null;
   avatarPreviewUrl: string | ArrayBuffer | null = null;
   isUploadingAvatar = false;
+  backendAssetBaseUrl: string = 'http://localhost:8090'; // Base URL for backend assets
 
 
   constructor(
@@ -133,7 +134,11 @@ export class MyProfileComponent implements OnInit {
                   console.log('MyProfileComponent - Data received:', data); // Log the received data
                   this.userProfile = data;
                   this.internshipProgress = this.calculateProgress(); // Calculate and store progress
-                  // Initialize avatar preview with current avatar
+                  // Ensure userProfile.avatar is a full URL if it's a relative path from the backend
+                  if (this.userProfile.avatar && this.userProfile.avatar.startsWith('/')) {
+                    this.userProfile.avatar = this.backendAssetBaseUrl + this.userProfile.avatar;
+                  }
+                  // Initialize avatar preview with current avatar (now guaranteed to be full URL or default)
                   this.avatarPreviewUrl = this.userProfile.avatar || this.getDefaultAvatar();
                   this.isLoading = false;
                   this.error = null; // Clear any previous error
@@ -215,7 +220,7 @@ export class MyProfileComponent implements OnInit {
     ).subscribe({
       next: (response) => {
         if (this.userProfile) {
-          this.userProfile.avatar = response.newAvatarUrl; // Update avatar URL
+          this.userProfile.avatar = this.backendAssetBaseUrl + response.newAvatarUrl; // Update avatar URL with full path
         }
         this.snackBar.open('Cập nhật ảnh đại diện thành công!', 'Đóng', { duration: 3000, panelClass: ['success-snackbar'] });
         // No need to reset avatarPreviewUrl here, it should already be updated or reflect the new avatar

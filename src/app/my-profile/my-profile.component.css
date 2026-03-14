@@ -44,7 +44,6 @@
 
 .profile-avatar {
   /* Original profile-avatar styles removed as they are now handled by .avatar-upload-container and its child .profile-avatar */
-  display: none; /* Hide the original img element if it's not wrapped */
 }
 
 /* Styling for Avatar Upload */
