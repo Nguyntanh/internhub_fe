@@ -2,14 +2,15 @@ import { Component, EventEmitter, Input, Output, ViewEncapsulation, OnInit, OnDe
 import { CommonModule } from '@angular/common';
 import { Router, NavigationEnd, ActivatedRoute, RouterModule } from '@angular/router';
 import { filter, map, takeUntil } from 'rxjs/operators';
-import { Subject } from 'rxjs'; // Import Observable is not needed for this change.
-import { Auth } from '../../auth/auth'; // Import AuthService
+import { Subject } from 'rxjs';
+import { MatIconModule } from '@angular/material/icon';
 
-import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component'; // Import BreadcrumbComponent
+import { BreadcrumbComponent } from '../../shared/breadcrumb/breadcrumb.component';
+import { UserService } from '../../services/user.service'; // Import UserService
 
 @Component({
   selector: 'app-topbar',
-  imports: [CommonModule, RouterModule, BreadcrumbComponent], // Add BreadcrumbComponent to imports
+  imports: [CommonModule, RouterModule, BreadcrumbComponent, MatIconModule],
   templateUrl: './topbar.html',
   styleUrl: './topbar.css',
   encapsulation: ViewEncapsulation.None,
@@ -20,35 +21,47 @@ export class Topbar implements OnInit, OnDestroy {
 
   private destroy$ = new Subject<void>();
   public currentRouteMode: string = 'dashboard';
+  public showBackArrow: boolean = false;
+  public userAvatarUrl: string = ''; // Property to hold the user's avatar URL
 
   constructor(
     public router: Router,
     private activatedRoute: ActivatedRoute,
-    private authService: Auth // Inject AuthService
+    public userService: UserService, // Make UserService public for template access
   ) {}
 
   ngOnInit() {
+    // Existing router event subscription
     this.router.events
       .pipe(
         filter((event) => event instanceof NavigationEnd),
-        map(() => {
-          // Find the currently active route (leaf route) to get its data
+        map((event: NavigationEnd) => {
           let route = this.activatedRoute.root;
           while (route.firstChild) {
             route = route.firstChild;
           }
-          this.currentRouteMode = route.snapshot.data['mode'] || 'dashboard'; // Update mode
+          this.currentRouteMode = route.snapshot.data['mode'] || 'dashboard';
+          this.showBackArrow = event.urlAfterRedirects.includes('/profile');
         }),
         takeUntil(this.destroy$)
       )
       .subscribe();
 
-    // Set initial mode
+    // Set initial mode and back arrow visibility
     let route = this.activatedRoute.root;
     while (route.firstChild) {
       route = route.firstChild;
     }
     this.currentRouteMode = route.snapshot.data['mode'] || 'dashboard';
+    this.showBackArrow = this.router.url.includes('/profile');
+
+    // Subscribe to user avatar changes
+    this.userService.currentUserAvatar$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(avatarUrl => {
+      console.log('Topbar: Received avatarUrl from UserService:', avatarUrl);
+      this.userAvatarUrl = avatarUrl;
+    });
   }
 
   ngOnDestroy() {
@@ -60,9 +73,11 @@ export class Topbar implements OnInit, OnDestroy {
     this.toggleSidebar.emit();
   }
 
-  // Phương thức xử lý đăng xuất
-  logout(): void {
-    this.authService.logout(); // Gọi phương thức logout từ AuthService
-    this.router.navigate(['/login']); // Điều hướng người dùng về trang đăng nhập
+  navigateToProfile(): void {
+    this.router.navigate(['/profile']);
+  }
+
+  navigateBack(): void {
+    this.router.navigate(['/dashboard']);
   }
 }
