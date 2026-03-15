@@ -15,6 +15,13 @@ export interface FunctionPermission {
   canDelete: boolean;
 }
 
+export interface Department {
+  id: number;
+  name: string;
+  code: string;
+  description?: string;
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -24,6 +31,9 @@ export class PermissionService {
 
   private rolesSubject = new BehaviorSubject<Role[] | null>(null);
   public roles$ = this.rolesSubject.asObservable();
+
+  private departmentsSubject = new BehaviorSubject<Department[] | null>(null);
+  public departments$ = this.departmentsSubject.asObservable();
 
   constructor(private http: HttpClient) {}
 
@@ -42,7 +52,7 @@ export class PermissionService {
         console.error('Failed to load permissions:', error);
         this.permissionsSubject.next(null); // Clear permissions on error
         return of([]); // Return an empty array or rethrow error based on desired behavior
-      })
+      }),
     );
   }
 
@@ -72,7 +82,7 @@ export class PermissionService {
         console.error('Failed to load roles from backend:', error);
         this.rolesSubject.next(null);
         return of([]);
-      })
+      }),
     );
   }
 
@@ -89,12 +99,42 @@ export class PermissionService {
   }
 
   /**
+   * Tải danh sách phòng ban từ backend.
+   * @returns Observable<Department[]>
+   */
+  loadDepartments(): Observable<Department[]> {
+    // Endpoint API cho Departments như yêu cầu
+    const url = 'http://localhost:8080/api/departments';
+    return this.http.get<Department[]>(url).pipe(
+      tap((departments) => {
+        this.departmentsSubject.next(departments);
+        console.log('Departments loaded from backend:', departments);
+      }),
+      catchError((error) => {
+        console.error('Failed to load departments from backend:', error);
+        this.departmentsSubject.next(null);
+        return of([]);
+      }),
+    );
+  }
+
+  getDepartments(): Observable<Department[] | null> {
+    if (!this.departmentsSubject.value) {
+      this.loadDepartments().subscribe(); // Tải phòng ban nếu chưa có
+    }
+    return this.departments$;
+  }
+
+  /**
    * Kiểm tra xem người dùng có quyền cụ thể trên một functionCode hay không.
    * @param functionCode Mã chức năng (ví dụ: 'E01_USER_MGMT')
    * @param permissionType Loại quyền cần kiểm tra (ví dụ: 'canAccess', 'canCreate')
    * @returns Observable<boolean>
    */
-  hasPermission(functionCode: string, permissionType: 'canAccess' | 'canCreate' | 'canEdit' | 'canDelete'): Observable<boolean> {
+  hasPermission(
+    functionCode: string,
+    permissionType: 'canAccess' | 'canCreate' | 'canEdit' | 'canDelete',
+  ): Observable<boolean> {
     return this.permissions$.pipe(
       map((permissions) => {
         if (!permissions) {
@@ -102,7 +142,7 @@ export class PermissionService {
         }
         const permission = permissions.find((p) => p.functionCode === functionCode);
         return permission ? permission[permissionType] : false;
-      })
+      }),
     );
   }
 
@@ -112,5 +152,6 @@ export class PermissionService {
   clearPermissionsAndRoles(): void {
     this.permissionsSubject.next(null);
     this.rolesSubject.next(null);
+    this.departmentsSubject.next(null);
   }
 }
