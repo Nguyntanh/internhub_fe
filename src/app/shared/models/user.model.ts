@@ -21,6 +21,7 @@ export interface UserProfileResponse {
   daysRemaining?: number; // Added based on backend response
   major?: string; // Added based on backend response
   phone?: string; // Added based on backend response
+  isActive?: boolean;
 }
 
 export interface ErrorDetails {

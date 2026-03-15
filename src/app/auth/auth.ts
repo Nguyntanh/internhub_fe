@@ -3,14 +3,15 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable, catchError, of, throwError, BehaviorSubject, map, tap } from 'rxjs';
 import { UserCreationRequest, ErrorDetails } from '../shared/models/user.model';
+import { API_ENDPOINTS, BASE_API_URL } from '../api-endpoints';
 // import { jwtDecode } from 'jwt-decode'; // Uncomment if using jwt-decode library
 
 @Injectable({
   providedIn: 'root',
 })
 export class Auth {
-  private apiUrl = 'http://localhost:8090/api/auth/login'; // Your backend login API endpoint
-  private baseApiUrl = 'http://localhost:8090/api'; // Base URL for general backend API calls
+  private apiUrl = API_ENDPOINTS.Auth.login; // Your backend login API endpoint
+  private baseApiUrl = BASE_API_URL; // Base URL for general backend API calls
 
   // BehaviorSubject để quản lý trạng thái người dùng hiện tại
   // Ban đầu sẽ kiểm tra localStorage xem đã có token chưa để khôi phục trạng thái
@@ -71,7 +72,7 @@ export class Auth {
         'Content-Type': 'application/json',
       }),
     };
-    return this.http.post<any>(`${this.baseApiUrl}/admin/users`, userData, httpOptions).pipe(
+    return this.http.post<any>(API_ENDPOINTS.Admin.users, userData, httpOptions).pipe(
       catchError(this.handleError<any>('createUser'))
     );
   }
@@ -102,7 +103,7 @@ export class Auth {
 
     const body = { oldPassword, newPassword };
 
-    return this.http.post<any>(`${this.baseApiUrl}/user/change-password`, body, httpOptions).pipe(
+    return this.http.post<any>(API_ENDPOINTS.User.changePassword, body, httpOptions).pipe(
       catchError(this.handleError<any>('changePassword'))
     );
   }
@@ -123,7 +124,7 @@ export class Auth {
         'Content-Type': 'application/json',
       }),
     };
-    return this.http.get<any>(`${this.baseApiUrl}/auth/activate?token=${token}`, httpOptions).pipe(
+    return this.http.get<any>(`${API_ENDPOINTS.Auth.activateAccount}?token=${token}`, httpOptions).pipe(
       catchError(this.handleError<any>('activateAccount'))
     );
   }
