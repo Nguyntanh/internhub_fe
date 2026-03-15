@@ -34,11 +34,13 @@ import { SecurityLogsComponent } from './settings/security/logs/logs';
 import { ActivateAccountComponent } from './activate-account/activate-account.component'; // New import
 
 import { MyProfileComponent } from './my-profile/my-profile.component'; // Import MyProfileComponent
+import { AccessDeniedComponent } from './access-denied/access-denied.component'; // Import AccessDeniedComponent
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'login', component: LoginComponent },
   { path: 'activate', component: ActivateAccountComponent }, // New route
+  { path: 'access-denied', component: AccessDeniedComponent }, // Access Denied Page
   {
     path: 'dashboard',
     component: MainLayout, // Use MainLayout as the parent component
