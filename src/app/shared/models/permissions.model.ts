@@ -1,7 +1,12 @@
 // src/app/shared/models/permissions.model.ts
 
-// Define roles with their IDs - This should ideally come from a Backend API
-export const ROLES_DATA = [
+export interface Role {
+  id: number;
+  name: string;
+}
+
+// MOCK_ROLES_DATA for temporary use until a proper API endpoint is available
+export const ROLES_DATA_MOCK: Role[] = [
   { id: 1, name: 'ADMIN' },
   { id: 2, name: 'HR' },
   { id: 5, name: 'INTERN' },

@@ -11,6 +11,7 @@ export const API_ENDPOINTS = {
   Admin: {
     users: `${BASE_API_URL}/admin/users`,
     updateUserStatus: (id: number) => `${BASE_API_URL}/admin/users/${id}/status`,
+    roles: `${BASE_API_URL}/admin/roles`, // New API for fetching roles
   },
   AuditLog: {
     base: `${BASE_API_URL}/admin/audit-logs`,

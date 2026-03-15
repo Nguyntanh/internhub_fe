@@ -1,4 +1,4 @@
-import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef, OnDestroy } from '@angular/core'; // Add OnDestroy
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms'; // For ngModel in mat-radio-group
 import { MatCardModule } from '@angular/material/card';
@@ -12,11 +12,11 @@ import { MatSnackBar } from '@angular/material/snack-bar'; // For notifications
 
 import { CreateUserDialogComponent } from './create-user-dialog/create-user-dialog.component';
 import {
-  ROLES_DATA,
   FUNCTIONS_DATA,
   FUNCTION_CODE_TO_ID_MAP,
   FUNCTION_ID_TO_NAME_MAP,
   MOCK_ROLE_PERMISSIONS_FLAT, // Temporarily use mock flat data
+  ROLES_DATA_MOCK, // Import ROLES_DATA_MOCK
   PermissionMatrix,
   RbacFeatureGroup,
   RbacFeature,
@@ -24,9 +24,12 @@ import {
   RolePermissionRequest,
   RolePermissionResponse,
   FeaturePermission,
-  toCrudString
+  toCrudString,
+  Role // Import Role interface
 } from '../../../../shared/models/permissions.model';
 import { RolePermissionService } from '../../../../services/role-permission.service'; // New service
+import { PermissionService } from '../../../../services/permission.service'; // Import PermissionService
+import { Subject, takeUntil, combineLatest } from 'rxjs'; // Import Subject, takeUntil, combineLatest
 
 @Component({
   selector: 'app-account-management',
@@ -45,44 +48,56 @@ import { RolePermissionService } from '../../../../services/role-permission.serv
   templateUrl: './account-management.component.html',
   styleUrls: ['./account-management.component.css'],
 })
-export class AccountManagementComponent implements OnInit {
-  rolesHeader: string[] = ROLES_DATA.map(r => r.name); // Just names for the header
-  roleDefinitions = ROLES_DATA; // Full role objects for iteration
+export class AccountManagementComponent implements OnInit, OnDestroy { // Implement OnDestroy
+  rolesHeader: string[] = [];
+  roleDefinitions: Role[] = [];
   permissionMatrix: PermissionMatrix | null = null;
   isLoading = true;
   selectedPermissionType: 'canCreate' | 'canAccess' | 'canEdit' | 'canDelete' = 'canAccess'; // Default view
+
+  private destroy$ = new Subject<void>(); // Subject to manage subscriptions
 
   constructor(
     public dialog: MatDialog,
     private rolePermissionService: RolePermissionService,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef // Inject ChangeDetectorRef
+    private cdr: ChangeDetectorRef, // Inject ChangeDetectorRef
+    private permissionService: PermissionService // Inject PermissionService
   ) {}
 
   ngOnInit(): void {
-    this.loadPermissions();
-  }
-
-  loadPermissions(): void {
-    this.isLoading = true;
-    console.log('Attempting to load permissions from backend...');
-    this.rolePermissionService.getAllRolePermissions().subscribe({
-      next: (flatPermissions) => {
-        console.log('Permissions loaded successfully:', flatPermissions);
+    // Load roles and permissions concurrently
+    combineLatest([
+      this.permissionService.getRoles(),
+      this.permissionService.getPermissions(),
+      this.rolePermissionService.getAllRolePermissions()
+    ]).pipe(takeUntil(this.destroy$)).subscribe({
+      next: ([roles, permissions, flatPermissions]) => {
+        if (roles) {
+          this.roleDefinitions = roles;
+          this.rolesHeader = roles.map(r => r.name);
+        }
+        // Permissions are handled by buildPermissionMatrix
         this.permissionMatrix = this.buildPermissionMatrix(flatPermissions);
-        console.log('Final permissionMatrix assigned:', this.permissionMatrix);
         this.isLoading = false;
-        this.cdr.detectChanges(); // Force change detection
+        this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Failed to load permissions:', err);
-        this.snackBar.open('Failed to load permissions. Please check backend API.', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        console.error('Failed to load initial data:', err);
+        this.snackBar.open('Failed to load initial data. Please check backend API.', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
         this.isLoading = false;
-        // Optionally, load mock data on error for development/demonstration
+        // Fallback to mock data if loading fails
+        this.roleDefinitions = ROLES_DATA_MOCK; // Use the mock data for roles
+        this.rolesHeader = ROLES_DATA_MOCK.map(r => r.name);
         this.permissionMatrix = this.buildPermissionMatrix(MOCK_ROLE_PERMISSIONS_FLAT);
-        this.cdr.detectChanges(); // Force change detection even on error
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   // Maps flat RolePermissionResponse[] from Backend to structured PermissionMatrix for Frontend
@@ -100,7 +115,7 @@ export class AccountManagementComponent implements OnInit {
         permissions: {},
       };
       // Initialize permissions for all roles to false
-      ROLES_DATA.forEach(role => {
+      this.roleDefinitions.forEach(role => { // Use dynamic roleDefinitions
         rbacFeature.permissions[role.id] = {
           roleId: role.id,
           canCreate: false,
@@ -157,7 +172,7 @@ export class AccountManagementComponent implements OnInit {
   }
 
   getRoleName(roleId: number): string {
-    return ROLES_DATA.find(role => role.id === roleId)?.name || 'Unknown';
+    return this.roleDefinitions.find(role => role.id === roleId)?.name || 'Unknown'; // Use dynamic roleDefinitions
   }
 
   // Method to check if a permission is enabled for a given role and feature
