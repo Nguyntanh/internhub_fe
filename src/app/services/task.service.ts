@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
+import { Observable, throwError } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 
 export interface SkillWeight {
   skillId: number;
@@ -12,11 +13,8 @@ export interface Task {
   title: string;
   description: string;
   deadline: string;
-
   weight?: number;
-
   internIds?: number[];
-
   skills?: {
     skillId: number;
     weight: number;
@@ -26,6 +24,30 @@ export interface Task {
 export interface Intern {
   id: number;
   name: string;
+  email?: string;
+  fullName?: string;
+}
+
+export interface TaskDetail {
+  id: number;
+  title: string;
+  description: string;
+  deadline: string;
+  status: string;
+  weight: number;
+  score?: number;
+  reviewComment?: string;
+  submissionLink?: string;
+  submission_link?: string;
+  submissionNote?: string;
+  submission_note?: string;
+  assignedInterns: Intern[];
+  skills?: {
+    skillId: number;
+    weight: number;
+    ratingScore?: number;
+    reviewComment?: string;
+  }[];
 }
 
 @Injectable({
@@ -35,39 +57,139 @@ export class TaskService {
 
   private api = 'http://localhost:8090/api/tasks';
   private userApi = 'http://localhost:8090/api/user';
+  private skillApi = 'http://localhost:8090/api/skills';
 
   constructor(private http: HttpClient) {}
 
-  // mentor xem task
-  getMentorTasks(): Observable<Task[]> {
-    return this.http.get<Task[]>(`${this.api}/mentor`);
+  // ================= AUTH HEADER =================
+  private getAuthHeaders() {
+    const token = localStorage.getItem('token');
+
+    return {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`
+      })
+    };
   }
 
-  // intern xem task
-  getInternTasks(): Observable<Task[]> {
-    return this.http.get<Task[]>(`${this.api}/intern`);
+  // ================= ERROR HANDLER =================
+  private handleError(error: HttpErrorResponse) {
+    let errorMessage = 'Có lỗi xảy ra';
+
+    if (error.status === 0) {
+      errorMessage = 'Không thể kết nối tới server';
+    } else if (error.status === 401) {
+      errorMessage = 'Bạn chưa đăng nhập hoặc token đã hết hạn';
+    } else {
+      errorMessage = `Server trả về lỗi ${error.status}`;
+    }
+
+    console.error('HTTP Error:', error);
+    return throwError(() => new Error(errorMessage));
   }
 
-  // tạo task
+  // ================= TASK APIs =================
+
+  getMentorTasks(): Observable<TaskDetail[]> {
+    return this.http
+      .get<any[]>(`${this.api}/mentor`, this.getAuthHeaders())
+      .pipe(
+        map(tasks => tasks.map(task => this.mapTaskResponse(task))),
+        catchError(this.handleError)
+      );
+  }
+
+  getInternTasks(): Observable<TaskDetail[]> {
+    return this.http
+      .get<any[]>(`${this.api}/intern`, this.getAuthHeaders())
+      .pipe(
+        map(tasks => tasks.map(task => this.mapTaskResponse(task))),
+        catchError(this.handleError)
+      );
+  }
+
   createTask(task: Task): Observable<string> {
-    return this.http.post(`${this.api}`, task, { responseType: 'text' });
+    return this.http
+      .post(`${this.api}`, task, {
+        ...this.getAuthHeaders(),
+        responseType: 'text'
+      })
+      .pipe(catchError(this.handleError));
   }
 
-  // lấy danh sách intern
-  getInterns(): Observable<Intern[]> {
-    return this.http.get<Intern[]>(`${this.userApi}/interns`);
+  getTaskDetail(taskId: number): Observable<TaskDetail> {
+    return this.http
+      .get<any>(`${this.api}/${taskId}`, this.getAuthHeaders())
+      .pipe(
+        map(task => this.mapTaskResponse(task)),
+        catchError(this.handleError)
+      );
   }
 
-  getTaskDetail(taskId: number): Observable<any> {
-    return this.http.get(`${this.api}/${taskId}`);
+  updateTask(taskId: number, task: any): Observable<string> {
+    return this.http
+      .put(`${this.api}/${taskId}`, task, {
+        ...this.getAuthHeaders(),
+        responseType: 'text'
+      })
+      .pipe(catchError(this.handleError));
+  }
+
+  deleteTask(taskId: number): Observable<string> {
+    return this.http
+      .delete(`${this.api}/${taskId}`, {
+        ...this.getAuthHeaders(),
+        responseType: 'text'
+      })
+      .pipe(catchError(this.handleError));
   }
 
   submitTask(taskId: number, data: any): Observable<any> {
-    return this.http.post(`${this.api}/${taskId}/submit`, data);
+    return this.http
+      .post(`${this.api}/${taskId}/submit`, data, this.getAuthHeaders())
+      .pipe(catchError(this.handleError));
   }
 
   reviewTask(taskId: number, data: any): Observable<any> {
-    return this.http.post(`${this.api}/${taskId}/review`, data);
+    return this.http
+      .post(`${this.api}/${taskId}/review`, data, this.getAuthHeaders())
+      .pipe(catchError(this.handleError));
   }
 
+  // ================= USER APIs =================
+
+  getInterns(): Observable<Intern[]> {
+    return this.http
+      .get<Intern[]>(`${this.userApi}/interns`, this.getAuthHeaders())
+      .pipe(catchError(this.handleError));
+  }
+
+  // ================= SKILL APIs =================
+
+  getSkills(): Observable<any[]> {
+    return this.http
+      .get<any[]>(this.skillApi, this.getAuthHeaders())
+      .pipe(catchError(this.handleError));
+  }
+
+  // ================= RESPONSE MAPPER =================
+
+  private mapTaskResponse(task: any): TaskDetail {
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      deadline: task.deadline,
+      status: task.status,
+      weight: task.weight || 1,
+      score: task.score,
+      reviewComment: task.reviewComment || task.review_comment,
+      submissionLink: task.submissionLink || task.submission_link || task.submitdate,
+      submission_link: task.submission_link || task.submitdate,
+      submissionNote: task.submissionNote || task.submission_note,
+      submission_note: task.submission_note,
+      assignedInterns: task.assignedInterns || [],
+      skills: task.skills || []
+    };
+  }
 }

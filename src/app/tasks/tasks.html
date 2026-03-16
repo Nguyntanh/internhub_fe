@@ -1,156 +1,495 @@
-<div class="max-w-6xl mx-auto p-6">
+<div class="max-w-7xl mx-auto p-8 bg-gray-50 min-h-screen">
 
-<h1 class="text-3xl font-bold mb-8 text-gray-800">
-📋 Quản lý Công việc Micro Task
-</h1>
+  <!-- PAGE HEADER -->
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-3xl font-bold text-gray-800 flex items-center gap-3">
+      Quản lí nhiệm vụ
+    </h1>
+  </div>
 
-<div class="bg-white shadow-lg rounded-xl p-6 mb-8 border">
+  <!-- ================= CREATE TASK ================= -->
+  <div class="bg-white shadow-xl rounded-2xl p-8 mb-10 border">
+    <h2 class="text-xl font-semibold mb-6 flex items-center gap-2">
+      <mat-icon color="primary">add_circle</mat-icon>
+      Tạo Task mới
+    </h2>
 
-<h2 class="text-xl font-semibold mb-4">
-Tạo Công việc mới
-</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- TITLE -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tiêu đề</mat-label>
+        <input matInput [(ngModel)]="newTask.title" placeholder="Nhập tiêu đề task...">
+      </mat-form-field>
 
-<div class="grid grid-cols-2 gap-4">
+      <!-- DEADLINE -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Deadline</mat-label>
+        <input matInput [matDatepicker]="picker" [(ngModel)]="newTask.deadline" placeholder="Chọn ngày">
+        <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+        <mat-datepicker #picker></mat-datepicker>
+      </mat-form-field>
 
-<input
-class="border rounded-lg p-3"
-placeholder="Tiêu đề công việc"
-[(ngModel)]="newTask.title"
-/>
+      <!-- DESCRIPTION -->
+      <mat-form-field appearance="outline" class="w-full md:col-span-2">
+        <mat-label>Mô tả</mat-label>
+        <textarea matInput rows="3" [(ngModel)]="newTask.description" placeholder="Nhập mô tả chi tiết..."></textarea>
+      </mat-form-field>
 
-<input
-type="date"
-class="border rounded-lg p-3"
-[(ngModel)]="newTask.deadline"
-/>
+      <!-- DIFFICULTY -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Độ khó</mat-label>
+        <mat-select [(ngModel)]="newTask.weight">
+          <mat-option [value]="1">⭐ 1 - Rất dễ</mat-option>
+          <mat-option [value]="2">⭐⭐ 2 - Dễ</mat-option>
+          <mat-option [value]="3">⭐⭐⭐ 3 - Trung bình</mat-option>
+          <mat-option [value]="4">⭐⭐⭐⭐ 4 - Khó</mat-option>
+          <mat-option [value]="5">⭐⭐⭐⭐⭐ 5 - Rất khó</mat-option>
+        </mat-select>
+      </mat-form-field>
 
-<textarea
-class="border rounded-lg p-3 col-span-2"
-rows="3"
-placeholder="Mô tả công việc"
-[(ngModel)]="newTask.description"
-></textarea>
+      <!-- SKILL SELECT -->
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Skill yêu cầu</mat-label>
+        <mat-select [(ngModel)]="selectedSkillId">
+          <mat-option *ngFor="let skill of skills" [value]="skill.id">
+            {{skill.name}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
 
-<select
-class="border rounded-lg p-3"
-[(ngModel)]="newTask.weight"
->
+      <!-- INTERN SELECT (Radio buttons - chỉ chọn 1) -->
+      <div class="w-full md:col-span-2">
+        <p class="text-sm font-medium mb-2 text-gray-700">Intern thực hiện <span class="text-red-500">*</span></p>
+        <button mat-stroked-button color="primary" type="button" (click)="showInternBox = !showInternBox" class="flex items-center gap-2">
+          <mat-icon>group</mat-icon>
+          {{ selectedInternId ? 'Đã chọn: ' + getInternName(selectedInternId) : 'Chọn Intern' }}
+        </button>
 
-<option [value]="1">Độ khó 1</option>
-<option [value]="2">Độ khó 2</option>
-<option [value]="3">Độ khó 3</option>
-<option [value]="4">Độ khó 4</option>
-<option [value]="5">Độ khó 5</option>
+        <div *ngIf="showInternBox" class="mt-3 border rounded-lg p-4 bg-gray-50 max-h-60 overflow-y-auto">
+          <mat-radio-group [(ngModel)]="selectedInternId" class="flex flex-col gap-3">
+            <mat-radio-button *ngFor="let intern of interns" [value]="intern.id" class="py-1">
+              {{intern.name}} - {{intern.email}}
+            </mat-radio-button>
+          </mat-radio-group>
+        </div>
+        
+        <!-- Hiển thị intern đã chọn -->
+        <div *ngIf="selectedInternId" class="mt-3">
+          <mat-chip class="bg-blue-50" (removed)="selectedInternId = null">
+            {{getInternName(selectedInternId)}}
+            <mat-icon matChipRemove>cancel</mat-icon>
+          </mat-chip>
+        </div>
+      </div>
+    </div>
 
-</select>
+    <button mat-raised-button color="primary" class="mt-6 w-full h-12 text-lg" (click)="createTask()" [disabled]="!newTask.title || !newTask.deadline || !selectedSkillId || !selectedInternId">
+      <mat-icon>add_task</mat-icon>
+      Tạo Task
+    </button>
+  </div>
 
-</div>
+  <!-- ================= TASK LIST ================= -->
+  <div class="bg-white shadow-xl rounded-2xl p-8 border">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
+      <h2 class="text-xl font-semibold">Danh sách Task</h2>
+      
+      <!-- FILTER BUTTONS -->
+      <div class="flex flex-wrap gap-2">
+        <button mat-stroked-button (click)="statusFilter = ''" [class.bg-blue-50]="statusFilter === ''" [class.text-blue-600]="statusFilter === ''">
+          Tất cả
+        </button>
+        <button mat-stroked-button (click)="statusFilter = 'Pending'" [class.bg-orange-50]="statusFilter === 'Pending'" [class.text-orange-600]="statusFilter === 'Pending'">
+          Pending
+        </button>
+        <button mat-stroked-button (click)="statusFilter = 'Submitted'" [class.bg-yellow-50]="statusFilter === 'Submitted'" [class.text-yellow-600]="statusFilter === 'Submitted'">
+          Submitted
+        </button>
+        <button mat-stroked-button (click)="statusFilter = 'Reviewed'" [class.bg-green-50]="statusFilter === 'Reviewed'" [class.text-green-600]="statusFilter === 'Reviewed'">
+          Reviewed
+        </button>
+      </div>
+    </div>
 
-<div class="mt-6">
+    <!-- SEARCH -->
+    <div class="mb-6">
+      <mat-form-field appearance="outline" class="w-full">
+        <mat-label>Tìm kiếm task</mat-label>
+        <input matInput placeholder="Nhập tiêu đề task..." [(ngModel)]="searchText">
+        <mat-icon matSuffix>search</mat-icon>
+      </mat-form-field>
+    </div>
 
-<h3 class="font-semibold mb-3">
-👨‍💻 Chọn Intern để giao nhiệm vụ
-</h3>
+    <!-- LOADING -->
+    <div *ngIf="loading" class="flex justify-center py-10">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
 
-<button
-type="button"
-(click)="showInternBox = !showInternBox"
-class="border rounded-lg px-4 py-2 w-full text-left bg-white hover:bg-gray-50"
->
+    <!-- EMPTY -->
+    <div *ngIf="!loading && filteredTasks.length === 0" class="text-gray-400 text-center py-12">
+      <mat-icon class="text-6xl mb-3">assignment</mat-icon>
+      <p class="text-lg">Không tìm thấy task nào</p>
+    </div>
 
-Chọn Intern
+    <!-- TASK TABLE -->
+    <div *ngIf="!loading && filteredTasks.length > 0" class="overflow-x-auto">
+      <table mat-table [dataSource]="filteredTasks" class="w-full">
+        
+        <!-- STT Column -->
+        <ng-container matColumnDef="stt">
+          <th mat-header-cell *matHeaderCellDef class="font-bold">STT</th>
+          <td mat-cell *matCellDef="let task; let i = index" class="py-3">{{i + 1}}</td>
+        </ng-container>
 
-</button>
+        <!-- Title Column -->
+        <ng-container matColumnDef="title">
+          <th mat-header-cell *matHeaderCellDef class="font-bold">Tiêu đề</th>
+          <td mat-cell *matCellDef="let task" class="py-3">
+            <span class="cursor-pointer hover:text-blue-600" (click)="viewTask(task)">
+              {{task.title}}
+            </span>
+          </td>
+        </ng-container>
 
-<!-- Intern đã chọn -->
+        <!-- Difficulty Column -->
+        <ng-container matColumnDef="difficulty">
+          <th mat-header-cell *matHeaderCellDef class="font-bold">Độ khó</th>
+          <td mat-cell *matCellDef="let task" class="py-3">
+            <div class="flex items-center gap-1">
+              <mat-icon *ngFor="let star of getStars(task.weight)" class="text-yellow-500 text-sm">star</mat-icon>
+              <span class="text-gray-500 text-sm ml-1">({{task.weight}})</span>
+            </div>
+          </td>
+        </ng-container>
 
-<div *ngIf="selectedInternIds.length > 0" class="mt-3 flex flex-wrap gap-2">
+        <!-- Deadline Column -->
+        <ng-container matColumnDef="deadline">
+          <th mat-header-cell *matHeaderCellDef class="font-bold">Deadline</th>
+          <td mat-cell *matCellDef="let task" class="py-3">
+            {{task.deadline | date:'dd/MM/yyyy'}}
+          </td>
+        </ng-container>
 
-<span
-*ngFor="let id of selectedInternIds"
-class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"
->
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th mat-header-cell *matHeaderCellDef class="font-bold">Trạng thái</th>
+          <td mat-cell *matCellDef="let task" class="py-3">
+            <mat-chip [color]="getStatusColor(task.status)" selected class="text-xs">
+              {{task.status}}
+            </mat-chip>
+          </td>
+        </ng-container>
 
-{{ getInternName(id) }}
+        <!-- Submission Column -->
+        <ng-container matColumnDef="submission">
+          <th mat-header-cell *matHeaderCellDef class="font-bold">Nộp bài</th>
+          <td mat-cell *matCellDef="let task" class="py-3">
+            <div *ngIf="task.submissionLink" class="flex items-center gap-1 text-green-600">
+              <mat-icon class="text-sm">check_circle</mat-icon>
+              <span>Đã nộp</span>
+            </div>
+            <div *ngIf="!task.submissionLink && task.status === 'Submitted'" class="flex items-center gap-1 text-yellow-600">
+              <mat-icon class="text-sm">pending</mat-icon>
+              <span>Đã nộp (chờ duyệt)</span>
+            </div>
+            <div *ngIf="!task.submissionLink && task.status !== 'Submitted'" class="flex items-center gap-1 text-gray-400">
+              <mat-icon class="text-sm">cancel</mat-icon>
+              <span>Chưa nộp</span>
+            </div>
+          </td>
+        </ng-container>
 
-</span>
+        <!-- Intern Column -->
+        <ng-container matColumnDef="intern">
+          <th mat-header-cell *matHeaderCellDef class="font-bold">Intern</th>
+          <td mat-cell *matCellDef="let task" class="py-3">
+            <div class="flex items-center gap-1">
+              <mat-icon class="text-sm text-gray-500">person</mat-icon>
+              <span>{{task.assignedInterns?.[0]?.name || 'Chưa có'}}</span>
+            </div>
+          </td>
+        </ng-container>
 
-</div>
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th mat-header-cell *matHeaderCellDef class="font-bold">Thao tác</th>
+          <td mat-cell *matCellDef="let task" class="py-3">
+            <div class="flex items-center gap-1">
+              <button mat-icon-button color="primary" (click)="viewTask(task); $event.stopPropagation()" matTooltip="Xem chi tiết">
+                <mat-icon>visibility</mat-icon>
+              </button>
+              <button *ngIf="task.submissionLink || task.status === 'Submitted'" 
+                      mat-icon-button color="accent" 
+                      (click)="openReviewModal(task); $event.stopPropagation()" 
+                      matTooltip="Chấm điểm">
+                <mat-icon>grade</mat-icon>
+              </button>
+            </div>
+          </td>
+        </ng-container>
 
-<!-- Danh sách intern -->
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+            class="hover:bg-gray-50 cursor-pointer"
+            (click)="viewTask(row)"></tr>
+      </table>
+    </div>
+  </div>
 
-<div
-*ngIf="showInternBox"
-class="mt-3 border rounded-lg p-4 bg-gray-50 max-h-48 overflow-y-auto"
->
+  <!-- ================= TASK DETAIL/EDIT MODAL ================= -->
+  <div *ngIf="showTaskModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      
+      <!-- Modal Header -->
+      <div class="sticky top-0 bg-white border-b px-6 py-4 flex items-center justify-between rounded-t-2xl">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <mat-icon [color]="isEditing ? 'accent' : 'primary'">
+            {{isEditing ? 'edit' : 'assignment'}}
+          </mat-icon>
+          {{isEditing ? 'Chỉnh sửa Task' : 'Chi tiết Task'}}
+        </h2>
+        <button mat-icon-button (click)="closeTaskModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
 
-<label
-*ngFor="let intern of interns"
-class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
->
+      <!-- Modal Body -->
+      <div class="p-6">
+        <!-- View Mode -->
+        <div *ngIf="!isEditing" class="space-y-4 text-gray-700">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="col-span-2">
+              <p class="text-sm font-medium text-gray-500">Tiêu đề</p>
+              <p class="text-lg font-semibold">{{taskDetail?.title}}</p>
+            </div>
 
-<input
-type="checkbox"
-[checked]="selectedInternIds.includes(intern.id)"
-(change)="toggleIntern(intern.id)"
-/>
+            <div class="col-span-2">
+              <p class="text-sm font-medium text-gray-500">Mô tả</p>
+              <p class="text-gray-700 bg-gray-50 p-3 rounded-lg">{{taskDetail?.description || 'Không có mô tả'}}</p>
+            </div>
 
-<span>{{intern.name}}</span>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Deadline</p>
+              <p class="flex items-center gap-2">
+                <mat-icon class="text-gray-400 text-sm">calendar_today</mat-icon>
+                {{taskDetail?.deadline | date:'dd/MM/yyyy'}}
+              </p>
+            </div>
 
-</label>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Trạng thái</p>
+              <mat-chip [color]="getStatusColor(taskDetail?.status)" selected>
+                {{taskDetail?.status}}
+              </mat-chip>
+            </div>
 
-</div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Độ khó</p>
+              <div class="flex items-center gap-1">
+                <mat-icon *ngFor="let star of getStars(taskDetail?.weight || 1)" class="text-yellow-500">star</mat-icon>
+                <span class="text-gray-500 ml-2">({{taskDetail?.weight}})</span>
+              </div>
+            </div>
 
-</div>
+            <div>
+              <p class="text-sm font-medium text-gray-500">Skill yêu cầu</p>
+              <p *ngIf="taskDetail?.skills && taskDetail.skills.length > 0" class="text-gray-700">
+                {{getSkillName(taskDetail.skills[0]?.skillId)}}
+              </p>
+              <span *ngIf="!taskDetail?.skills?.length" class="text-gray-400">
+                Chưa có skill
+              </span>
+            </div>
 
-<button
-(click)="createTask()"
-class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
->
+            <div class="col-span-2">
+              <p class="text-sm font-medium text-gray-500">Intern được giao</p>
+              <div *ngIf="taskDetail?.assignedInterns?.length > 0" class="flex flex-wrap gap-2 mt-2">
+                <mat-chip *ngFor="let intern of taskDetail?.assignedInterns" class="bg-blue-50">
+                  {{intern.name}}
+                </mat-chip>
+              </div>
+              <span *ngIf="!taskDetail?.assignedInterns?.length" class="text-gray-400">
+                Chưa có intern
+              </span>
+            </div>
 
-Tạo công việc
+            <div class="col-span-2">
+              <p class="text-sm font-medium text-gray-500">Điểm</p>
+              <p *ngIf="taskDetail?.score !== null && taskDetail?.score !== undefined" class="text-lg font-semibold text-green-600">
+                {{taskDetail?.score}}/10
+              </p>
+              <span *ngIf="taskDetail?.score === null || taskDetail?.score === undefined" class="text-gray-400 italic">
+                Chưa chấm điểm
+              </span>
+            </div>
 
-</button>
+            <div class="col-span-2">
+              <p class="text-sm font-medium text-gray-500">Link nộp bài</p>
+              <a *ngIf="taskDetail?.submissionLink" [href]="taskDetail.submissionLink" target="_blank" class="text-blue-600 underline flex items-center gap-1 break-all">
+                <mat-icon class="text-sm">link</mat-icon>
+                {{taskDetail.submissionLink}}
+              </a>
+              <span *ngIf="!taskDetail?.submissionLink" class="text-gray-400 italic">
+                Intern chưa nộp bài
+              </span>
+            </div>
 
-</div>
+            <div class="col-span-2" *ngIf="taskDetail?.reviewComment">
+              <p class="text-sm font-medium text-gray-500">Nhận xét</p>
+              <p class="text-gray-700 bg-gray-50 p-3 rounded-lg">{{taskDetail?.reviewComment}}</p>
+            </div>
+          </div>
+        </div>
 
-<div class="bg-white shadow-lg rounded-xl p-6 border">
+        <!-- Edit Mode -->
+        <div *ngIf="isEditing" class="space-y-4">
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Tiêu đề</mat-label>
+            <input matInput [(ngModel)]="editForm.title" placeholder="Nhập tiêu đề task...">
+          </mat-form-field>
 
-<h2 class="text-xl font-semibold mb-4">
-Danh sách công việc
-</h2>
+          <mat-form-field appearance="outline" class="w-full">
+            <mat-label>Mô tả</mat-label>
+            <textarea matInput rows="3" [(ngModel)]="editForm.description" placeholder="Nhập mô tả chi tiết..."></textarea>
+          </mat-form-field>
 
-<div *ngIf="tasks.length === 0" class="text-gray-500 text-center py-6">
-Hiện chưa có công việc nào
-</div>
+          <div class="grid grid-cols-2 gap-4">
+            <mat-form-field appearance="outline">
+              <mat-label>Deadline</mat-label>
+              <input matInput [matDatepicker]="editPicker" [(ngModel)]="editForm.deadline" placeholder="Chọn ngày">
+              <mat-datepicker-toggle matIconSuffix [for]="editPicker"></mat-datepicker-toggle>
+              <mat-datepicker #editPicker></mat-datepicker>
+            </mat-form-field>
 
-<table *ngIf="tasks.length > 0" class="w-full border rounded-lg overflow-hidden">
+            <mat-form-field appearance="outline">
+              <mat-label>Độ khó</mat-label>
+              <mat-select [(ngModel)]="editForm.weight">
+                <mat-option [value]="1">⭐ 1 - Rất dễ</mat-option>
+                <mat-option [value]="2">⭐⭐ 2 - Dễ</mat-option>
+                <mat-option [value]="3">⭐⭐⭐ 3 - Trung bình</mat-option>
+                <mat-option [value]="4">⭐⭐⭐⭐ 4 - Khó</mat-option>
+                <mat-option [value]="5">⭐⭐⭐⭐⭐ 5 - Rất khó</mat-option>
+              </mat-select>
+            </mat-form-field>
 
-<thead class="bg-gray-100">
-<tr>
-<th class="p-3 text-left">Tiêu đề</th>
-<th class="p-3 text-left">Độ khó</th>
-<th class="p-3 text-left">Hạn nộp</th>
-</tr>
-</thead>
+            <mat-form-field appearance="outline" class="col-span-2">
+              <mat-label>Skill yêu cầu</mat-label>
+              <mat-select [(ngModel)]="selectedSkillId">
+                <mat-option *ngFor="let skill of skills" [value]="skill.id">
+                  {{skill.name}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
 
-<tbody>
+          <!-- Intern Edit Section (Radio buttons) -->
+          <div>
+            <p class="text-sm font-medium mb-2 text-gray-700">Intern thực hiện <span class="text-red-500">*</span></p>
+            <button mat-stroked-button color="primary" type="button" (click)="showEditInternBox = !showEditInternBox" class="flex items-center gap-2">
+              <mat-icon>group</mat-icon>
+              {{ editForm.internId ? 'Đã chọn: ' + getInternName(editForm.internId) : 'Chọn Intern' }}
+            </button>
 
-<tr
-*ngFor="let task of tasks"
-class="border-t hover:bg-gray-50"
->
+            <div *ngIf="showEditInternBox" class="mt-3 border rounded-lg p-4 bg-gray-50 max-h-60 overflow-y-auto">
+              <mat-radio-group [(ngModel)]="editForm.internId" class="flex flex-col gap-3">
+                <mat-radio-button *ngFor="let intern of interns" [value]="intern.id" class="py-1">
+                  {{intern.name}} - {{intern.email}}
+                </mat-radio-button>
+              </mat-radio-group>
+            </div>
+            
+            <div *ngIf="editForm.internId" class="mt-3">
+              <mat-chip class="bg-blue-50" (removed)="editForm.internId = null">
+                {{getInternName(editForm.internId)}}
+                <mat-icon matChipRemove>cancel</mat-icon>
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+      </div>
 
-<td class="p-3">{{task.title}}</td>
-<td class="p-3">{{task.weight}}</td>
-<td class="p-3">{{task.deadline}}</td>
+      <!-- Modal Footer -->
+      <div class="sticky bottom-0 bg-gray-50 border-t px-6 py-4 flex justify-end gap-3 rounded-b-2xl">
+        <!-- View Mode Footer -->
+        <ng-container *ngIf="!isEditing">
+          <button mat-stroked-button color="primary" (click)="startEditing()">
+            <mat-icon>edit</mat-icon>
+            Chỉnh sửa
+          </button>
 
-</tr>
+          <button mat-stroked-button color="warn" (click)="deleteTask(selectedTask)">
+            <mat-icon>delete</mat-icon>
+            Xóa
+          </button>
+        </ng-container>
 
-</tbody>
+        <!-- Edit Mode Footer -->
+        <ng-container *ngIf="isEditing">
+          <button mat-stroked-button (click)="cancelEdit()">
+            Hủy
+          </button>
+          <button mat-raised-button color="primary" (click)="saveEdit()" [disabled]="!editForm.title || !editForm.deadline || !selectedSkillId || !editForm.internId">
+            <mat-icon>save</mat-icon>
+            Lưu thay đổi
+          </button>
+        </ng-container>
+      </div>
+    </div>
+  </div>
 
-</table>
+  <!-- ================= REVIEW MODAL ================= -->
+  <div *ngIf="showReviewModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl relative">
+      <!-- Modal Header -->
+      <div class="border-b px-6 py-4 flex items-center justify-between">
+        <h2 class="text-xl font-bold flex items-center gap-2">
+          <mat-icon color="accent">grade</mat-icon>
+          Chấm điểm Task
+        </h2>
+        <button mat-icon-button (click)="closeReviewModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
 
-</div>
+      <!-- Modal Body -->
+      <div class="p-6">
+        <div class="mb-4">
+          <p class="text-sm font-medium text-gray-500">Task</p>
+          <p class="text-lg font-semibold">{{reviewTaskData?.title}}</p>
+        </div>
+
+        <div class="mb-4" *ngIf="reviewTaskData?.submissionLink">
+          <p class="text-sm font-medium text-gray-500">Link nộp bài</p>
+          <a [href]="reviewTaskData.submissionLink" target="_blank" class="text-blue-600 underline flex items-center gap-1 break-all">
+            <mat-icon class="text-sm">link</mat-icon>
+            {{reviewTaskData.submissionLink}}
+          </a>
+        </div>
+
+        <mat-form-field appearance="outline" class="w-full mb-4">
+          <mat-label>Điểm (0 - 10)</mat-label>
+          <input matInput type="number" min="0" max="10" step="0.1" [(ngModel)]="reviewScore" placeholder="Nhập điểm...">
+          <mat-icon matSuffix>star</mat-icon>
+          <mat-hint>Nhập điểm từ 0 đến 10</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="w-full">
+          <mat-label>Nhận xét (tùy chọn)</mat-label>
+          <textarea matInput rows="3" [(ngModel)]="reviewComment" placeholder="Nhập nhận xét..."></textarea>
+        </mat-form-field>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="border-t px-6 py-4 flex justify-end gap-3">
+        <button mat-stroked-button (click)="closeReviewModal()">
+          Hủy
+        </button>
+        <button mat-raised-button color="accent" (click)="submitReview()" [disabled]="!isValidScore()">
+          <mat-icon>check_circle</mat-icon>
+          Xác nhận chấm điểm
+        </button>
+      </div>
+    </div>
+  </div>
 
 </div>
