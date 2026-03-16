@@ -1,0 +1,156 @@
+<div class="max-w-6xl mx-auto p-6">
+
+<h1 class="text-3xl font-bold mb-8 text-gray-800">
+📋 Quản lý Công việc Micro Task
+</h1>
+
+<div class="bg-white shadow-lg rounded-xl p-6 mb-8 border">
+
+<h2 class="text-xl font-semibold mb-4">
+Tạo Công việc mới
+</h2>
+
+<div class="grid grid-cols-2 gap-4">
+
+<input
+class="border rounded-lg p-3"
+placeholder="Tiêu đề công việc"
+[(ngModel)]="newTask.title"
+/>
+
+<input
+type="date"
+class="border rounded-lg p-3"
+[(ngModel)]="newTask.deadline"
+/>
+
+<textarea
+class="border rounded-lg p-3 col-span-2"
+rows="3"
+placeholder="Mô tả công việc"
+[(ngModel)]="newTask.description"
+></textarea>
+
+<select
+class="border rounded-lg p-3"
+[(ngModel)]="newTask.weight"
+>
+
+<option [value]="1">Độ khó 1</option>
+<option [value]="2">Độ khó 2</option>
+<option [value]="3">Độ khó 3</option>
+<option [value]="4">Độ khó 4</option>
+<option [value]="5">Độ khó 5</option>
+
+</select>
+
+</div>
+
+<div class="mt-6">
+
+<h3 class="font-semibold mb-3">
+👨‍💻 Chọn Intern để giao nhiệm vụ
+</h3>
+
+<button
+type="button"
+(click)="showInternBox = !showInternBox"
+class="border rounded-lg px-4 py-2 w-full text-left bg-white hover:bg-gray-50"
+>
+
+Chọn Intern
+
+</button>
+
+<!-- Intern đã chọn -->
+
+<div *ngIf="selectedInternIds.length > 0" class="mt-3 flex flex-wrap gap-2">
+
+<span
+*ngFor="let id of selectedInternIds"
+class="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"
+>
+
+{{ getInternName(id) }}
+
+</span>
+
+</div>
+
+<!-- Danh sách intern -->
+
+<div
+*ngIf="showInternBox"
+class="mt-3 border rounded-lg p-4 bg-gray-50 max-h-48 overflow-y-auto"
+>
+
+<label
+*ngFor="let intern of interns"
+class="flex items-center gap-2 p-2 hover:bg-gray-100 rounded cursor-pointer"
+>
+
+<input
+type="checkbox"
+[checked]="selectedInternIds.includes(intern.id)"
+(change)="toggleIntern(intern.id)"
+/>
+
+<span>{{intern.name}}</span>
+
+</label>
+
+</div>
+
+</div>
+
+<button
+(click)="createTask()"
+class="mt-6 bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg"
+>
+
+Tạo công việc
+
+</button>
+
+</div>
+
+<div class="bg-white shadow-lg rounded-xl p-6 border">
+
+<h2 class="text-xl font-semibold mb-4">
+Danh sách công việc
+</h2>
+
+<div *ngIf="tasks.length === 0" class="text-gray-500 text-center py-6">
+Hiện chưa có công việc nào
+</div>
+
+<table *ngIf="tasks.length > 0" class="w-full border rounded-lg overflow-hidden">
+
+<thead class="bg-gray-100">
+<tr>
+<th class="p-3 text-left">Tiêu đề</th>
+<th class="p-3 text-left">Độ khó</th>
+<th class="p-3 text-left">Hạn nộp</th>
+</tr>
+</thead>
+
+<tbody>
+
+<tr
+*ngFor="let task of tasks"
+class="border-t hover:bg-gray-50"
+>
+
+<td class="p-3">{{task.title}}</td>
+<td class="p-3">{{task.weight}}</td>
+<td class="p-3">{{task.deadline}}</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
