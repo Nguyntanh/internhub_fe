@@ -1,1 +1,76 @@
-<p>execution works!</p>
+<div class="p-6">
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Quản lý Nhiệm vụ (Micro-tasks)</h1>
+    <button mat-raised-button color="primary" (click)="openAssignDialog()">
+      <mat-icon>add</mat-icon> Giao việc mới
+    </button>
+  </div>
+
+  <div class="bg-white shadow rounded-lg overflow-hidden">
+    <table mat-table [dataSource]="tasks" class="w-full">
+      <ng-container matColumnDef="title">
+        <th mat-header-cell *matHeaderCellDef>Tiêu đề</th>
+        <td mat-cell *matCellDef="let task">
+          <span class="font-medium text-blue-600">{{ task.title }}</span>
+          <p class="text-xs text-gray-400 line-clamp-1">{{ task.description }}</p>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="intern">
+        <th mat-header-cell *matHeaderCellDef>Thực tập sinh</th>
+        <td mat-cell *matCellDef="let task">{{ task.internName }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="deadline">
+        <th mat-header-cell *matHeaderCellDef>Hạn chót</th>
+        <td mat-cell *matCellDef="let task">{{ task.deadline | date: 'dd/MM/yyyy HH:mm' }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="priority">
+        <th mat-header-cell *matHeaderCellDef>Ưu tiên</th>
+        <td mat-cell *matCellDef="let task">
+          <span class="px-2 py-1 rounded text-xs bg-orange-100 text-orange-700"
+            >W: {{ task.priorityWeight }}</span
+          >
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="skills">
+        <th mat-header-cell *matHeaderCellDef>Kỹ năng đánh giá</th>
+        <td mat-cell *matCellDef="let task">
+          <div class="flex flex-wrap gap-1">
+            <span
+              *ngFor="let s of task.skills"
+              class="text-[10px] bg-gray-100 px-1.5 py-0.5 rounded border"
+            >
+              {{ s.skillName }} (x{{ s.weight }})
+            </span>
+          </div>
+        </td>
+      </ng-container>
+
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Trạng thái</th>
+        <td mat-cell *matCellDef="let task">
+          <span
+            [ngClass]="{
+              'bg-yellow-100 text-yellow-700': task.status === 'Todo',
+              'bg-blue-100 text-blue-700': task.status === 'In_Progress',
+              'bg-green-100 text-green-700': task.status === 'Submitted',
+            }"
+            class="px-3 py-1 rounded-full text-xs font-semibold"
+          >
+            {{ task.status }}
+          </span>
+        </td>
+      </ng-container>
+
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+    </table>
+
+    <div *ngIf="tasks.length === 0" class="text-center py-10 text-gray-500">
+      Chưa có nhiệm vụ nào được tạo.
+    </div>
+  </div>
+</div>

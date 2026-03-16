@@ -13,7 +13,7 @@ import { PartnerData } from './settings/partner-data/partner-data';
 import { SystemOperation } from './settings/system-operation/system-operation';
 
 // Import the existing dashboard sub-components
-import { Execution } from './dashboard/execution/execution';
+import { ExecutionComponent } from './dashboard/execution/execution';
 import { Management } from './dashboard/management/management';
 import { Capacity } from './dashboard/capacity/capacity';
 import { Approval } from './dashboard/approval/approval';
@@ -55,9 +55,7 @@ export const routes: Routes = [
     component: MainLayout, // Use MainLayout for consistent authenticated layout
     // canActivate: [authGuard], // Assuming profile page requires authentication
     data: { title: 'Hồ sơ của tôi' },
-    children: [
-      { path: '', component: MyProfileComponent, data: { title: 'Hồ sơ cá nhân' } }
-    ]
+    children: [{ path: '', component: MyProfileComponent, data: { title: 'Hồ sơ cá nhân' } }],
   },
   {
     path: 'tasks', // Changed from /execution to /tasks
@@ -65,7 +63,7 @@ export const routes: Routes = [
     // canActivate: [authGuard], // Bảo vệ route này - TẠM THỜI TẮT ĐỂ DEBUG
     data: { title: 'Thực thi' },
     children: [
-      { path: '', component: Execution, data: { title: 'Thực thi', mode: 'dashboard' } }, // Default for /tasks
+      { path: '', component: ExecutionComponent, data: { title: 'Thực thi', mode: 'dashboard' } }, // Default for /tasks
     ],
   },
   {
