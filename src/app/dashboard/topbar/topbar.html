@@ -1,14 +1,19 @@
 <div class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200">
   <div class="flex items-center">
     <!-- Left: Sidebar Toggle -->
-    <button class="text-gray-500 hover:text-gray-700 focus:outline-none" (click)="onToggleSidebar()">
+    <button class="text-gray-500 hover:text-gray-700 focus:outline-none ml-4" (click)="onToggleSidebar()">
       <svg class="h-6 w-6 transition-transform duration-300" [ngClass]="{'rotate-180': !isSidebarVisible}" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
         <path fill-rule="evenodd" clip-rule="evenodd" d="M3 6.75C3 6.33579 3.33579 6 3.75 6H20.25C20.6642 6 21 6.33579 21 6.75C21 7.16421 20.6642 7.5 20.25 7.5H3.75C3.33579 7.5 3 7.16421 3 6.75ZM3 12C3 11.5858 3.33579 11.25 3.75 11.25H20.25C20.6642 11.25 21 11.5858 21 12C21 12.4142 20.6642 12.75 20.25 12.75H3.75C3.33579 7.5 3 7.16421 3 6.75ZM3 17.25C3 16.8358 3.33579 16.5 3.75 16.5H20.25C20.6642 16.5 21 16.8358 21 17.25C21 17.6642 20.6642 18 20.25 18H3.75C3.33579 18 3 17.6642 3 17.25Z" />
       </svg>
     </button>
 
-    <app-breadcrumb class="ml-4"></app-breadcrumb> <!-- Added ml-4 here -->
-
+    <!-- Grouped Navigation and Breadcrumb -->
+    <div class="flex items-center ml-4">
+      <button *ngIf="showBackArrow" class="text-gray-500 hover:text-gray-700 focus:outline-none mr-2 h-full inline-flex items-center justify-center" (click)="navigateBack()">
+        <mat-icon>chevron_left</mat-icon>
+      </button>
+      <app-breadcrumb></app-breadcrumb>
+    </div>
   </div>
 
   <!-- Right: Notification and User Profile -->
@@ -23,14 +28,11 @@
     <!-- User Profile Avatar -->
     <div class="relative">
       <img
-        class="h-8 w-8 rounded-full object-cover border-2 border-gray-300"
-        src="https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=200"
+        class="h-8 w-8 rounded-full object-cover border-2 border-gray-300 cursor-pointer"
+        [src]="userAvatarUrl || userService.getDefaultAvatar()"
         alt="User Avatar"
+        (click)="navigateToProfile()"
       />
-      <!-- Logout Button -->
-      <button (click)="logout()" class="ml-2 px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none">
-        Logout
-      </button>
     </div>
   </div>
 </div>
