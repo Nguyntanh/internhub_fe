@@ -15,7 +15,6 @@ export class JwtInterceptor implements HttpInterceptor {
     let token: string | null = null;
 
     if (typeof window !== 'undefined') {
-      // Đồng nhất key với auth.ts (dùng 'jwt_token')
       token = localStorage.getItem('jwt_token');
     }
 

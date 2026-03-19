@@ -3,8 +3,6 @@ import { LandingPageComponent } from './landing-page/landing-page.component';
 import { LoginComponent } from './login/login';
 import { Dashboard } from './dashboard/dashboard';
 import { MainLayout } from './dashboard/main-layout/main-layout';
-import { authGuard } from './auth/auth.guard';
-
 import { Hr } from './settings/hr/hr';
 import { Security } from './settings/security/security';
 import { ConfigReview } from './settings/config-review/config-review';
@@ -29,6 +27,7 @@ import { SecurityLogsComponent } from './settings/security/logs/logs';
 import { ActivateAccountComponent } from './activate-account/activate-account.component';
 import { Tasks } from './tasks/task';
 import { MyProfileComponent } from './my-profile/my-profile.component';
+import { authGuard, internGuard, nonInternGuard } from './auth/auth.guard';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -67,6 +66,21 @@ export const routes: Routes = [
     children: [
       { path: '', component: Execution, data: { title: 'Nhiệm vụ của tôi' } }
     ]
+  },
+  // /tasks — chỉ non-intern
+  {
+    path: 'tasks',
+    component: MainLayout,
+    canActivate: [nonInternGuard],
+    children: [{ path: '', component: Tasks }]
+  },
+
+  // /my-tasks — chỉ intern
+  {
+    path: 'my-tasks',
+    component: MainLayout,
+    canActivate: [internGuard],
+    children: [{ path: '', component: Execution }]
   },
   {
     path: 'management',
