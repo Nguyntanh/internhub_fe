@@ -439,7 +439,7 @@ export class Tasks implements OnInit {
     }
 
     // UI thang 0-10 → backend thang 0-5 (chia đôi, làm tròn 2 chữ số)
-    const backendScore = Math.round((Number(this.reviewScore) / 2) * 100) / 100;
+    const backendScore = Math.round((Number(this.reviewScore) ) * 100) / 100;
 
     const payload = {
       skills: [
