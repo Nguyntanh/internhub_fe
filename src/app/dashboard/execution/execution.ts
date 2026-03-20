@@ -1,8 +1,21 @@
 import { Component, OnInit, inject, ChangeDetectorRef, NgZone, PLATFORM_ID } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { ReactiveFormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { HttpClient } from '@angular/common/http';
 import { InternTaskService } from '../../shared/services/intern-task.service';
 import { MicroTaskResponse, MicroTaskStatus } from '../../shared/models/micro-task.model';
+
+interface TaskSkillRating {
+  skillId: number;
+  skillName: string;
+  weight: number;
+  ratingScore: number | null;
+  reviewComment: string | null;
+}
+
+interface TaskDetail extends MicroTaskResponse {
+  skills?: TaskSkillRating[];
+}
 
 @Component({
   selector: 'app-execution',
@@ -17,21 +30,28 @@ export class Execution implements OnInit {
   private cdr = inject(ChangeDetectorRef);
   private zone = inject(NgZone);
   private platformId = inject(PLATFORM_ID);
+  private http = inject(HttpClient);
 
   activeTasks: MicroTaskResponse[] = [];
   completedTasks: MicroTaskResponse[] = [];
   isLoading = true;
   errorMessage = '';
 
+  // Modal nộp bài
   isModalOpen = false;
   selectedTask: MicroTaskResponse | null = null;
   isSubmitting = false;
   submitSuccess = false;
   submitError = '';
 
+  // Modal chi tiết task
+  isDetailModalOpen = false;
+  selectedTaskDetail: TaskDetail | null = null;
+  isLoadingDetail = false;
+  detailError = '';
+
   activeExpanded = true;
   completedExpanded = true;
-
   expandedTaskIds = new Set<number>();
 
   submissionForm: FormGroup = this.fb.group({
@@ -50,7 +70,6 @@ export class Execution implements OnInit {
     }
   }
 
-  // FIX: Dùng InternTaskService (HttpClient + JwtInterceptor) thay vì fetch() thủ công
   loadTasks(): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -78,7 +97,6 @@ export class Execution implements OnInit {
     });
   }
 
-  // FIX: Tách logic phân loại task ra helper để dùng lại sau submit
   private splitTasks(tasks: MicroTaskResponse[]): void {
     this.activeTasks = tasks.filter(
       (t) => t.status === 'Todo' || t.status === 'In_Progress' || t.status === 'Submitted',
@@ -88,6 +106,67 @@ export class Execution implements OnInit {
     );
   }
 
+  // ── Xem chi tiết task ────────────────────────────────────────────────────
+  openDetailModal(task: MicroTaskResponse, event: Event): void {
+    event.stopPropagation();
+    this.selectedTaskDetail = { ...task };
+    this.isDetailModalOpen = true;
+    this.isLoadingDetail = true;
+    this.detailError = '';
+
+    // Gọi API lấy chi tiết (bao gồm skill ratings nếu đã reviewed)
+    this.internTaskService.getMyTaskById(task.id).subscribe({
+      next: (detail) => {
+        // Nếu task đã Reviewed, thử lấy skill ratings
+        if (detail.status === 'Reviewed') {
+          this.http
+            .get<TaskSkillRating[]>(`http://localhost:8090/api/intern/tasks/${task.id}/skill-ratings`)
+            .subscribe({
+              next: (ratings) => {
+                this.selectedTaskDetail = { ...detail, skills: ratings };
+                this.isLoadingDetail = false;
+                this.cdr.detectChanges();
+              },
+              error: () => {
+                // Endpoint chưa có — vẫn hiển thị detail không có ratings
+                this.selectedTaskDetail = { ...detail };
+                this.isLoadingDetail = false;
+                this.cdr.detectChanges();
+              },
+            });
+        } else {
+          this.selectedTaskDetail = { ...detail };
+          this.isLoadingDetail = false;
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        // Fallback: dùng dữ liệu sẵn có từ list
+        this.selectedTaskDetail = { ...task };
+        this.isLoadingDetail = false;
+        this.detailError =
+          err?.status === 404 ? '' : 'Không thể tải chi tiết đầy đủ.';
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  closeDetailModal(): void {
+    this.isDetailModalOpen = false;
+    this.selectedTaskDetail = null;
+    this.detailError = '';
+  }
+
+  // Từ modal chi tiết mở modal nộp bài
+  openSubmitFromDetail(): void {
+    if (!this.selectedTaskDetail) return;
+    const task = this.activeTasks.find(t => t.id === this.selectedTaskDetail!.id)
+      || this.selectedTaskDetail;
+    this.closeDetailModal();
+    this.openSubmitModal(task, new MouseEvent('click'));
+  }
+
+  // ── Modal nộp bài ────────────────────────────────────────────────────────
   openSubmitModal(task: MicroTaskResponse, event: Event): void {
     event.stopPropagation();
     event.preventDefault();
@@ -146,7 +225,6 @@ export class Execution implements OnInit {
   handleFileSelect(file: File): void {
     const allowedTypes = ['application/pdf', 'application/zip', 'image/jpeg', 'image/png'];
     const maxSize = 20 * 1024 * 1024;
-
     if (!allowedTypes.includes(file.type)) {
       this.submitError = 'Chỉ chấp nhận file PDF, ZIP, JPG, PNG.';
       return;
@@ -171,12 +249,10 @@ export class Execution implements OnInit {
 
   onSubmit(): void {
     if (!this.selectedTask) return;
-
     if (this.submissionForm.invalid) {
       this.submissionForm.markAllAsTouched();
       return;
     }
-
     this.isSubmitting = true;
     this.submitError = '';
 
@@ -189,36 +265,27 @@ export class Execution implements OnInit {
       next: (updatedTask) => {
         this.isSubmitting = false;
         this.submitSuccess = true;
-
-        // FIX: Cập nhật đúng list sau khi submit
-        // Nếu task trả về status Reviewed/Rejected → chuyển sang completedTasks
-        // Nếu trả về Submitted → cập nhật tại chỗ trong activeTasks
         this.updateTaskInLists(updatedTask);
-
         setTimeout(() => this.closeModal(), 1500);
       },
       error: (err) => {
         this.isSubmitting = false;
-        const msg = err?.error?.message || 'Nộp bài thất bại.';
-        this.submitError = msg;
+        this.submitError = err?.error?.message || 'Nộp bài thất bại.';
       },
     });
   }
 
-  // FIX: Helper cập nhật task đúng list sau khi có status mới từ server
   private updateTaskInLists(updatedTask: MicroTaskResponse): void {
     const isCompleted =
       updatedTask.status === 'Reviewed' || updatedTask.status === 'Rejected';
 
     if (isCompleted) {
-      // Xóa khỏi active, thêm vào completed
       this.activeTasks = this.activeTasks.filter((t) => t.id !== updatedTask.id);
       const alreadyInCompleted = this.completedTasks.some((t) => t.id === updatedTask.id);
       if (!alreadyInCompleted) {
         this.completedTasks = [updatedTask, ...this.completedTasks];
       }
     } else {
-      // Cập nhật tại chỗ trong activeTasks (e.g. Todo→Submitted)
       const idx = this.activeTasks.findIndex((t) => t.id === updatedTask.id);
       if (idx !== -1) {
         this.activeTasks = [
@@ -231,6 +298,7 @@ export class Execution implements OnInit {
     this.cdr.detectChanges();
   }
 
+  // ── Helpers ──────────────────────────────────────────────────────────────
   getStatusLabel(status: MicroTaskStatus): string {
     const map: Record<MicroTaskStatus, string> = {
       Todo: 'Chưa bắt đầu',
@@ -260,12 +328,25 @@ export class Execution implements OnInit {
   formatDeadline(dateStr: string): string {
     if (!dateStr) return '—';
     const d = new Date(dateStr);
-    return `Hạn nộp: ${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1)
+    return `${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1)
       .toString()
       .padStart(2, '0')}/${d.getFullYear()}`;
   }
 
   isOverdue(dateStr: string): boolean {
     return new Date(dateStr) < new Date();
+  }
+
+  getScoreColor(score: number): string {
+    if (score >= 4) return 'color: #059669';
+    if (score >= 2.5) return 'color: #d97706';
+    return 'color: #dc2626';
+  }
+
+  getScoreLabel(score: number): string {
+    if (score >= 4.5) return 'Xuất sắc';
+    if (score >= 3.5) return 'Tốt';
+    if (score >= 2.5) return 'Đạt';
+    return 'Cần cải thiện';
   }
 }
