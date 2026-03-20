@@ -35,3 +35,18 @@ body {
   margin: 0;
   height: 100%;
 }
+
+.snackbar-success {
+  background-color: #4CAF50 !important;
+  color: white !important;
+}
+
+.snackbar-error {
+  background-color: #F44336 !important;
+  color: white !important;
+}
+
+.snackbar-warn {
+  background-color: #FFC107 !important;
+  color: black !important;
+}

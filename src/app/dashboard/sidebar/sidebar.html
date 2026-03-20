@@ -11,9 +11,8 @@
     <ng-container *ngTemplateOutlet="menuItemsTemplate; context: { items: currentMenuItems, level: 0 }"></ng-container>
   </nav>
 
-  <!-- Settings Button (Footer) -->
-  <!-- This section will still handle the primary switch to settings, but the settingsMenuItems will be rendered by the same template -->
-  <div class="px-2 py-4 border-t border-gray-200" *ngIf="!isSettingsRouteActive">
+  <!-- Settings Button (Footer) — ẩn với INTERN -->
+  <div class="px-2 py-4 border-t border-gray-200" *ngIf="!isSettingsRouteActive && !roleService.isIntern()">
     <a
       [routerLink]="['/settings']"
       [routerLinkActive]="['bg-gray-100', 'text-black', 'font-semibold']"
@@ -86,7 +85,7 @@
 
     <!-- Sub-menu -->
     <div *ngIf="item.children && item.expanded" class="overflow-hidden transition-all duration-300 ease-in-out">
-      <div [ngClass]="{'pl-4': isSidebarVisible}"> <!-- Indentation for sub-menu container -->
+      <div [ngClass]="{'pl-4': isSidebarVisible}">
         <ng-container *ngTemplateOutlet="menuItemsTemplate; context: { items: item.children, level: level + 1 }"></ng-container>
       </div>
     </div>
