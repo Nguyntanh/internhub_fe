@@ -173,7 +173,7 @@ export class TaskService {
     // UI dùng thang 0-10, backend lưu 0-5 → nhân 2 để hiển thị lại
     const rawScore = task.score ?? skills[0]?.ratingScore ?? null;
     const displayScore: number | null = rawScore !== null
-      ? Math.round(rawScore * 2 * 10) / 10
+      ? Math.round(rawScore * 10) / 10
       : null;
 
     // reviewComment lấy từ skills[0].reviewComment nếu không có ở root

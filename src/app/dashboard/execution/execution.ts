@@ -338,15 +338,15 @@ export class Execution implements OnInit {
   }
 
   getScoreColor(score: number): string {
-    if (score >= 4) return 'color: #059669';
-    if (score >= 2.5) return 'color: #d97706';
+    if (score >= 8) return 'color: #059669';
+    if (score >= 5) return 'color: #d97706';
     return 'color: #dc2626';
   }
 
   getScoreLabel(score: number): string {
-    if (score >= 4.5) return 'Xuất sắc';
-    if (score >= 3.5) return 'Tốt';
-    if (score >= 2.5) return 'Đạt';
+    if (score >= 9) return 'Xuất sắc';
+    if (score >= 7) return 'Tốt';
+    if (score >= 5) return 'Đạt';
     return 'Cần cải thiện';
   }
 }
