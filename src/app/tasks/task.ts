@@ -1,8 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { TaskService, Task, Intern } from '../services/task.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
+import { forkJoin, of } from 'rxjs';
+import { catchError } from 'rxjs/operators';
 
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -51,7 +53,7 @@ export class Tasks implements OnInit {
   selectedSkillId: number | null = null;
 
   loading = false;
-  loadingInterns = false; // Thêm state loading riêng cho interns
+  loadingInterns = false;
 
   displayedColumns: string[] = ['stt', 'title', 'difficulty', 'deadline', 'status', 'submission', 'intern', 'actions'];
 
@@ -91,7 +93,8 @@ export class Tasks implements OnInit {
 
   constructor(
     private taskService: TaskService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private cdr: ChangeDetectorRef   // FIX 1: inject ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -102,25 +105,48 @@ export class Tasks implements OnInit {
 
   loadTasks(): void {
     this.loading = true;
+    this.cdr.detectChanges();
 
     this.taskService.getMentorTasks().subscribe({
       next: (data: any[]) => {
-        this.tasks = data.map(task => {
-          let weight = 1;
-          if (task.skills && task.skills.length > 0) {
-            weight = task.skills[0].weight ?? 1;
+        if (data.length === 0) {
+          this.tasks = [];
+          this.loading = false;
+          this.cdr.detectChanges();
+          return;
+        }
+        // Enrich từng task với detail để lấy assignedInterns + submissionLink
+        const detailRequests = data.map(task =>
+          this.taskService.getTaskDetail(task.id).pipe(
+            catchError(() => of(task)) // fallback về task gốc nếu lỗi
+          )
+        );
+        forkJoin(detailRequests).subscribe({
+          next: (details: any[]) => {
+            this.tasks = details.map((detail, i) => ({
+              ...data[i],
+              ...detail,
+              weight: data[i].skills?.[0]?.weight ?? detail.weight ?? 1
+            }));
+            this.loading = false;
+            this.cdr.detectChanges();
+          },
+          error: () => {
+            // Fallback: dùng list data nếu detail request fail
+            this.tasks = data.map(task => ({
+              ...task,
+              weight: task.skills?.[0]?.weight ?? 1
+            }));
+            this.loading = false;
+            this.cdr.detectChanges();
           }
-          return {
-            ...task,
-            weight
-          };
         });
-        this.loading = false;
       },
       error: (error: HttpErrorResponse) => {
         console.error('Lỗi load tasks:', error);
         this.tasks = [];
         this.loading = false;
+        this.cdr.detectChanges();
         this.snackBar.open(
           'Không thể tải danh sách task. Vui lòng kiểm tra kết nối!',
           'Đóng',
@@ -132,23 +158,16 @@ export class Tasks implements OnInit {
 
   loadInterns(): void {
     this.loadingInterns = true;
-    console.log('Đang tải danh sách interns...');
 
     this.taskService.getInterns().subscribe({
       next: (data: any) => {
-        console.log('Dữ liệu interns nhận được:', data);
-        
-        // Xử lý dữ liệu nếu API trả về format khác
         if (Array.isArray(data)) {
-          // Map dữ liệu để đảm bảo đúng format
           this.interns = data.map(item => ({
             id: item.id,
             name: item.name || item.fullName || item.username || 'Không có tên',
             email: item.email || ''
           }));
-          console.log('Interns sau khi xử lý:', this.interns);
         } else if (data && data.content && Array.isArray(data.content)) {
-          // Trường hợp API trả về page object
           this.interns = data.content.map((item: any) => ({
             id: item.id,
             name: item.name || item.fullName || item.username || 'Không có tên',
@@ -156,38 +175,16 @@ export class Tasks implements OnInit {
           }));
         } else {
           this.interns = [];
-          console.warn('Dữ liệu interns không đúng format:', data);
         }
-
         this.loadingInterns = false;
-        
-        if (this.interns.length === 0) {
-          this.snackBar.open(
-            'Không có intern nào trong hệ thống',
-            'Đóng',
-            { duration: 3000 }
-          );
-        }
+        this.cdr.detectChanges();
       },
       error: (error: HttpErrorResponse) => {
-        console.error('Chi tiết lỗi load interns:', error);
+        console.error('Lỗi load interns:', error);
         this.interns = [];
         this.loadingInterns = false;
-        
-        let errorMessage = 'Không thể tải danh sách Intern';
-        if (error.status === 404) {
-          errorMessage = 'API không tìm thấy. Vui lòng kiểm tra đường dẫn!';
-        } else if (error.status === 500) {
-          errorMessage = 'Lỗi server. Vui lòng thử lại sau!';
-        } else if (error.status === 0) {
-          errorMessage = 'Không thể kết nối đến server. Vui lòng kiểm tra network!';
-        }
-        
-        this.snackBar.open(
-          errorMessage,
-          'Đóng',
-          { duration: 5000, panelClass: ['error-snackbar'] }
-        );
+        this.cdr.detectChanges();
+        this.snackBar.open('Không thể tải danh sách Intern', 'Đóng', { duration: 5000 });
       }
     });
   }
@@ -195,17 +192,13 @@ export class Tasks implements OnInit {
   loadSkills(): void {
     this.taskService.getSkills().subscribe({
       next: (data) => {
-        console.log('Skills loaded:', data);
         this.skills = Array.isArray(data) ? data : [];
+        this.cdr.detectChanges();
       },
       error: (error) => {
         console.error('Lỗi load skills:', error);
         this.skills = [];
-        this.snackBar.open(
-          'Không thể tải danh sách Skill',
-          'Đóng',
-          { duration: 3000 }
-        );
+        this.snackBar.open('Không thể tải danh sách Skill', 'Đóng', { duration: 3000 });
       }
     });
   }
@@ -216,21 +209,15 @@ export class Tasks implements OnInit {
 
   get filteredTasks(): any[] {
     return this.tasks.filter(task => {
-      const matchesSearch = task.title
-        .toLowerCase()
-        .includes(this.searchText.toLowerCase());
-
-      const matchesStatus = this.statusFilter
-        ? task.status === this.statusFilter
-        : true;
-
+      const matchesSearch = task.title?.toLowerCase().includes(this.searchText.toLowerCase());
+      const matchesStatus = this.statusFilter ? task.status === this.statusFilter : true;
       return matchesSearch && matchesStatus;
     });
   }
 
   selectIntern(id: number): void {
     this.selectedInternId = id;
-    this.showInternBox = false; // Tự động đóng box sau khi chọn
+    this.showInternBox = false;
   }
 
   isInternSelected(id: number): boolean {
@@ -251,29 +238,15 @@ export class Tasks implements OnInit {
 
   createTask(): void {
     if (!this.newTask.title || !this.newTask.deadline) {
-      this.snackBar.open(
-        'Vui lòng nhập tiêu đề và thời hạn',
-        'Đóng',
-        { duration: 3000 }
-      );
+      this.snackBar.open('Vui lòng nhập tiêu đề và thời hạn', 'Đóng', { duration: 3000 });
       return;
     }
-
     if (!this.selectedSkillId) {
-      this.snackBar.open(
-        'Vui lòng chọn Skill',
-        'Đóng',
-        { duration: 3000 }
-      );
+      this.snackBar.open('Vui lòng chọn Skill', 'Đóng', { duration: 3000 });
       return;
     }
-
     if (!this.selectedInternId) {
-      this.snackBar.open(
-        'Vui lòng chọn 1 Intern',
-        'Đóng',
-        { duration: 3000 }
-      );
+      this.snackBar.open('Vui lòng chọn 1 Intern', 'Đóng', { duration: 3000 });
       return;
     }
 
@@ -285,46 +258,28 @@ export class Tasks implements OnInit {
       description: this.newTask.description,
       deadline: deadlineDate.toISOString(),
       internIds: [this.selectedInternId],
-      skills: [
-        {
-          skillId: this.selectedSkillId,
-          weight: this.newTask.weight ?? 1
-        }
-      ]
+      skills: [{ skillId: this.selectedSkillId, weight: this.newTask.weight ?? 1 }]
     };
 
-    console.log('Creating task with payload:', payload);
-
     this.taskService.createTask(payload).subscribe({
-      next: (response) => {
-        console.log('Task created:', response);
-        this.snackBar.open(
-          'Tạo task thành công',
-          'Đóng',
-          { duration: 3000 }
-        );
-
+      next: () => {
+        this.snackBar.open('Tạo task thành công', 'Đóng', { duration: 3000 });
+        // FIX 3: dùng setTimeout để tránh NG0100 — reset form SAU khi Angular đã check xong cycle hiện tại
+        setTimeout(() => {
+          this.resetNewTaskForm();
+          this.cdr.detectChanges();
+        }, 0);
         this.loadTasks();
-        this.resetNewTaskForm();
       },
       error: (error) => {
         console.error('Lỗi tạo task:', error);
-        this.snackBar.open(
-          'Tạo task thất bại: ' + (error.message || 'Vui lòng thử lại'),
-          'Đóng',
-          { duration: 5000 }
-        );
+        this.snackBar.open('Tạo task thất bại: ' + (error.message || 'Vui lòng thử lại'), 'Đóng', { duration: 5000 });
       }
     });
   }
 
   resetNewTaskForm(): void {
-    this.newTask = {
-      title: '',
-      description: '',
-      weight: 1,
-      deadline: null
-    };
+    this.newTask = { title: '', description: '', weight: 1, deadline: null };
     this.selectedInternId = null;
     this.selectedSkillId = null;
     this.showInternBox = false;
@@ -334,24 +289,18 @@ export class Tasks implements OnInit {
     this.taskService.getTaskDetail(task.id).subscribe({
       next: (data) => {
         this.selectedTask = task;
-        this.taskDetail = {
-          ...data,
-          weight: task.weight
-        };
+        this.taskDetail = { ...data, weight: task.weight };
         if (data.skills && data.skills.length > 0) {
           this.selectedSkillId = data.skills[0].skillId;
         }
         setTimeout(() => {
           this.showTaskModal = true;
+          this.cdr.detectChanges();
         });
       },
       error: (error) => {
         console.error('Lỗi load task detail:', error);
-        this.snackBar.open(
-          'Không thể tải chi tiết task',
-          'Đóng',
-          { duration: 3000 }
-        );
+        this.snackBar.open('Không thể tải chi tiết task', 'Đóng', { duration: 3000 });
       }
     });
   }
@@ -367,13 +316,11 @@ export class Tasks implements OnInit {
     this.editForm = {
       title: this.taskDetail?.title || '',
       description: this.taskDetail?.description || '',
-      deadline: this.taskDetail?.deadline
-        ? new Date(this.taskDetail.deadline)
-        : null,
+      deadline: this.taskDetail?.deadline ? new Date(this.taskDetail.deadline) : null,
       weight: this.taskDetail?.weight || 1,
       internId: this.taskDetail?.assignedInterns?.[0]?.id || null
     };
-    if (this.taskDetail?.skills && this.taskDetail.skills.length > 0) {
+    if (this.taskDetail?.skills?.length > 0) {
       this.selectedSkillId = this.taskDetail.skills[0].skillId;
     }
   }
@@ -390,31 +337,16 @@ export class Tasks implements OnInit {
 
   saveEdit(): void {
     if (!this.selectedTask) return;
-
     if (!this.editForm.title || !this.editForm.deadline) {
-      this.snackBar.open(
-        'Vui lòng nhập tiêu đề và thời hạn',
-        'Đóng',
-        { duration: 3000 }
-      );
+      this.snackBar.open('Vui lòng nhập tiêu đề và thời hạn', 'Đóng', { duration: 3000 });
       return;
     }
-
     if (!this.selectedSkillId) {
-      this.snackBar.open(
-        'Vui lòng chọn Skill',
-        'Đóng',
-        { duration: 3000 }
-      );
+      this.snackBar.open('Vui lòng chọn Skill', 'Đóng', { duration: 3000 });
       return;
     }
-
     if (!this.editForm.internId) {
-      this.snackBar.open(
-        'Vui lòng chọn 1 Intern',
-        'Đóng',
-        { duration: 3000 }
-      );
+      this.snackBar.open('Vui lòng chọn 1 Intern', 'Đóng', { duration: 3000 });
       return;
     }
 
@@ -426,56 +358,68 @@ export class Tasks implements OnInit {
       description: this.editForm.description,
       deadline: deadlineDate.toISOString(),
       internIds: [this.editForm.internId],
-      skills: [
-        {
-          skillId: this.selectedSkillId,
-          weight: this.editForm.weight
-        }
-      ]
+      skills: [{ skillId: this.selectedSkillId, weight: this.editForm.weight }]
     };
 
     this.taskService.updateTask(this.selectedTask.id, payload).subscribe({
       next: () => {
-        this.snackBar.open(
-          'Cập nhật task thành công',
-          'Đóng',
-          { duration: 3000 }
-        );
+        this.snackBar.open('Cập nhật task thành công', 'Đóng', { duration: 3000 });
         this.loadTasks();
         this.isEditing = false;
         this.showTaskModal = false;
       },
       error: (error) => {
         console.error('Lỗi update task:', error);
-        this.snackBar.open(
-          'Cập nhật task thất bại',
-          'Đóng',
-          { duration: 3000 }
-        );
+        this.snackBar.open('Cập nhật task thất bại', 'Đóng', { duration: 3000 });
       }
     });
   }
 
-  // Review methods
+  // ─── Review ────────────────────────────────────────────────────────────────
+
   openReviewModal(task: any): void {
-    this.reviewTaskData = task;
+    // FIX NG0100: set data trước, mở modal sau 1 tick để tránh ExpressionChanged
     this.reviewScore = null;
     this.reviewComment = '';
-    this.showReviewModal = true;
+    this.reviewTaskData = null;
+
+    this.taskService.getTaskDetail(task.id).subscribe({
+      next: (detail) => {
+        this.reviewTaskData = { ...task, ...detail, weight: task.weight };
+        // setTimeout 0 đảm bảo Angular đã hoàn thành cycle hiện tại trước khi set showReviewModal
+        setTimeout(() => {
+          this.showReviewModal = true;
+          this.cdr.detectChanges();
+        }, 0);
+      },
+      error: () => {
+        this.reviewTaskData = task;
+        setTimeout(() => {
+          this.showReviewModal = true;
+          this.cdr.detectChanges();
+        }, 0);
+        this.snackBar.open('Không thể tải chi tiết task', 'Đóng', { duration: 3000 });
+      }
+    });
   }
 
   closeReviewModal(): void {
-    this.showReviewModal = false;
-    this.reviewTaskData = null;
-    this.reviewScore = null;
-    this.reviewComment = '';
+    // setTimeout tránh NG0100: Angular đã check [disabled] binding trong cycle hiện tại,
+    // set showReviewModal=false ngay lập tức làm expression thay đổi sau khi đã check
+    setTimeout(() => {
+      this.showReviewModal = false;
+      this.reviewTaskData = null;
+      this.reviewScore = null;
+      this.reviewComment = '';
+      this.cdr.detectChanges();
+    }, 0);
   }
 
   isValidScore(): boolean {
-    return this.reviewScore !== null && 
-           this.reviewScore >= 0 && 
-           this.reviewScore <= 10 && 
-           !isNaN(this.reviewScore);
+    if (this.reviewScore === null || this.reviewScore === undefined) return false;
+    const v = Number(this.reviewScore);
+    // UI dùng thang 0-10 cho dễ nhập, gửi backend sẽ chia đôi về 0-5
+    return !isNaN(v) && v >= 0 && v <= 10;
   }
 
   submitReview(): void {
@@ -484,24 +428,53 @@ export class Tasks implements OnInit {
       return;
     }
 
-    this.taskService.reviewTask(this.reviewTaskData.id, {
-      score: this.reviewScore,
-      comment: this.reviewComment || 'Reviewed by mentor'
-    }).subscribe({
+    // FIX 4: Backend ReviewTaskRequest cần `skills[]` chứa skillId, ratingScore, reviewComment
+    // Không phải `score` hay `comment` ở root level
+    const task = this.reviewTaskData;
+    const taskSkillId = task?.skills?.[0]?.skillId ?? null;
+
+    if (!taskSkillId) {
+      this.snackBar.open('Task này chưa có skill — không thể chấm điểm', 'Đóng', { duration: 4000 });
+      return;
+    }
+
+    // UI thang 0-10 → backend thang 0-5 (chia đôi, làm tròn 2 chữ số)
+    const backendScore = Math.round((Number(this.reviewScore) / 2) * 100) / 100;
+
+    const payload = {
+      skills: [
+        {
+          skillId: taskSkillId,
+          ratingScore: backendScore,
+          reviewComment: this.reviewComment || ''
+        }
+      ]
+    };
+
+    this.taskService.reviewTask(task.id, payload).subscribe({
       next: () => {
-        this.snackBar.open('Chấm điểm thành công', 'Đóng', { duration: 3000 });
-        this.loadTasks();
-        this.closeReviewModal();
+        this.closeReviewModal(); // đóng trước, load sau — tránh NG0100
+        this.snackBar.open('Chấm điểm thành công!', 'Đóng', { duration: 3000 });
+        setTimeout(() => this.loadTasks(), 50); // đợi modal đóng xong rồi reload
       },
       error: (error) => {
+        // Backend trả plain text "Task reviewed successfully" → HttpClient parse lỗi
+        // nhưng status vẫn là 200 → treat như thành công
+        if (error?.status === 200 || error?.status === 0) {
+          this.closeReviewModal();
+          this.snackBar.open('Chấm điểm thành công!', 'Đóng', { duration: 3000 });
+          setTimeout(() => this.loadTasks(), 50);
+          return;
+        }
         console.error('Lỗi review task:', error);
-        this.snackBar.open('Chấm điểm thất bại', 'Đóng', { duration: 3000 });
+        const msg = error?.error?.message || error?.message || 'Chấm điểm thất bại';
+        this.snackBar.open(msg, 'Đóng', { duration: 4000 });
       }
     });
   }
 
   deleteTask(task: any): void {
-    if (!confirm("Bạn có chắc muốn xóa task?")) return;
+    if (!confirm('Bạn có chắc muốn xóa task?')) return;
 
     this.taskService.deleteTask(task.id).subscribe({
       next: () => {
@@ -517,37 +490,27 @@ export class Tasks implements OnInit {
   }
 
   getStatusColor(status: string): string {
-    switch(status?.toLowerCase()) {
-      case 'pending':
-        return 'warn';
-      case 'submitted':
-        return 'accent';
-      case 'reviewed':
-        return 'primary';
-      default:
-        return '';
+    switch (status?.toLowerCase()) {
+      case 'pending': return 'warn';
+      case 'submitted': return 'accent';
+      case 'reviewed': return 'primary';
+      default: return '';
     }
   }
 
   getStatusClass(status: string): string {
-    switch(status?.toLowerCase()) {
-      case 'pending':
-        return 'border-orange-200 bg-orange-50';
-      case 'submitted':
-        return 'border-yellow-200 bg-yellow-50';
-      case 'reviewed':
-        return 'border-green-200 bg-green-50';
-      default:
-        return '';
+    switch (status?.toLowerCase()) {
+      case 'pending': return 'border-orange-200 bg-orange-50';
+      case 'submitted': return 'border-yellow-200 bg-yellow-50';
+      case 'reviewed': return 'border-green-200 bg-green-50';
+      default: return '';
     }
   }
 
-  // Helper method để kiểm tra có thể review không
   canReview(task: any): boolean {
-    return task?.submissionLink || task?.status === 'Submitted';
+    return !!(task?.submissionLink || task?.status === 'Submitted');
   }
 
-  // Refresh data
   refreshData(): void {
     this.loadTasks();
     this.loadInterns();
