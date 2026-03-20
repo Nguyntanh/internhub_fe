@@ -142,7 +142,7 @@ export class Sidebar implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private activatedRoute: ActivatedRoute,
-    private roleService: RoleService,
+    public roleService: RoleService,  // ← đổi thành public để template dùng được
   ) {}
 
   get isSettingsRouteActive(): boolean {
@@ -150,7 +150,7 @@ export class Sidebar implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // ✅ Build menu ngay + subscribe để rebuild khi role thay đổi (role load async)
+    // Build menu ngay + subscribe để rebuild khi role thay đổi (role load async)
     this.dashboardMenuItems = this.buildDashboardMenu();
     this.updateMenuBasedOnRoute();
 
