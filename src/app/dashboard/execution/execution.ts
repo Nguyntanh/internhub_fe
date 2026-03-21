@@ -114,10 +114,8 @@ export class Execution implements OnInit {
     this.isLoadingDetail = true;
     this.detailError = '';
 
-    // Gọi API lấy chi tiết (bao gồm skill ratings nếu đã reviewed)
     this.internTaskService.getMyTaskById(task.id).subscribe({
       next: (detail) => {
-        // Nếu task đã Reviewed, thử lấy skill ratings
         if (detail.status === 'Reviewed') {
           this.http
             .get<TaskSkillRating[]>(`http://localhost:8090/api/intern/tasks/${task.id}/skill-ratings`)
@@ -128,24 +126,41 @@ export class Execution implements OnInit {
                 this.cdr.detectChanges();
               },
               error: () => {
-                // Endpoint chưa có — vẫn hiển thị detail không có ratings
+                // Nếu endpoint chưa có skill-ratings, thử lấy từ task detail response
                 this.selectedTaskDetail = { ...detail };
                 this.isLoadingDetail = false;
                 this.cdr.detectChanges();
               },
             });
         } else {
-          this.selectedTaskDetail = { ...detail };
-          this.isLoadingDetail = false;
-          this.cdr.detectChanges();
+          // Với task chưa reviewed, gọi API detail để lấy skills (weight)
+          this.http
+            .get<any>(`http://localhost:8090/api/tasks/${task.id}`)
+            .subscribe({
+              next: (taskDetail: any) => {
+                const skills: TaskSkillRating[] = (taskDetail.skills || []).map((s: any) => ({
+                  skillId: s.skillId,
+                  skillName: s.skillName || '',
+                  weight: s.weight || 1,
+                  ratingScore: s.ratingScore ?? null,
+                  reviewComment: s.reviewComment ?? null,
+                }));
+                this.selectedTaskDetail = { ...detail, skills };
+                this.isLoadingDetail = false;
+                this.cdr.detectChanges();
+              },
+              error: () => {
+                this.selectedTaskDetail = { ...detail };
+                this.isLoadingDetail = false;
+                this.cdr.detectChanges();
+              },
+            });
         }
       },
       error: (err) => {
-        // Fallback: dùng dữ liệu sẵn có từ list
         this.selectedTaskDetail = { ...task };
         this.isLoadingDetail = false;
-        this.detailError =
-          err?.status === 404 ? '' : 'Không thể tải chi tiết đầy đủ.';
+        this.detailError = err?.status === 404 ? '' : 'Không thể tải chi tiết đầy đủ.';
         this.cdr.detectChanges();
       },
     });
@@ -157,7 +172,6 @@ export class Execution implements OnInit {
     this.detailError = '';
   }
 
-  // Từ modal chi tiết mở modal nộp bài
   openSubmitFromDetail(): void {
     if (!this.selectedTaskDetail) return;
     const task = this.activeTasks.find(t => t.id === this.selectedTaskDetail!.id)
@@ -170,7 +184,6 @@ export class Execution implements OnInit {
   openSubmitModal(task: MicroTaskResponse, event: Event): void {
     event.stopPropagation();
     event.preventDefault();
-
     this.selectedTask = task;
     this.isModalOpen = true;
     this.submitSuccess = false;
@@ -276,9 +289,7 @@ export class Execution implements OnInit {
   }
 
   private updateTaskInLists(updatedTask: MicroTaskResponse): void {
-    const isCompleted =
-      updatedTask.status === 'Reviewed' || updatedTask.status === 'Rejected';
-
+    const isCompleted = updatedTask.status === 'Reviewed' || updatedTask.status === 'Rejected';
     if (isCompleted) {
       this.activeTasks = this.activeTasks.filter((t) => t.id !== updatedTask.id);
       const alreadyInCompleted = this.completedTasks.some((t) => t.id === updatedTask.id);
@@ -348,5 +359,27 @@ export class Execution implements OnInit {
     if (score >= 7) return 'Tốt';
     if (score >= 5) return 'Đạt';
     return 'Cần cải thiện';
+  }
+
+  /** Trả về mảng để *ngFor render sao đầy (vàng) */
+  getStarArray(weight: number): number[] {
+    return Array(Math.min(weight, 5)).fill(0);
+  }
+
+  /** Trả về mảng để *ngFor render sao rỗng (xám) */
+  getEmptyStarArray(weight: number): number[] {
+    return Array(Math.max(5 - weight, 0)).fill(0);
+  }
+
+  /** Nhãn mức độ khó theo weight */
+  getDifficultyLabel(weight: number): string {
+    const labels: Record<number, string> = {
+      1: 'Rất dễ',
+      2: 'Dễ',
+      3: 'Trung bình',
+      4: 'Khó',
+      5: 'Rất khó',
+    };
+    return labels[weight] || '';
   }
 }
