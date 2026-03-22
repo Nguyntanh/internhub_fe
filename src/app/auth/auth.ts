@@ -22,7 +22,7 @@ export class Auth {
     let user = null;
     if (isPlatformBrowser(this.platformId)) {
       // Khởi tạo currentUserSubject từ token trong localStorage (nếu có)
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('jwt_token');
       if (token) {
         // TODO: Giải mã JWT token để lấy thông tin người dùng thực sự
         // Ví dụ: user = jwtDecode(token);
@@ -55,7 +55,7 @@ export class Auth {
         if (response && response.accessToken) {
           if (isPlatformBrowser(this.platformId)) {
             // Lưu token vào localStorage
-            localStorage.setItem('token', response.accessToken);
+            localStorage.setItem('jwt_token', response.accessToken);
           }
           // TODO: Giải mã JWT token để lấy thông tin người dùng thực sự
           // Ví dụ: this.currentUserSubject.next(jwtDecode(response.token));
@@ -81,7 +81,7 @@ export class Auth {
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
       // Xóa token khỏi localStorage
-      localStorage.removeItem('token');
+      localStorage.removeItem('jwt_token');
     }
     // Cập nhật trạng thái người dùng thành null
     this.currentUserSubject.next(null);
