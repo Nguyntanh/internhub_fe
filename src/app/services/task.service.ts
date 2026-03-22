@@ -35,8 +35,8 @@ export interface TaskDetail {
   deadline: string;
   status: string;
   weight: number;
-  score?: number;
-  reviewComment?: string;
+  score?: number | null;
+  reviewComment?: string | null;
   submissionLink?: string;
   submission_link?: string;
   submissionNote?: string;
@@ -46,7 +46,7 @@ export interface TaskDetail {
     skillId: number;
     weight: number;
     ratingScore?: number;
-    reviewComment?: string;
+    reviewComment?: string | null;
   }[];
 }
 
@@ -61,10 +61,8 @@ export class TaskService {
 
   constructor(private http: HttpClient) {}
 
-  // ================= AUTH HEADER =================
   private getAuthHeaders() {
     const token = localStorage.getItem('token');
-
     return {
       headers: new HttpHeaders({
         Authorization: `Bearer ${token}`
@@ -72,10 +70,8 @@ export class TaskService {
     };
   }
 
-  // ================= ERROR HANDLER =================
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'Có lỗi xảy ra';
-
     if (error.status === 0) {
       errorMessage = 'Không thể kết nối tới server';
     } else if (error.status === 401) {
@@ -83,12 +79,9 @@ export class TaskService {
     } else {
       errorMessage = `Server trả về lỗi ${error.status}`;
     }
-
     console.error('HTTP Error:', error);
     return throwError(() => new Error(errorMessage));
   }
-
-  // ================= TASK APIs =================
 
   getMentorTasks(): Observable<TaskDetail[]> {
     return this.http
@@ -150,13 +143,16 @@ export class TaskService {
       .pipe(catchError(this.handleError));
   }
 
-  reviewTask(taskId: number, data: any): Observable<any> {
+  // FIX: backend trả plain text "Task reviewed successfully" → dùng responseType: 'text'
+  // để tránh JSON parse error dù status 200
+  reviewTask(taskId: number, data: any): Observable<string> {
     return this.http
-      .post(`${this.api}/${taskId}/review`, data, this.getAuthHeaders())
+      .post(`${this.api}/${taskId}/review`, data, {
+        ...this.getAuthHeaders(),
+        responseType: 'text'
+      })
       .pipe(catchError(this.handleError));
   }
-
-  // ================= USER APIs =================
 
   getInterns(): Observable<Intern[]> {
     return this.http
@@ -164,32 +160,56 @@ export class TaskService {
       .pipe(catchError(this.handleError));
   }
 
-  // ================= SKILL APIs =================
-
   getSkills(): Observable<any[]> {
     return this.http
       .get<any[]>(this.skillApi, this.getAuthHeaders())
       .pipe(catchError(this.handleError));
   }
 
-  // ================= RESPONSE MAPPER =================
-
   private mapTaskResponse(task: any): TaskDetail {
+    const skills = task.skills || [];
+
+    // Backend không có score ở root — lấy từ skills[0].ratingScore
+    // UI dùng thang 0-10, backend lưu 0-5 → nhân 2 để hiển thị lại
+    const rawScore = task.score ?? skills[0]?.ratingScore ?? null;
+    const displayScore: number | null = rawScore !== null
+      ? Math.round(rawScore * 10) / 10
+      : null;
+
+    // reviewComment lấy từ skills[0].reviewComment nếu không có ở root
+    const reviewComment: string | null = task.reviewComment
+      || task.review_comment
+      || skills[0]?.reviewComment
+      || null;
+
+    // assignedInterns: list API trả về mảng rỗng, detail API mới có
+    // Nếu rỗng nhưng có task.intern (single object) thì dùng đó
+    let assignedInterns: Intern[] = task.assignedInterns || [];
+    if (assignedInterns.length === 0 && task.intern) {
+      assignedInterns = [task.intern];
+    }
+
+    // submissionLink: check nhiều field name khác nhau
+    const submissionLink = task.submissionLink
+      || task.submission_link
+      || task.submitdate
+      || null;
+
     return {
       id: task.id,
       title: task.title,
       description: task.description,
       deadline: task.deadline,
       status: task.status,
-      weight: task.weight || 1,
-      score: task.score,
-      reviewComment: task.reviewComment || task.review_comment,
-      submissionLink: task.submissionLink || task.submission_link || task.submitdate,
+      weight: task.weight || (skills[0]?.weight ?? 1),
+      score: displayScore,
+      reviewComment,
+      submissionLink: submissionLink ?? undefined,
       submission_link: task.submission_link || task.submitdate,
       submissionNote: task.submissionNote || task.submission_note,
       submission_note: task.submission_note,
-      assignedInterns: task.assignedInterns || [],
-      skills: task.skills || []
+      assignedInterns,
+      skills
     };
   }
 }

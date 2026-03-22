@@ -9,6 +9,7 @@ interface MemberInfo {
   name: string;
   email: string;
   roleName?: string;
+  positionName?: string;
 }
 
 interface InternshipPosition {
