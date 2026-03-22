@@ -29,6 +29,7 @@ import { Tasks } from './tasks/task';
 import { MyProfileComponent } from './my-profile/my-profile.component';
 import { AccessDeniedComponent } from './access-denied/access-denied.component'; // Import AccessDeniedComponent
 import { authGuard, internGuard, nonInternGuard } from './auth/auth.guard';
+import { InternDashboardComponent } from './dashboard/intern-dashboard/intern-dashboard.component';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
@@ -41,6 +42,7 @@ export const routes: Routes = [
     data: { title: 'Tổng quan' },
     children: [
       { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } },
+      { path: 'intern', component: InternDashboardComponent, canActivate: [internGuard], data: { title: 'Dashboard Intern' } },
     ],
   },
   {

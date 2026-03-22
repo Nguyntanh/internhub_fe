@@ -31,6 +31,9 @@ export const API_ENDPOINTS = {
     byRoleId: (roleId: number) => `${BASE_API_URL}/admin/role-permissions/${roleId}`,
     byRoleIdAndFunctionId: (roleId: number, functionId: number) => `${BASE_API_URL}/admin/role-permissions/${roleId}/${functionId}`,
   },
+  Intern: {
+    dashboard: `${BASE_API_URL}/v1/intern/dashboard`,
+  },
   User: {
     profile: `${BASE_API_URL}/user/profile`,
     changePassword: `${BASE_API_URL}/user/change-password`,

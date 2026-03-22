@@ -1,0 +1,169 @@
+.intern-dashboard-container {
+  padding: 20px;
+  display: flex; /* Use flexbox */
+  flex-direction: column; /* Stack items vertically */
+  gap: 20px; /* Space between items */
+}
+
+
+.loading-card,
+.error-card {
+  text-align: center;
+  padding: 40px;
+  grid-column: 1 / -1; /* Span all columns */
+}
+
+.dashboard-content {
+  display: contents; /* Allows children to participate in the grid layout of the parent */
+}
+
+mat-card {
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+}
+
+mat-card-header {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 15px;
+}
+
+mat-card-title {
+  font-size: 1.3em;
+  font-weight: 500;
+  color: #3f51b5; /* Primary color */
+}
+
+mat-card-subtitle {
+  color: #555;
+}
+
+.no-data-message {
+  color: #888;
+  font-style: italic;
+  text-align: center;
+  padding: 20px 0;
+}
+
+/* Overview Card Specifics */
+.overview-card p {
+  margin-bottom: 8px;
+}
+
+.days-remaining {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 15px;
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.days-remaining .days-value {
+  color: #e91e63; /* Accent color */
+  font-size: 1.2em;
+  min-width: 40px; /* Ensure space for number */
+  text-align: right;
+}
+
+mat-progress-bar {
+  flex-grow: 1;
+  height: 8px;
+  border-radius: 4px;
+}
+
+/* Target Skills Specifics */
+mat-chip-listbox {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+mat-chip {
+  background-color: #e0e0e0;
+  color: #333;
+  font-weight: 400;
+}
+
+/* Tasks Specifics */
+.tasks-card mat-expansion-panel {
+  margin-bottom: 10px;
+  box-shadow: none;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+}
+
+.tasks-card mat-expansion-panel-header {
+  padding: 0 16px;
+}
+
+.task-status {
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 0.8em;
+  font-weight: 600;
+  color: #fff;
+  margin-right: 10px;
+}
+
+.status-todo { background-color: #ff9800; } /* Orange */
+.status-in-progress { background-color: #2196f3; } /* Blue */
+.status-completed { background-color: #4caf50; } /* Green */
+.task-deadline {
+  font-size: 0.9em;
+  color: #666;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.task-deadline.overdue {
+  color: #f44336; /* Red for overdue */
+  font-weight: 500;
+}
+
+/* Roadmap Specifics (Timeline) */
+.roadmap-timeline {
+  position: relative;
+  padding: 10px 0 10px 20px; /* Padding for the line */
+}
+
+.roadmap-timeline::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background-color: #ccc;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 20px;
+  padding-left: 20px; /* Space for dot */
+}
+
+.timeline-dot {
+  position: absolute;
+  left: -6px; /* Adjust to center on the line */
+  top: 5px;
+  width: 12px;
+  height: 12px;
+  background-color: #3f51b5; /* Primary color */
+  border-radius: 50%;
+  border: 2px solid #fff; /* White border for contrast */
+  box-shadow: 0 0 0 2px #3f51b5; /* A bit more prominence */
+}
+
+.timeline-content h3 {
+  margin-top: 0;
+  margin-bottom: 5px;
+  color: #333;
+  font-size: 1.1em;
+}
+
+.timeline-content p {
+  font-size: 0.9em;
+  color: #666;
+}
