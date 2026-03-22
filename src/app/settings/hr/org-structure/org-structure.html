@@ -180,7 +180,12 @@
                   </div>
                   <div class="flex-1 min-w-0">
                     <p class="text-sm font-medium text-gray-800 truncate">{{ member.name }}</p>
-                    <p class="text-xs text-gray-400 truncate">{{ member.roleName ?? member.email }}</p>
+                    <p *ngIf="member.roleName === 'INTERN' && member.positionName"
+                       class="text-xs text-blue-500 truncate">
+                      {{ member.positionName }}
+                    </p>
+                    <p *ngIf="!(member.roleName === 'INTERN' && member.positionName)"
+                       class="text-xs text-gray-400 truncate">{{ member.roleName ?? member.email }}</p>
                   </div>
                   <!-- Actions – visible on hover -->
                   <div class="hidden group-hover:flex items-center gap-1 flex-shrink-0">
