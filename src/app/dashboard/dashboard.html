@@ -1,1 +1,7 @@
-<h1>Dashboard work!</h1>
+<div *ngIf="isIntern; else defaultDashboard">
+  <app-intern-dashboard></app-intern-dashboard>
+</div>
+
+<ng-template #defaultDashboard>
+  <h1>Dashboard work!</h1>
+</ng-template>

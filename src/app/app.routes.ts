@@ -27,18 +27,22 @@ import { SecurityLogsComponent } from './settings/security/logs/logs';
 import { ActivateAccountComponent } from './activate-account/activate-account.component';
 import { Tasks } from './tasks/task';
 import { MyProfileComponent } from './my-profile/my-profile.component';
+import { AccessDeniedComponent } from './access-denied/access-denied.component'; // Import AccessDeniedComponent
 import { authGuard, internGuard, nonInternGuard } from './auth/auth.guard';
+import { InternDashboardComponent } from './dashboard/intern-dashboard/intern-dashboard.component';
 
 export const routes: Routes = [
   { path: '', component: LandingPageComponent },
   { path: 'login', component: LoginComponent },
   { path: 'activate', component: ActivateAccountComponent },
+  { path: 'access-denied', component: AccessDeniedComponent },
   {
     path: 'dashboard',
     component: MainLayout,
     data: { title: 'Tổng quan' },
     children: [
       { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } },
+      { path: 'intern', component: InternDashboardComponent, canActivate: [internGuard], data: { title: 'Dashboard Intern' } },
     ],
   },
   {

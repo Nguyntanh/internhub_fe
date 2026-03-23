@@ -1,7 +1,7 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit, Inject, OnDestroy } from '@angular/core'; // Add OnDestroy
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormsModule, FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card'; // MatCard for general structure if desired within dialog
+import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -9,10 +9,13 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { HttpErrorResponse } from '@angular/common/http';
+import { Subject, takeUntil } from 'rxjs'; // Import Subject, takeUntil
 
 import { Auth } from '../../../../../auth/auth';
 import { UserCreationRequest, ErrorDetails } from '../../../../../shared/models/user.model';
-import { DepartmentService, Department } from '../../../../../services/department.service'; // Import DepartmentService and Department
+import { DepartmentService, Department } from '../../../../../services/department.service';
+import { PermissionService } from '../../../../../services/permission.service'; // Import PermissionService
+import { Role } from '../../../../../shared/models/permissions.model'; // Import Role interface
 
 @Component({
   selector: 'app-create-user-dialog',
@@ -27,29 +30,26 @@ import { DepartmentService, Department } from '../../../../../services/departmen
     MatButtonModule,
     MatSelectModule,
     MatSnackBarModule,
-    MatDialogModule, // Add this here
+    MatDialogModule,
   ],
   templateUrl: './create-user-dialog.component.html',
   styleUrls: ['./create-user-dialog.component.css'],
 })
-export class CreateUserDialogComponent implements OnInit {
+export class CreateUserDialogComponent implements OnInit, OnDestroy { // Implement OnDestroy
   userForm!: FormGroup;
-  roles = [
-    { id: 1, name: 'ADMIN' },
-    { id: 2, name: 'HR' },
-    { id: 5, name: 'INTERN' },
-    { id: 3, name: 'MANAGER' },
-    { id: 4, name: 'MENTOR' },
-  ];
-  departments: Department[] = []; // Initialize as an empty array of type Department
+  roles: Role[] = []; // Initialize as an empty array of type Role
+  departments: Department[] = [];
+
+  private destroy$ = new Subject<void>(); // Subject to manage subscriptions
 
   constructor(
     private fb: FormBuilder,
     private authService: Auth,
     private snackBar: MatSnackBar,
     public dialogRef: MatDialogRef<CreateUserDialogComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any, // In case any initial data needs to be passed
-    private departmentService: DepartmentService // Inject DepartmentService
+    @Inject(MAT_DIALOG_DATA) public data: any,
+    private departmentService: DepartmentService,
+    private permissionService: PermissionService // Inject PermissionService
   ) {}
 
   ngOnInit(): void {
@@ -60,7 +60,13 @@ export class CreateUserDialogComponent implements OnInit {
       departmentId: ['', [Validators.required]],
       phone: ['', [Validators.required, Validators.pattern(/^\d{10,15}$/)]],
     });
-    this.loadDepartments(); // Call loadDepartments in ngOnInit
+    this.loadDepartments();
+    this.loadRoles(); // Call loadRoles
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadDepartments(): void {
@@ -73,6 +79,22 @@ export class CreateUserDialogComponent implements OnInit {
         this.snackBar.open('Failed to load departments.', 'Close', { duration: 3000, panelClass: ['error-snackbar'] });
       }
     });
+  }
+
+  loadRoles(): void {
+    this.permissionService.getRoles()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (roles) => {
+          if (roles) {
+            this.roles = roles;
+          }
+        },
+        error: (error) => {
+          console.error('Error loading roles:', error);
+          this.snackBar.open('Failed to load roles.', 'Close', { duration: 3000, panelClass: ['error-snackbar'] });
+        }
+      });
   }
 
   onSubmit(): void {
@@ -134,3 +156,4 @@ export class CreateUserDialogComponent implements OnInit {
     return '';
   }
 }
+
