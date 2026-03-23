@@ -1,5 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { TaskService, Task, Intern } from '../services/task.service';
+import { TaskService, Task, Intern, DuplicateTaskRequest } from '../services/task.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -55,7 +55,9 @@ export class Tasks implements OnInit {
   loading = false;
   loadingInterns = false;
 
-  displayedColumns: string[] = ['stt', 'title', 'difficulty', 'deadline', 'status', 'submission', 'intern', 'actions'];
+  displayedColumns: string[] = [
+    'stt', 'title', 'difficulty', 'deadline', 'status', 'submission', 'intern', 'actions'
+  ];
 
   selectedInternId: number | null = null;
   showInternBox = false;
@@ -76,6 +78,13 @@ export class Tasks implements OnInit {
   reviewScore: number | null = null;
   reviewComment: string = '';
 
+  // ✅ DUPLICATE MODAL STATE — string 'YYYY-MM-DD' thay vì Date object
+  showDuplicateModal = false;
+  duplicateSourceTask: any = null;
+  duplicateDeadlineStr: string = '';
+  duplicateSelectedInternIds: number[] = [];
+  isDuplicating = false;
+
   editForm: any = {
     title: '',
     description: '',
@@ -94,7 +103,7 @@ export class Tasks implements OnInit {
   constructor(
     private taskService: TaskService,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef   // FIX 1: inject ChangeDetectorRef
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -102,6 +111,13 @@ export class Tasks implements OnInit {
     this.loadInterns();
     this.loadSkills();
   }
+
+  // Ngày hôm nay dạng 'YYYY-MM-DD' để set [min] cho date input
+  get todayStr(): string {
+    return new Date().toISOString().split('T')[0];
+  }
+
+  // ─── Load data ────────────────────────────────────────────────────────────
 
   loadTasks(): void {
     this.loading = true;
@@ -115,11 +131,8 @@ export class Tasks implements OnInit {
           this.cdr.detectChanges();
           return;
         }
-        // Enrich từng task với detail để lấy assignedInterns + submissionLink
         const detailRequests = data.map(task =>
-          this.taskService.getTaskDetail(task.id).pipe(
-            catchError(() => of(task)) // fallback về task gốc nếu lỗi
-          )
+          this.taskService.getTaskDetail(task.id).pipe(catchError(() => of(task)))
         );
         forkJoin(detailRequests).subscribe({
           next: (details: any[]) => {
@@ -132,11 +145,7 @@ export class Tasks implements OnInit {
             this.cdr.detectChanges();
           },
           error: () => {
-            // Fallback: dùng list data nếu detail request fail
-            this.tasks = data.map(task => ({
-              ...task,
-              weight: task.skills?.[0]?.weight ?? 1
-            }));
+            this.tasks = data.map(task => ({ ...task, weight: task.skills?.[0]?.weight ?? 1 }));
             this.loading = false;
             this.cdr.detectChanges();
           }
@@ -147,18 +156,15 @@ export class Tasks implements OnInit {
         this.tasks = [];
         this.loading = false;
         this.cdr.detectChanges();
-        this.snackBar.open(
-          'Không thể tải danh sách task. Vui lòng kiểm tra kết nối!',
-          'Đóng',
-          { duration: 5000, panelClass: ['error-snackbar'] }
-        );
+        this.snackBar.open('Không thể tải danh sách task!', 'Đóng', {
+          duration: 5000, panelClass: ['error-snackbar']
+        });
       }
     });
   }
 
   loadInterns(): void {
     this.loadingInterns = true;
-
     this.taskService.getInterns().subscribe({
       next: (data: any) => {
         if (Array.isArray(data)) {
@@ -167,10 +173,10 @@ export class Tasks implements OnInit {
             name: item.name || item.fullName || item.username || 'Không có tên',
             email: item.email || ''
           }));
-        } else if (data && data.content && Array.isArray(data.content)) {
+        } else if (data?.content && Array.isArray(data.content)) {
           this.interns = data.content.map((item: any) => ({
             id: item.id,
-            name: item.name || item.fullName || item.username || 'Không có tên',
+            name: item.name || item.fullName || 'Không có tên',
             email: item.email || ''
           }));
         } else {
@@ -184,7 +190,6 @@ export class Tasks implements OnInit {
         this.interns = [];
         this.loadingInterns = false;
         this.cdr.detectChanges();
-        this.snackBar.open('Không thể tải danh sách Intern', 'Đóng', { duration: 5000 });
       }
     });
   }
@@ -195,13 +200,11 @@ export class Tasks implements OnInit {
         this.skills = Array.isArray(data) ? data : [];
         this.cdr.detectChanges();
       },
-      error: (error) => {
-        console.error('Lỗi load skills:', error);
-        this.skills = [];
-        this.snackBar.open('Không thể tải danh sách Skill', 'Đóng', { duration: 3000 });
-      }
+      error: () => { this.skills = []; }
     });
   }
+
+  // ─── Helpers ──────────────────────────────────────────────────────────────
 
   getStars(weight: number): number[] {
     return Array(weight).fill(0);
@@ -236,6 +239,8 @@ export class Tasks implements OnInit {
     return skill ? skill.name : `Skill #${skillId}`;
   }
 
+  // ─── Create Task ──────────────────────────────────────────────────────────
+
   createTask(): void {
     if (!this.newTask.title || !this.newTask.deadline) {
       this.snackBar.open('Vui lòng nhập tiêu đề và thời hạn', 'Đóng', { duration: 3000 });
@@ -264,7 +269,6 @@ export class Tasks implements OnInit {
     this.taskService.createTask(payload).subscribe({
       next: () => {
         this.snackBar.open('Tạo task thành công', 'Đóng', { duration: 3000 });
-        // FIX 3: dùng setTimeout để tránh NG0100 — reset form SAU khi Angular đã check xong cycle hiện tại
         setTimeout(() => {
           this.resetNewTaskForm();
           this.cdr.detectChanges();
@@ -285,6 +289,8 @@ export class Tasks implements OnInit {
     this.showInternBox = false;
   }
 
+  // ─── View / Edit / Delete Task ────────────────────────────────────────────
+
   viewTask(task: any): void {
     this.taskService.getTaskDetail(task.id).subscribe({
       next: (data) => {
@@ -298,17 +304,19 @@ export class Tasks implements OnInit {
           this.cdr.detectChanges();
         });
       },
-      error: (error) => {
-        console.error('Lỗi load task detail:', error);
+      error: () => {
         this.snackBar.open('Không thể tải chi tiết task', 'Đóng', { duration: 3000 });
       }
     });
   }
 
   closeTaskModal(): void {
-    this.showTaskModal = false;
-    this.isEditing = false;
-    this.showEditInternBox = false;
+    setTimeout(() => {
+      this.showTaskModal = false;
+      this.isEditing = false;
+      this.showEditInternBox = false;
+      this.cdr.detectChanges();
+    }, 0);
   }
 
   startEditing(): void {
@@ -363,10 +371,13 @@ export class Tasks implements OnInit {
 
     this.taskService.updateTask(this.selectedTask.id, payload).subscribe({
       next: () => {
-        this.snackBar.open('Cập nhật task thành công', 'Đóng', { duration: 3000 });
-        this.loadTasks();
-        this.isEditing = false;
-        this.showTaskModal = false;
+        setTimeout(() => {
+          this.snackBar.open('Cập nhật task thành công', 'Đóng', { duration: 3000 });
+          this.isEditing = false;
+          this.showTaskModal = false;
+          this.cdr.detectChanges();
+          this.loadTasks();
+        }, 0);
       },
       error: (error) => {
         console.error('Lỗi update task:', error);
@@ -375,10 +386,27 @@ export class Tasks implements OnInit {
     });
   }
 
-  // ─── Review ────────────────────────────────────────────────────────────────
+  deleteTask(task: any): void {
+    if (!confirm('Bạn có chắc muốn xóa task?')) return;
+
+    this.taskService.deleteTask(task.id).subscribe({
+      next: () => {
+        setTimeout(() => {
+          this.snackBar.open('Đã xóa task', 'Đóng', { duration: 3000 });
+          this.closeTaskModal();
+          this.loadTasks();
+        }, 0);
+      },
+      error: (error) => {
+        console.error('Lỗi xóa task:', error);
+        this.snackBar.open('Xóa task thất bại', 'Đóng', { duration: 3000 });
+      }
+    });
+  }
+
+  // ─── Review ───────────────────────────────────────────────────────────────
 
   openReviewModal(task: any): void {
-    // FIX NG0100: set data trước, mở modal sau 1 tick để tránh ExpressionChanged
     this.reviewScore = null;
     this.reviewComment = '';
     this.reviewTaskData = null;
@@ -386,7 +414,6 @@ export class Tasks implements OnInit {
     this.taskService.getTaskDetail(task.id).subscribe({
       next: (detail) => {
         this.reviewTaskData = { ...task, ...detail, weight: task.weight };
-        // setTimeout 0 đảm bảo Angular đã hoàn thành cycle hiện tại trước khi set showReviewModal
         setTimeout(() => {
           this.showReviewModal = true;
           this.cdr.detectChanges();
@@ -398,14 +425,11 @@ export class Tasks implements OnInit {
           this.showReviewModal = true;
           this.cdr.detectChanges();
         }, 0);
-        this.snackBar.open('Không thể tải chi tiết task', 'Đóng', { duration: 3000 });
       }
     });
   }
 
   closeReviewModal(): void {
-    // setTimeout tránh NG0100: Angular đã check [disabled] binding trong cycle hiện tại,
-    // set showReviewModal=false ngay lập tức làm expression thay đổi sau khi đã check
     setTimeout(() => {
       this.showReviewModal = false;
       this.reviewTaskData = null;
@@ -418,7 +442,6 @@ export class Tasks implements OnInit {
   isValidScore(): boolean {
     if (this.reviewScore === null || this.reviewScore === undefined) return false;
     const v = Number(this.reviewScore);
-    // UI dùng thang 0-10 cho dễ nhập, gửi backend sẽ chia đôi về 0-5
     return !isNaN(v) && v >= 0 && v <= 10;
   }
 
@@ -428,8 +451,6 @@ export class Tasks implements OnInit {
       return;
     }
 
-    // FIX 4: Backend ReviewTaskRequest cần `skills[]` chứa skillId, ratingScore, reviewComment
-    // Không phải `score` hay `comment` ở root level
     const task = this.reviewTaskData;
     const taskSkillId = task?.skills?.[0]?.skillId ?? null;
 
@@ -438,56 +459,110 @@ export class Tasks implements OnInit {
       return;
     }
 
-    // UI thang 0-10 → backend thang 0-5 (chia đôi, làm tròn 2 chữ số)
-    const backendScore = Math.round((Number(this.reviewScore) ) * 100) / 100;
+    const backendScore = Math.round((Number(this.reviewScore)) * 100) / 100;
 
     const payload = {
-      skills: [
-        {
-          skillId: taskSkillId,
-          ratingScore: backendScore,
-          reviewComment: this.reviewComment || ''
-        }
-      ]
+      skills: [{ skillId: taskSkillId, ratingScore: backendScore, reviewComment: this.reviewComment || '' }]
     };
 
     this.taskService.reviewTask(task.id, payload).subscribe({
       next: () => {
-        this.closeReviewModal(); // đóng trước, load sau — tránh NG0100
+        this.closeReviewModal();
         this.snackBar.open('Chấm điểm thành công!', 'Đóng', { duration: 3000 });
-        setTimeout(() => this.loadTasks(), 50); // đợi modal đóng xong rồi reload
+        setTimeout(() => this.loadTasks(), 50);
       },
       error: (error) => {
-        // Backend trả plain text "Task reviewed successfully" → HttpClient parse lỗi
-        // nhưng status vẫn là 200 → treat như thành công
         if (error?.status === 200 || error?.status === 0) {
           this.closeReviewModal();
           this.snackBar.open('Chấm điểm thành công!', 'Đóng', { duration: 3000 });
           setTimeout(() => this.loadTasks(), 50);
           return;
         }
-        console.error('Lỗi review task:', error);
         const msg = error?.error?.message || error?.message || 'Chấm điểm thất bại';
         this.snackBar.open(msg, 'Đóng', { duration: 4000 });
       }
     });
   }
 
-  deleteTask(task: any): void {
-    if (!confirm('Bạn có chắc muốn xóa task?')) return;
+  // ─── ✅ Duplicate Task ────────────────────────────────────────────────────
 
-    this.taskService.deleteTask(task.id).subscribe({
-      next: () => {
-        this.snackBar.open('Đã xóa task', 'Đóng', { duration: 3000 });
-        this.loadTasks();
-        this.closeTaskModal();
+  openDuplicateModal(task: any): void {
+    this.duplicateSourceTask = task;
+    this.duplicateDeadlineStr = '';
+    this.duplicateSelectedInternIds = [];
+    this.isDuplicating = false;
+    setTimeout(() => {
+      this.showDuplicateModal = true;
+      this.cdr.detectChanges();
+    }, 0);
+  }
+
+  closeDuplicateModal(): void {
+    this.showDuplicateModal = false;
+    this.duplicateSourceTask = null;
+    this.duplicateDeadlineStr = '';
+    this.duplicateSelectedInternIds = [];
+    this.isDuplicating = false;
+  }
+
+  toggleDuplicateIntern(internId: number): void {
+    const idx = this.duplicateSelectedInternIds.indexOf(internId);
+    if (idx === -1) {
+      this.duplicateSelectedInternIds = [...this.duplicateSelectedInternIds, internId];
+    } else {
+      this.duplicateSelectedInternIds = this.duplicateSelectedInternIds.filter(id => id !== internId);
+    }
+  }
+
+  isDuplicateInternSelected(internId: number): boolean {
+    return this.duplicateSelectedInternIds.includes(internId);
+  }
+
+  isOriginalIntern(internId: number): boolean {
+    const originalId = this.duplicateSourceTask?.assignedInterns?.[0]?.id;
+    return originalId === internId;
+  }
+
+  confirmDuplicate(): void {
+    if (!this.duplicateSourceTask || !this.duplicateDeadlineStr || this.duplicateSelectedInternIds.length === 0) {
+      return;
+    }
+
+    this.isDuplicating = true;
+    this.cdr.detectChanges(); // sync ngay lập tức trước khi gọi API
+
+    const deadline = `${this.duplicateDeadlineStr}T23:59:59`;
+
+    const request: DuplicateTaskRequest = {
+      internIds: [...this.duplicateSelectedInternIds],
+      deadline
+    };
+
+    this.taskService.duplicateTask(this.duplicateSourceTask.id, request).subscribe({
+      next: (newTasks) => {
+        const count = Array.isArray(newTasks) ? newTasks.length : 1;
+        // ✅ setTimeout tránh NG0100: Angular đã check [disabled] binding xong
+        //    mới cho phép thay đổi isDuplicating và đóng modal
+        setTimeout(() => {
+          this.isDuplicating = false;
+          this.closeDuplicateModal();
+          this.snackBar.open(`✅ Đã tạo thành công ${count} task mới!`, 'Đóng', { duration: 4000 });
+          this.loadTasks();
+        }, 0);
       },
       error: (error) => {
-        console.error('Lỗi xóa task:', error);
-        this.snackBar.open('Xóa task thất bại', 'Đóng', { duration: 3000 });
+        setTimeout(() => {
+          this.isDuplicating = false;
+          this.cdr.detectChanges();
+          console.error('Lỗi duplicate task:', error);
+          const msg = error?.error?.message || error?.message || 'Duplicate thất bại, vui lòng thử lại.';
+          this.snackBar.open(msg, 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
+        }, 0);
       }
     });
   }
+
+  // ─── Other helpers ────────────────────────────────────────────────────────
 
   getStatusColor(status: string): string {
     switch (status?.toLowerCase()) {

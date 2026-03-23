@@ -50,6 +50,14 @@ export interface TaskDetail {
   }[];
 }
 
+// ✅ MỚI: Request body cho Duplicate Task
+export interface DuplicateTaskRequest {
+  /** Danh sách intern nhận task mới (ít nhất 1) */
+  internIds: number[];
+  /** Deadline mới — ISO 8601, ví dụ: "2025-08-01T23:59:59.000Z" */
+  deadline: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -164,6 +172,17 @@ export class TaskService {
     return this.http
       .get<any[]>(this.skillApi, this.getAuthHeaders())
       .pipe(catchError(this.handleError));
+  }
+
+  // ✅ MỚI: Duplicate task — sao chép sang intern mới với deadline mới.
+  // Skill Tags và Trọng số được giữ nguyên tự động bởi backend.
+  duplicateTask(taskId: number, data: DuplicateTaskRequest): Observable<TaskDetail[]> {
+    return this.http
+      .post<any[]>(`${this.api}/${taskId}/duplicate`, data, this.getAuthHeaders())
+      .pipe(
+        map(tasks => tasks.map(task => this.mapTaskResponse(task))),
+        catchError(this.handleError)
+      );
   }
 
   private mapTaskResponse(task: any): TaskDetail {

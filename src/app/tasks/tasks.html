@@ -1,3 +1,10 @@
+<!-- ================================================================
+     THAY THẾ TOÀN BỘ NỘI DUNG src/app/tasks/tasks.html bằng file này
+     Thay đổi so với bản gốc:
+     1. Thêm cột "Thao tác" có nút Duplicate (icon content_copy)
+     2. Thêm DUPLICATE MODAL ở cuối file
+     ================================================================ -->
+
 <div class="max-w-7xl mx-auto p-8 bg-gray-50 min-h-screen">
 
   <!-- PAGE HEADER -->
@@ -76,7 +83,8 @@
       </div>
     </div>
 
-    <button mat-raised-button color="primary" class="mt-6 w-full h-12 text-lg" (click)="createTask()" [disabled]="!newTask.title || !newTask.deadline || !selectedSkillId || !selectedInternId">
+    <button mat-raised-button color="primary" class="mt-6 w-full h-12 text-lg" (click)="createTask()"
+            [disabled]="!newTask.title || !newTask.deadline || !selectedSkillId || !selectedInternId">
       <mat-icon>add_task</mat-icon>
       Tạo Task
     </button>
@@ -87,10 +95,14 @@
     <div class="flex flex-col md:flex-row items-start md:items-center justify-between mb-6 gap-4">
       <h2 class="text-xl font-semibold">Danh sách Task</h2>
       <div class="flex flex-wrap gap-2">
-        <button mat-stroked-button (click)="statusFilter = ''" [class.bg-blue-50]="statusFilter === ''" [class.text-blue-600]="statusFilter === ''">Tất cả</button>
-        <button mat-stroked-button (click)="statusFilter = 'Pending'" [class.bg-orange-50]="statusFilter === 'Pending'" [class.text-orange-600]="statusFilter === 'Pending'">Pending</button>
-        <button mat-stroked-button (click)="statusFilter = 'Submitted'" [class.bg-yellow-50]="statusFilter === 'Submitted'" [class.text-yellow-600]="statusFilter === 'Submitted'">Submitted</button>
-        <button mat-stroked-button (click)="statusFilter = 'Reviewed'" [class.bg-green-50]="statusFilter === 'Reviewed'" [class.text-green-600]="statusFilter === 'Reviewed'">Reviewed</button>
+        <button mat-stroked-button (click)="statusFilter = ''"
+                [class.bg-blue-50]="statusFilter === ''" [class.text-blue-600]="statusFilter === ''">Tất cả</button>
+        <button mat-stroked-button (click)="statusFilter = 'Pending'"
+                [class.bg-orange-50]="statusFilter === 'Pending'" [class.text-orange-600]="statusFilter === 'Pending'">Pending</button>
+        <button mat-stroked-button (click)="statusFilter = 'Submitted'"
+                [class.bg-yellow-50]="statusFilter === 'Submitted'" [class.text-yellow-600]="statusFilter === 'Submitted'">Submitted</button>
+        <button mat-stroked-button (click)="statusFilter = 'Reviewed'"
+                [class.bg-green-50]="statusFilter === 'Reviewed'" [class.text-green-600]="statusFilter === 'Reviewed'">Reviewed</button>
       </div>
     </div>
 
@@ -148,7 +160,6 @@
           </td>
         </ng-container>
 
-        <!-- FIX: Nộp bài — check submissionLink HOẶC status Submitted/Reviewed -->
         <ng-container matColumnDef="submission">
           <th mat-header-cell *matHeaderCellDef class="font-bold">Nộp bài</th>
           <td mat-cell *matCellDef="let task" class="py-3">
@@ -177,18 +188,32 @@
           </td>
         </ng-container>
 
+        <!-- ✅ CỘT ACTIONS - ĐÃ THÊM NÚT DUPLICATE -->
         <ng-container matColumnDef="actions">
           <th mat-header-cell *matHeaderCellDef class="font-bold">Thao tác</th>
           <td mat-cell *matCellDef="let task" class="py-3">
             <div class="flex items-center gap-1">
-              <button mat-icon-button color="primary" (click)="viewTask(task); $event.stopPropagation()" matTooltip="Xem chi tiết">
+              <!-- Xem chi tiết -->
+              <button mat-icon-button color="primary"
+                      (click)="viewTask(task); $event.stopPropagation()"
+                      matTooltip="Xem chi tiết">
                 <mat-icon>visibility</mat-icon>
               </button>
+
+              <!-- Chấm điểm -->
               <button *ngIf="task.submissionLink || task.status === 'Submitted' || task.status === 'Reviewed'"
                       mat-icon-button color="accent"
                       (click)="openReviewModal(task); $event.stopPropagation()"
                       matTooltip="Chấm điểm">
                 <mat-icon>grade</mat-icon>
+              </button>
+
+              <!-- ✅ NÚT DUPLICATE MỚI -->
+              <button mat-icon-button
+                      style="color: #7c3aed"
+                      (click)="openDuplicateModal(task); $event.stopPropagation()"
+                      matTooltip="Duplicate task (sao chép cho intern khác)">
+                <mat-icon>content_copy</mat-icon>
               </button>
             </div>
           </td>
@@ -272,7 +297,6 @@
               <span *ngIf="!taskDetail?.assignedInterns?.length" class="text-gray-400">Chưa có intern</span>
             </div>
 
-            <!-- FIX: Điểm — chỉ hiện điểm sạch, không hiện "lưu backend" -->
             <div class="col-span-2">
               <p class="text-sm font-medium text-gray-500">Điểm</p>
               <ng-container *ngIf="taskDetail?.score !== null && taskDetail?.score !== undefined; else noScore">
@@ -288,14 +312,13 @@
 
             <div class="col-span-2">
               <p class="text-sm font-medium text-gray-500">Link nộp bài</p>
-              <a *ngIf="taskDetail?.submissionLink" [href]="taskDetail.submissionLink" target="_blank" class="text-blue-600 underline flex items-center gap-1 break-all">
+              <a *ngIf="taskDetail?.submissionLink" [href]="taskDetail.submissionLink" target="_blank"
+                 class="text-blue-600 underline flex items-center gap-1 break-all">
                 <mat-icon class="text-sm">link</mat-icon>
                 {{taskDetail.submissionLink}}
               </a>
               <span *ngIf="!taskDetail?.submissionLink" class="text-gray-400 italic">Intern chưa nộp bài</span>
             </div>
-
-            <!-- FIX: XÓA block nhận xét riêng bên dưới — đã gộp vào phần Điểm ở trên -->
 
           </div>
         </div>
@@ -341,7 +364,8 @@
 
           <div>
             <p class="text-sm font-medium mb-2 text-gray-700">Intern thực hiện <span class="text-red-500">*</span></p>
-            <button mat-stroked-button color="primary" type="button" (click)="showEditInternBox = !showEditInternBox" class="flex items-center gap-2">
+            <button mat-stroked-button color="primary" type="button"
+                    (click)="showEditInternBox = !showEditInternBox" class="flex items-center gap-2">
               <mat-icon>group</mat-icon>
               {{ editForm.internId ? 'Đã chọn: ' + getInternName(editForm.internId) : 'Chọn Intern' }}
             </button>
@@ -377,7 +401,8 @@
         </ng-container>
         <ng-container *ngIf="isEditing">
           <button mat-stroked-button (click)="cancelEdit()">Hủy</button>
-          <button mat-raised-button color="primary" (click)="saveEdit()" [disabled]="!editForm.title || !editForm.deadline || !selectedSkillId || !editForm.internId">
+          <button mat-raised-button color="primary" (click)="saveEdit()"
+                  [disabled]="!editForm.title || !editForm.deadline || !selectedSkillId || !editForm.internId">
             <mat-icon>save</mat-icon>
             Lưu thay đổi
           </button>
@@ -407,7 +432,8 @@
 
         <div class="mb-4" *ngIf="reviewTaskData?.submissionLink">
           <p class="text-sm font-medium text-gray-500">Link nộp bài</p>
-          <a [href]="reviewTaskData.submissionLink" target="_blank" class="text-blue-600 underline flex items-center gap-1 break-all">
+          <a [href]="reviewTaskData.submissionLink" target="_blank"
+             class="text-blue-600 underline flex items-center gap-1 break-all">
             <mat-icon class="text-sm">link</mat-icon>
             {{reviewTaskData.submissionLink}}
           </a>
@@ -415,7 +441,8 @@
 
         <mat-form-field appearance="outline" class="w-full mb-4">
           <mat-label>Điểm (0 - 10)</mat-label>
-          <input matInput type="number" min="0" max="10" step="0.1" [(ngModel)]="reviewScore" placeholder="Nhập điểm...">
+          <input matInput type="number" min="0" max="10" step="0.1"
+                 [(ngModel)]="reviewScore" placeholder="Nhập điểm...">
           <mat-icon matSuffix>star</mat-icon>
           <mat-hint>Nhập điểm từ 0 đến 10</mat-hint>
         </mat-form-field>
@@ -433,6 +460,139 @@
           Xác nhận chấm điểm
         </button>
       </div>
+    </div>
+  </div>
+
+  <!-- ✅ ================= DUPLICATE TASK MODAL ================= -->
+  <div *ngIf="showDuplicateModal"
+       class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+    <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl relative flex flex-col"
+         style="max-height: 90vh;">
+
+      <!-- Header -->
+      <div class="border-b px-5 py-3 flex items-center justify-between flex-shrink-0">
+        <div>
+          <h2 class="text-base font-bold flex items-center gap-2">
+            <mat-icon style="color: #7c3aed; font-size:18px; width:18px; height:18px;">content_copy</mat-icon>
+            Duplicate Task
+          </h2>
+          <p class="text-xs text-gray-500 mt-0.5">
+            Sao chép "<strong>{{duplicateSourceTask?.title}}</strong>" sang intern mới
+          </p>
+        </div>
+        <button mat-icon-button (click)="closeDuplicateModal()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Body — scrollable -->
+      <div class="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+
+        <!-- Info box -->
+        <div class="flex items-start gap-2 px-3 py-2.5 bg-purple-50 border border-purple-100 rounded-lg text-xs text-purple-700">
+          <mat-icon style="font-size:14px; width:14px; height:14px; margin-top:1px; flex-shrink:0;">info</mat-icon>
+          <div>
+            <span class="font-semibold">Giữ nguyên:</span> Tiêu đề, Mô tả, Skill Tags, Trọng số. &nbsp;
+            <span class="font-semibold">Bạn chọn:</span> Deadline mới &amp; Intern mới.
+          </div>
+        </div>
+
+        <!-- Deadline mới — dùng native date input để tránh lỗi binding -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">
+            Deadline mới <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            [(ngModel)]="duplicateDeadlineStr"
+            class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            [min]="todayStr"
+          />
+          <p class="text-xs text-gray-400 mt-1">
+            Task gốc có deadline: {{duplicateSourceTask?.deadline | date:'dd/MM/yyyy'}}
+          </p>
+        </div>
+
+        <!-- Chọn Intern -->
+        <div>
+          <p class="text-sm font-medium text-gray-700 mb-1">
+            Intern nhận task <span class="text-red-500">*</span>
+            <span class="text-xs text-gray-400 ml-1">(có thể chọn nhiều)</span>
+          </p>
+
+          <div *ngIf="loadingInterns" class="flex items-center gap-2 text-gray-400 text-sm py-2">
+            <mat-spinner diameter="14"></mat-spinner>
+            Đang tải...
+          </div>
+
+          <div *ngIf="!loadingInterns"
+               class="border border-gray-200 rounded-xl overflow-hidden"
+               style="max-height: 220px; overflow-y: auto;">
+
+            <div *ngIf="interns.length === 0" class="p-4 text-center text-gray-400 text-sm">
+              Không có intern nào
+            </div>
+
+            <div *ngFor="let intern of interns; let last = last"
+                 class="flex items-center gap-3 px-3 py-2.5 cursor-pointer transition-colors"
+                 [class.border-b]="!last"
+                 [class.bg-purple-50]="isDuplicateInternSelected(intern.id)"
+                 [class.hover:bg-gray-50]="!isDuplicateInternSelected(intern.id)"
+                 (click)="toggleDuplicateIntern(intern.id)">
+
+              <!-- Custom checkbox -->
+              <div class="w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors"
+                   [style.border-color]="isDuplicateInternSelected(intern.id) ? '#7c3aed' : '#d1d5db'"
+                   [style.background-color]="isDuplicateInternSelected(intern.id) ? '#7c3aed' : 'white'">
+                <svg *ngIf="isDuplicateInternSelected(intern.id)"
+                     class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                </svg>
+              </div>
+
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-800 truncate">{{intern.name}}</p>
+                <p class="text-xs text-gray-400 truncate">{{intern.email}}</p>
+              </div>
+
+              <span *ngIf="isOriginalIntern(intern.id)"
+                    class="text-xs bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full flex-shrink-0">
+              Task gốc
+            </span>
+            </div>
+          </div>
+
+          <!-- Chips đã chọn -->
+          <div *ngIf="duplicateSelectedInternIds.length > 0" class="flex flex-wrap gap-1.5 mt-2">
+          <span *ngFor="let id of duplicateSelectedInternIds"
+                class="inline-flex items-center gap-1 text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">
+            {{getInternName(id)}}
+            <button type="button" (click)="toggleDuplicateIntern(id); $event.stopPropagation()"
+                    class="hover:text-purple-900 leading-none">&times;</button>
+          </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer — cố định dưới cùng -->
+      <div class="border-t px-5 py-3 flex items-center justify-between flex-shrink-0">
+        <p class="text-xs text-gray-400">
+          Sẽ tạo <strong class="text-purple-700">{{duplicateSelectedInternIds.length}}</strong> task mới
+        </p>
+        <div class="flex gap-2">
+          <button mat-stroked-button (click)="closeDuplicateModal()">Hủy</button>
+          <button mat-raised-button
+                  style="background-color: #7c3aed; color: white;"
+                  (click)="confirmDuplicate()"
+                  [disabled]="duplicateSelectedInternIds.length === 0 || !duplicateDeadlineStr || isDuplicating">
+            <mat-spinner *ngIf="isDuplicating" diameter="14"
+                         style="display:inline-block; vertical-align:middle; margin-right:4px;"></mat-spinner>
+            <mat-icon *ngIf="!isDuplicating" style="font-size:16px; width:16px; height:16px;">content_copy</mat-icon>
+            &nbsp;{{isDuplicating ? 'Đang tạo...' : 'Duplicate (' + duplicateSelectedInternIds.length + ')'}}
+          </button>
+        </div>
+      </div>
+
     </div>
   </div>
 
