@@ -21,4 +21,8 @@ export const serverRoutes: ServerRoute[] = [
     path: '**',
     renderMode: RenderMode.Prerender,
   },
+  {
+    path: 'skills/**',
+    renderMode: RenderMode.Client,
+  },
 ];
