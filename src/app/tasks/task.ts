@@ -72,6 +72,7 @@ export class Tasks implements OnInit {
   selectedTask: any = null;
   taskDetail: any = null;
   showTaskModal = false;
+  showAddModal = false; // New property
 
   isEditing = false;
   showEditInternBox = false;
@@ -114,6 +115,15 @@ export class Tasks implements OnInit {
     this.loadTasks();
     this.loadInterns();
     this.loadSkills();
+  }
+
+  openAddModal(): void {
+    this.resetNewTaskForm();
+    this.showAddModal = true;
+  }
+
+  closeAddModal(): void {
+    this.showAddModal = false;
   }
 
   // Ngày hôm nay dạng 'YYYY-MM-DD' để set [min] cho date input
@@ -273,6 +283,7 @@ export class Tasks implements OnInit {
     this.taskService.createTask(payload).subscribe({
       next: () => {
         this.snackBar.open('Tạo task thành công', 'Đóng', { duration: 3000 });
+        this.showAddModal = false; // Close modal
         setTimeout(() => {
           this.resetNewTaskForm();
           this.cdr.detectChanges();
@@ -570,19 +581,19 @@ export class Tasks implements OnInit {
 
   getStatusColor(status: string): string {
     switch (status?.toLowerCase()) {
-      case 'pending': return 'warn';
-      case 'submitted': return 'accent';
-      case 'reviewed': return 'primary';
-      default: return '';
+      case 'pending': return 'warning';
+      case 'submitted': return 'info';
+      case 'reviewed': return 'success';
+      default: return 'primary';
     }
   }
 
   getStatusClass(status: string): string {
     switch (status?.toLowerCase()) {
-      case 'pending': return 'border-orange-200 bg-orange-50';
-      case 'submitted': return 'border-yellow-200 bg-yellow-50';
-      case 'reviewed': return 'border-green-200 bg-green-50';
-      default: return '';
+      case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'submitted': return 'bg-blue-50 text-blue-600 border-blue-100';
+      case 'reviewed': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      default: return 'bg-slate-50 text-slate-600 border-slate-100';
     }
   }
 

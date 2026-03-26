@@ -1,370 +1,287 @@
-<div class="space-y-8 animate-fade-in">
+<div class="max-w-[1440px] mx-auto space-y-10 animate-fade-in pb-20">
 
-  <!-- PAGE HEADER -->
-  <app-ui-page-header title="Quản lý Nhiệm vụ" subtitle="Tạo và điều phối công việc cho các thực tập sinh">
-    <button mat-stroked-button color="primary" class="!rounded-xl" (click)="refreshData()">
-      <mat-icon class="mr-2">refresh</mat-icon> Làm mới
-    </button>
+  <!-- MODERN MINIMAL HEADER -->
+  <app-ui-page-header title="Nhiệm vụ" subtitle="Quản lý và điều phối luồng công việc thực tập">
+    <div class="flex items-center space-x-3">
+      <button mat-button class="!rounded-xl !px-6 !py-2 !font-bold text-gray-500 hover:bg-surface-50" (click)="refreshData()">
+        <mat-icon class="mr-2 scale-90">refresh</mat-icon> Làm mới
+      </button>
+      <button mat-flat-button color="primary" class="!rounded-xl !px-8 !py-6 shadow-xl shadow-primary-100" (click)="openAddModal()">
+        <mat-icon class="mr-2">add</mat-icon>
+        <span class="font-bold text-white">Giao Task mới</span>
+      </button>
+    </div>
   </app-ui-page-header>
 
-  <div class="grid grid-cols-1 xl:grid-cols-3 gap-8 items-start">
+  <div class="grid grid-cols-12 gap-10 items-start">
     
-    <!-- LEFT: CREATE TASK FORM -->
-    <div class="xl:col-span-1">
-      <app-ui-card title="Tạo Task mới" [hasHeader]="true">
-        <mat-icon card-icon class="text-primary-500">add_task</mat-icon>
-        
-        <div class="space-y-5">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Tiêu đề</mat-label>
-            <input matInput [(ngModel)]="newTask.title" placeholder="Nhập tiêu đề task...">
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Deadline</mat-label>
-            <input matInput [matDatepicker]="picker" [(ngModel)]="newTask.deadline" placeholder="Chọn ngày">
-            <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
-            <mat-datepicker #picker></mat-datepicker>
-          </mat-form-field>
-
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Mô tả</mat-label>
-            <textarea matInput rows="4" [(ngModel)]="newTask.description" placeholder="Nhập mô tả chi tiết..."></textarea>
-          </mat-form-field>
-
-          <div class="grid grid-cols-2 gap-4">
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Độ khó</mat-label>
-              <mat-select [(ngModel)]="newTask.weight">
-                <mat-option [value]="1">⭐ 1</mat-option>
-                <mat-option [value]="2">⭐⭐ 2</mat-option>
-                <mat-option [value]="3">⭐⭐⭐ 3</mat-option>
-                <mat-option [value]="4">⭐⭐⭐⭐ 4</mat-option>
-                <mat-option [value]="5">⭐⭐⭐⭐⭐ 5</mat-option>
-              </mat-select>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline" class="w-full">
-              <mat-label>Skill yêu cầu</mat-label>
-              <mat-select [(ngModel)]="selectedSkillId">
-                <mat-option *ngFor="let skill of skills" [value]="skill.id">{{skill.name}}</mat-option>
-              </mat-select>
-            </mat-form-field>
-          </div>
-
-          <div class="space-y-3">
-            <p class="text-xs font-bold text-gray-400 uppercase tracking-widest">Giao cho Intern</p>
-            <button mat-stroked-button class="w-full !rounded-xl !py-6 flex items-center justify-between" (click)="showInternBox = !showInternBox">
-              <div class="flex items-center">
-                <mat-icon class="mr-2 text-primary-500">person_add</mat-icon>
-                <span class="text-sm font-medium">{{ selectedInternId ? getInternName(selectedInternId) : 'Chọn một thực tập sinh' }}</span>
-              </div>
-              <mat-icon class="transition-transform" [class.rotate-180]="showInternBox">expand_more</mat-icon>
-            </button>
-
-            <div *ngIf="showInternBox" class="border border-surface-100 rounded-xl bg-surface-50 max-h-48 overflow-y-auto animate-fade-in">
-              <mat-radio-group [(ngModel)]="selectedInternId" class="flex flex-col">
-                <div *ngFor="let intern of interns" 
-                     class="px-4 py-2.5 hover:bg-white transition-colors border-b border-surface-50 last:border-0"
-                     (click)="selectIntern(intern.id)">
-                  <mat-radio-button [value]="intern.id" class="text-sm font-medium">
-                    {{intern.name}}
-                  </mat-radio-button>
-                </div>
-              </mat-radio-group>
-            </div>
-          </div>
-        </div>
-
-        <div card-footer class="w-full">
-          <button mat-flat-button color="primary" class="w-full !rounded-xl !py-6 shadow-lg shadow-primary-200" 
-                  (click)="createTask()"
-                  [disabled]="!newTask.title || !newTask.deadline || !selectedSkillId || !selectedInternId">
-            <mat-icon class="mr-2">send</mat-icon>
-            <span class="font-bold">Giao nhiệm vụ ngay</span>
+    <!-- MINIMALIST FILTERS & LIST -->
+    <div class="col-span-12 xl:col-span-8 space-y-6">
+      
+      <!-- CLEAN FILTER BAR -->
+      <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-2 rounded-2xl border border-surface-50 shadow-sm">
+        <div class="flex items-center space-x-1">
+          <button (click)="statusFilter = ''" 
+            [class]="'px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ' + (statusFilter === '' ? 'bg-primary-500 text-white shadow-md' : 'text-gray-400 hover:bg-surface-50')">
+            TẤT CẢ
+          </button>
+          <button (click)="statusFilter = 'Pending'" 
+            [class]="'px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ' + (statusFilter === 'Pending' ? 'bg-amber-500 text-white shadow-md' : 'text-gray-400 hover:bg-surface-50')">
+            CHỜ XỬ LÝ
+          </button>
+          <button (click)="statusFilter = 'Submitted'" 
+            [class]="'px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ' + (statusFilter === 'Submitted' ? 'bg-blue-500 text-white shadow-md' : 'text-gray-400 hover:bg-surface-50')">
+            ĐÃ NỘP
+          </button>
+          <button (click)="statusFilter = 'Reviewed'" 
+            [class]="'px-4 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ' + (statusFilter === 'Reviewed' ? 'bg-emerald-500 text-white shadow-md' : 'text-gray-400 hover:bg-surface-50')">
+            HOÀN TẤT
           </button>
         </div>
-      </app-ui-card>
+        
+        <div class="relative flex-1 max-w-xs ml-auto">
+          <input [(ngModel)]="searchText" placeholder="Tìm tên task..." 
+            class="w-full pl-10 pr-4 py-2.5 bg-surface-50 border-transparent rounded-xl text-sm focus:bg-white focus:border-primary-100 focus:ring-4 focus:ring-primary-50 transition-all">
+          <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 !text-lg">search</mat-icon>
+        </div>
+      </div>
+
+      <!-- TASK LIST TABLE -->
+      <div class="bg-white rounded-3xl border border-surface-100 shadow-soft overflow-hidden">
+        <div *ngIf="loading" class="p-20 flex flex-col items-center justify-center space-y-4">
+          <mat-spinner diameter="32" strokeWidth="3"></mat-spinner>
+          <p class="text-xs font-bold text-gray-400 tracking-widest uppercase">Đang đồng bộ...</p>
+        </div>
+
+        <div *ngIf="!loading && filteredTasks.length === 0" class="p-32 text-center">
+          <div class="w-20 h-20 bg-surface-50 rounded-3xl flex items-center justify-center mx-auto mb-6">
+            <mat-icon class="text-gray-200 !text-4xl">inbox</mat-icon>
+          </div>
+          <p class="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Danh sách trống</p>
+        </div>
+
+        <table mat-table [dataSource]="filteredTasks" *ngIf="!loading && filteredTasks.length > 0" class="w-full">
+          <ng-container matColumnDef="title">
+            <th mat-header-cell *matHeaderCellDef class="!px-8 !py-6 !text-[10px] !font-black !text-gray-400 !uppercase !tracking-widest !border-b !border-surface-50">Tên Nhiệm vụ</th>
+            <td mat-cell *matCellDef="let task" class="!px-8 !py-6">
+              <div class="group cursor-pointer" (click)="viewTask(task)">
+                <div class="text-sm font-bold text-gray-800 group-hover:text-primary-500 transition-colors leading-tight mb-1">{{task.title}}</div>
+                <div class="flex items-center space-x-2">
+                  <span class="text-[10px] text-gray-400 font-mono">{{task.id}}</span>
+                  <span class="h-1 w-1 bg-gray-200 rounded-full"></span>
+                  <div class="flex items-center">
+                    <mat-icon *ngFor="let star of getStars(task.weight)" class="!text-[10px] text-amber-400 !w-auto !h-auto">star</mat-icon>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="intern">
+            <th mat-header-cell *matHeaderCellDef class="!px-6 !py-6 !text-[10px] !font-black !text-gray-400 !uppercase !tracking-widest !border-b !border-surface-50">Phụ trách</th>
+            <td mat-cell *matCellDef="let task" class="!px-6 !py-6">
+              <div class="flex items-center space-x-2">
+                <div class="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center text-[10px] font-bold text-indigo-600">
+                  {{ (task.assignedInterns?.[0]?.name?.charAt(0) || '?') }}
+                </div>
+                <span class="text-xs font-semibold text-gray-600">{{task.assignedInterns?.[0]?.name || '—'}}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="deadline">
+            <th mat-header-cell *matHeaderCellDef class="!px-6 !py-6 !text-[10px] !font-black !text-gray-400 !uppercase !tracking-widest !border-b !border-surface-50">Hạn chót</th>
+            <td mat-cell *matCellDef="let task" class="!px-6 !py-6">
+              <div class="flex flex-col">
+                <span class="text-xs font-bold text-gray-700">{{task.deadline | date:'dd MMM, yyyy'}}</span>
+                <span class="text-[9px] font-black uppercase text-gray-300 tracking-tighter">{{task.deadline | date:'EEEE'}}</span>
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef class="!px-6 !py-6 !text-[10px] !font-black !text-gray-400 !uppercase !tracking-widest !border-b !border-surface-50">Trạng thái</th>
+            <td mat-cell *matCellDef="let task" class="!px-6 !py-6">
+              <div [class]="'inline-flex items-center px-3 py-1.5 rounded-xl border text-[9px] font-black uppercase tracking-widest transition-all ' + getStatusClass(task.status)">
+                {{task.status}}
+              </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="!px-8 !py-6 !text-[10px] !font-black !text-gray-400 !uppercase !tracking-widest !border-b !border-surface-50 text-right"></th>
+            <td mat-cell *matCellDef="let task" class="!px-8 !py-6 text-right">
+              <div class="flex items-center justify-end space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button mat-icon-button (click)="viewTask(task)" class="!w-9 !h-9 text-gray-400 hover:text-primary-500 hover:bg-primary-50 !rounded-xl transition-all"><mat-icon class="!text-lg">east</mat-icon></button>
+              </div>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="['title', 'intern', 'deadline', 'status', 'actions']"></tr>
+          <tr mat-row *matRowDef="let row; columns: ['title', 'intern', 'deadline', 'status', 'actions'];" 
+            class="group hover:bg-surface-50/50 transition-colors cursor-pointer border-b border-surface-50 last:border-0"
+            (click)="viewTask(row)"></tr>
+        </table>
+      </div>
     </div>
 
-    <!-- RIGHT: TASK LIST -->
-    <div class="xl:col-span-2">
-      <app-ui-card paddingClass="p-0">
-        <div card-header-title class="flex items-center justify-between w-full px-8 py-6">
-          <div class="flex items-center space-x-2">
-            <mat-icon class="text-warning">format_list_bulleted</mat-icon>
-            <span class="text-lg font-bold text-gray-800">Danh sách Task</span>
+    <!-- RIGHT: DASHBOARD CARDS -->
+    <div class="hidden xl:block xl:col-span-4 sticky top-10 space-y-6">
+      <div class="p-8 bg-white border border-surface-50 rounded-[32px] shadow-soft space-y-6">
+        <div class="flex items-center justify-between">
+          <h3 class="text-sm font-black text-gray-800 uppercase tracking-widest">Năng suất tuần</h3>
+          <mat-icon class="text-primary-500 !text-lg">trending_up</mat-icon>
+        </div>
+        <div class="space-y-4">
+          <div class="flex items-end justify-between">
+            <div class="text-4xl font-black text-gray-900 tracking-tighter leading-none">85%</div>
+            <div class="text-[10px] font-bold text-emerald-500">+12% vs last week</div>
           </div>
-          
-          <div class="flex items-center space-x-2 bg-surface-50 p-1 rounded-xl border border-surface-100 overflow-x-auto">
-            <button mat-button class="!text-[10px] !font-bold !px-3 !rounded-lg" (click)="statusFilter = ''" [class.bg-white]="statusFilter === ''" [class.shadow-sm]="statusFilter === ''">TẤT CẢ</button>
-            <button mat-button class="!text-[10px] !font-bold !px-3 !rounded-lg text-orange-600" (click)="statusFilter = 'Pending'" [class.bg-white]="statusFilter === 'Pending'" [class.shadow-sm]="statusFilter === 'Pending'">PENDING</button>
-            <button mat-button class="!text-[10px] !font-bold !px-3 !rounded-lg text-yellow-600" (click)="statusFilter = 'Submitted'" [class.bg-white]="statusFilter === 'Submitted'" [class.shadow-sm]="statusFilter === 'Submitted'">SUBMITTED</button>
-            <button mat-button class="!text-[10px] !font-bold !px-3 !rounded-lg text-green-600" (click)="statusFilter = 'Reviewed'" [class.bg-white]="statusFilter === 'Reviewed'" [class.shadow-sm]="statusFilter === 'Reviewed'">REVIEWED</button>
+          <div class="h-2 w-full bg-surface-50 rounded-full overflow-hidden">
+            <div class="h-full bg-primary-500 w-[85%] rounded-full shadow-lg shadow-primary-200"></div>
           </div>
         </div>
+      </div>
 
-        <div class="px-8 pb-6">
-          <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Tìm kiếm nhiệm vụ...</mat-label>
-            <input matInput [(ngModel)]="searchText">
-            <mat-icon matSuffix class="text-gray-400">search</mat-icon>
+      <app-ui-card title="Giao nhanh" [hasHeader]="true" paddingClass="p-6">
+        <mat-icon card-icon class="text-warning">bolt</mat-icon>
+        <div class="space-y-4">
+          <mat-form-field appearance="outline" class="w-full !mb-[-1.5rem]">
+            <mat-label>Tên nhiệm vụ</mat-label>
+            <input matInput [(ngModel)]="newTask.title">
           </mat-form-field>
-        </div>
-
-        <!-- Loading State -->
-        <div *ngIf="loading" class="p-20 flex flex-col items-center justify-center space-y-4">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p class="text-sm text-gray-400 font-medium">Đang tải danh sách nhiệm vụ...</p>
-        </div>
-
-        <!-- Empty State -->
-        <div *ngIf="!loading && filteredTasks.length === 0" class="p-20 text-center space-y-4">
-          <div class="w-16 h-16 bg-surface-50 rounded-2xl flex items-center justify-center mx-auto">
-            <mat-icon class="text-gray-300 !text-3xl">assignment_late</mat-icon>
-          </div>
-          <p class="text-gray-500 font-medium">Không tìm thấy nhiệm vụ nào phù hợp</p>
-        </div>
-
-        <div *ngIf="!loading && filteredTasks.length > 0" class="overflow-x-auto">
-          <table mat-table [dataSource]="filteredTasks" class="w-full">
-            <ng-container matColumnDef="stt">
-              <th mat-header-cell *matHeaderCellDef class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50">#</th>
-              <td mat-cell *matCellDef="let task; let i = index" class="!px-6 !py-4 text-xs font-mono text-gray-400">{{i + 1}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="title">
-              <th mat-header-cell *matHeaderCellDef class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50">Nhiệm vụ</th>
-              <td mat-cell *matCellDef="let task" class="!px-6 !py-4">
-                <div class="font-bold text-gray-800 hover:text-primary-600 cursor-pointer transition-colors" (click)="viewTask(task)">{{task.title}}</div>
-                <div class="text-[10px] text-gray-400 font-medium truncate max-w-[200px]">{{task.description}}</div>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="difficulty">
-              <th mat-header-cell *matHeaderCellDef class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50">Độ khó</th>
-              <td mat-cell *matCellDef="let task" class="!px-6 !py-4">
-                <div class="flex items-center">
-                  <mat-icon *ngFor="let star of getStars(task.weight)" class="!text-xs text-yellow-500 !w-3.5 !h-3.5">star</mat-icon>
-                </div>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="deadline">
-              <th mat-header-cell *matHeaderCellDef class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50">Hạn chót</th>
-              <td mat-cell *matCellDef="let task" class="!px-6 !py-4 text-xs font-semibold text-gray-600">{{task.deadline | date:'dd/MM/yyyy'}}</td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50">Trạng thái</th>
-              <td mat-cell *matCellDef="let task" class="!px-6 !py-4">
-                <span [class]="'px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest ' + getStatusClass(task.status)">
-                  {{task.status}}
-                </span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="submission">
-              <th mat-header-cell *matHeaderCellDef class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50">Nộp bài</th>
-              <td mat-cell *matCellDef="let task" class="!px-6 !py-4">
-                <mat-icon *ngIf="task.submissionLink || task.status === 'Reviewed'" class="text-success !text-lg" matTooltip="Đã nộp">check_circle</mat-icon>
-                <mat-icon *ngIf="!task.submissionLink && task.status === 'Submitted'" class="text-warning !text-lg" matTooltip="Chờ duyệt">pending</mat-icon>
-                <mat-icon *ngIf="!task.submissionLink && task.status !== 'Submitted' && task.status !== 'Reviewed'" class="text-gray-200 !text-lg">remove_circle_outline</mat-icon>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="intern">
-              <th mat-header-cell *matHeaderCellDef class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50">Thực hiện</th>
-              <td mat-cell *matCellDef="let task" class="!px-6 !py-4">
-                <div class="flex items-center space-x-2">
-                  <div class="w-6 h-6 rounded-full bg-primary-100 flex items-center justify-center text-[10px] font-bold text-primary-600 uppercase">
-                    {{ (task.assignedInterns?.[0]?.name?.charAt(0) || '?') }}
-                  </div>
-                  <span class="text-xs font-bold text-gray-700">{{task.assignedInterns?.[0]?.name || 'Chưa giao'}}</span>
-                </div>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-right">Thao tác</th>
-              <td mat-cell *matCellDef="let task" class="!px-6 !py-4 text-right space-x-1">
-                <button mat-icon-button (click)="viewTask(task)" matTooltip="Xem chi tiết" class="!w-8 !h-8 text-gray-400 hover:text-primary-500 transition-colors">
-                  <mat-icon class="!text-lg">visibility</mat-icon>
-                </button>
-                <button *ngIf="canReview(task)" mat-icon-button (click)="openReviewModal(task)" matTooltip="Chấm điểm" class="!w-8 !h-8 text-gray-400 hover:text-warning transition-colors">
-                  <mat-icon class="!text-lg">grade</mat-icon>
-                </button>
-                <button mat-icon-button (click)="openDuplicateModal(task)" matTooltip="Sao chép" class="!w-8 !h-8 text-gray-400 hover:text-purple-500 transition-colors">
-                  <mat-icon class="!text-lg">content_copy</mat-icon>
-                </button>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;" class="hover:bg-surface-50/50 transition-colors group cursor-pointer" (click)="viewTask(row)"></tr>
-          </table>
+          <button mat-flat-button color="primary" class="w-full !rounded-2xl !py-7 font-bold shadow-lg shadow-primary-200" (click)="openAddModal()">
+             TIẾP TỤC THIẾT LẬP
+          </button>
         </div>
       </app-ui-card>
     </div>
   </div>
 
-  <!-- TASK DETAIL/EDIT MODAL -->
-  <div *ngIf="showTaskModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-    <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl relative max-h-[90vh] overflow-hidden flex flex-col border border-surface-100">
-      <div class="px-8 py-6 border-b border-surface-50 flex items-center justify-between bg-surface-50/30">
-        <div>
-          <h2 class="text-xl font-bold text-gray-900 flex items-center space-x-2">
-            <mat-icon [color]="isEditing ? 'accent' : 'primary'">{{isEditing ? 'edit' : 'assignment'}}</mat-icon>
-            <span>{{isEditing ? 'Chỉnh sửa Nhiệm vụ' : 'Chi tiết Nhiệm vụ'}}</span>
-          </h2>
-          <p class="text-xs text-gray-400 font-medium uppercase tracking-wider mt-1">{{taskDetail?.status}}</p>
-        </div>
-        <button mat-icon-button (click)="closeTaskModal()" class="bg-white/50 hover:bg-white shadow-sm transition-all"><mat-icon>close</mat-icon></button>
+  <!-- MODAL: ADD TASK -->
+  <div *ngIf="showAddModal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-xl flex items-center justify-center z-50 p-4 animate-fade-in">
+    <div class="bg-white w-full max-w-2xl rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col border border-white/20">
+      <div class="px-12 py-8 border-b border-surface-50 flex items-center justify-between">
+        <h2 class="text-2xl font-black text-gray-900 tracking-tight">Giao nhiệm vụ mới</h2>
+        <button mat-icon-button (click)="closeAddModal()" class="!w-12 !h-12 bg-surface-50 hover:bg-surface-100 rounded-2xl transition-all"><mat-icon>close</mat-icon></button>
       </div>
-
-      <div class="p-8 overflow-y-auto custom-scrollbar flex-1">
-        <div *ngIf="!isEditing" class="space-y-6">
-           <div class="grid grid-cols-2 gap-8">
-              <div class="col-span-2">
-                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Tiêu đề</label>
-                <div class="text-xl font-extrabold text-gray-900 leading-tight">{{taskDetail?.title}}</div>
-              </div>
-              <div class="col-span-2">
-                <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-2">Mô tả</label>
-                <div class="text-sm text-gray-600 bg-surface-50 p-6 rounded-2xl border border-surface-100 leading-relaxed">{{taskDetail?.description || 'Không có mô tả chi tiết'}}</div>
-              </div>
-              <div class="flex items-center space-x-3 p-4 bg-surface-50 rounded-2xl">
-                 <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm"><mat-icon class="text-primary-500">event</mat-icon></div>
-                 <div>
-                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Hạn chót</div>
-                    <div class="text-sm font-bold text-gray-800">{{taskDetail?.deadline | date:'dd/MM/yyyy'}}</div>
-                 </div>
-              </div>
-              <div class="flex items-center space-x-3 p-4 bg-surface-50 rounded-2xl">
-                 <div class="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm"><mat-icon class="text-warning">grade</mat-icon></div>
-                 <div>
-                    <div class="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Điểm số</div>
-                    <div class="text-sm font-bold text-gray-800">{{ taskDetail?.score !== null ? (taskDetail?.score + '/10') : 'Chưa chấm' }}</div>
-                 </div>
-              </div>
-           </div>
-        </div>
-
-        <div *ngIf="isEditing" class="space-y-6">
+      <div class="p-12 space-y-6 overflow-y-auto custom-scrollbar">
           <mat-form-field appearance="outline" class="w-full">
             <mat-label>Tiêu đề</mat-label>
-            <input matInput [(ngModel)]="editForm.title">
+            <input matInput [(ngModel)]="newTask.title" class="!font-bold">
           </mat-form-field>
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Mô tả</mat-label>
-            <textarea matInput rows="4" [(ngModel)]="editForm.description"></textarea>
+            <mat-label>Mô tả chi tiết</mat-label>
+            <textarea matInput rows="4" [(ngModel)]="newTask.description"></textarea>
           </mat-form-field>
           <div class="grid grid-cols-2 gap-6">
             <mat-form-field appearance="outline">
-              <mat-label>Deadline</mat-label>
-              <input matInput [matDatepicker]="editPicker" [(ngModel)]="editForm.deadline">
-              <mat-datepicker-toggle matIconSuffix [for]="editPicker"></mat-datepicker-toggle>
-              <mat-datepicker #editPicker></mat-datepicker>
+              <mat-label>Thời hạn</mat-label>
+              <input matInput [matDatepicker]="addPicker" [(ngModel)]="newTask.deadline">
+              <mat-datepicker-toggle matIconSuffix [for]="addPicker"></mat-datepicker-toggle>
+              <mat-datepicker #addPicker></mat-datepicker>
             </mat-form-field>
             <mat-form-field appearance="outline">
-              <mat-label>Độ khó</mat-label>
-              <mat-select [(ngModel)]="editForm.weight">
-                <mat-option [value]="1">⭐ 1</mat-option>
-                <mat-option [value]="2">⭐⭐ 2</mat-option>
-                <mat-option [value]="3">⭐⭐⭐ 3</mat-option>
-                <mat-option [value]="4">⭐⭐⭐⭐ 4</mat-option>
-                <mat-option [value]="5">⭐⭐⭐⭐⭐ 5</mat-option>
+              <mat-label>Skill yêu cầu</mat-label>
+              <mat-select [(ngModel)]="selectedSkillId">
+                <mat-option *ngFor="let s of skills" [value]="s.id">{{s.name}}</mat-option>
               </mat-select>
             </mat-form-field>
           </div>
-        </div>
+          <div class="space-y-4">
+             <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block">Thực hiện bởi</label>
+             <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+                <div *ngFor="let intern of interns" (click)="selectedInternId = intern.id"
+                  [class]="'p-3 border rounded-xl text-xs font-bold transition-all cursor-pointer ' + (selectedInternId === intern.id ? 'bg-primary-500 border-primary-500 text-white shadow-lg' : 'bg-surface-50 border-surface-100 text-gray-600 hover:bg-white')">
+                  {{intern.name}}
+                </div>
+             </div>
+          </div>
       </div>
-
-      <div class="p-8 border-t border-surface-50 bg-surface-50/30 flex justify-end space-x-3">
-        <ng-container *ngIf="!isEditing">
-          <button mat-stroked-button color="primary" class="!rounded-xl" (click)="startEditing()"><mat-icon class="mr-1">edit</mat-icon> Chỉnh sửa</button>
-          <button mat-stroked-button color="warn" class="!rounded-xl" (click)="deleteTask(selectedTask)"><mat-icon class="mr-1">delete</mat-icon> Xóa</button>
-        </ng-container>
-        <ng-container *ngIf="isEditing">
-          <button mat-stroked-button class="!rounded-xl" (click)="cancelEdit()">Hủy bỏ</button>
-          <button mat-flat-button color="primary" class="!rounded-xl !px-8 shadow-lg shadow-primary-200" (click)="saveEdit()">
-            <mat-icon class="mr-1">save</mat-icon> Lưu thay đổi
-          </button>
-        </ng-container>
-      </div>
-    </div>
-  </div>
-
-  <!-- REVIEW MODAL -->
-  <div *ngIf="showReviewModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl relative flex flex-col border border-surface-100">
-      <div class="px-8 py-6 border-b border-surface-50 flex items-center justify-between">
-        <h2 class="text-xl font-bold text-gray-900 flex items-center space-x-2">
-          <mat-icon class="text-warning">grade</mat-icon>
-          <span>Chấm điểm Nhiệm vụ</span>
-        </h2>
-        <button mat-icon-button (click)="closeReviewModal()"><mat-icon>close</mat-icon></button>
-      </div>
-      <div class="p-8 space-y-6">
-        <div>
-          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block mb-1">Nhiệm vụ</label>
-          <div class="font-bold text-gray-800">{{reviewTaskData?.title}}</div>
-        </div>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Điểm số (0 - 10)</mat-label>
-          <input matInput type="number" [(ngModel)]="reviewScore" min="0" max="10" step="0.1">
-          <mat-icon matSuffix>star</mat-icon>
-        </mat-form-field>
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Nhận xét</mat-label>
-          <textarea matInput rows="3" [(ngModel)]="reviewComment"></textarea>
-        </mat-form-field>
-      </div>
-      <div class="px-8 py-6 border-t border-surface-50 flex justify-end space-x-3">
-        <button mat-stroked-button class="!rounded-xl" (click)="closeReviewModal()">Hủy</button>
-        <button mat-flat-button color="primary" class="!rounded-xl shadow-lg shadow-primary-200" (click)="submitReview()" [disabled]="!isValidScore()">Xác nhận</button>
+      <div class="px-12 py-8 bg-surface-50/50 border-t border-surface-50 flex justify-end space-x-3">
+        <button mat-button class="!rounded-2xl !px-10" (click)="closeAddModal()">Hủy bỏ</button>
+        <button mat-flat-button color="primary" class="!rounded-2xl !px-10 !py-6 font-bold shadow-lg shadow-primary-200" (click)="createTask()" [disabled]="!newTask.title || !newTask.deadline || !selectedInternId">
+           XÁC NHẬN GIAO TASK
+        </button>
       </div>
     </div>
   </div>
 
-  <!-- DUPLICATE MODAL -->
-  <div *ngIf="showDuplicateModal" class="fixed inset-0 bg-gray-900/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-    <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl relative flex flex-col border border-surface-100">
-      <div class="px-8 py-6 border-b border-surface-50 flex items-center justify-between">
-        <h2 class="text-xl font-bold text-gray-900 flex items-center space-x-2">
-          <mat-icon class="text-purple-500">content_copy</mat-icon>
-          <span>Sao chép Nhiệm vụ</span>
-        </h2>
-        <button mat-icon-button (click)="closeDuplicateModal()"><mat-icon>close</mat-icon></button>
-      </div>
-      <div class="p-8 space-y-6">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Deadline mới</mat-label>
-          <input matInput type="date" [(ngModel)]="duplicateDeadlineStr">
-        </mat-form-field>
-        <div class="space-y-3">
-          <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest block">Chọn Intern nhận task</label>
-          <div class="border border-surface-100 rounded-2xl bg-surface-50 max-h-48 overflow-y-auto p-2">
-            <div *ngFor="let intern of interns" 
-                 class="flex items-center space-x-3 px-3 py-2 rounded-xl hover:bg-white transition-all cursor-pointer"
-                 (click)="toggleDuplicateIntern(intern.id)">
-              <div class="w-4 h-4 rounded border-2 flex items-center justify-center transition-all"
-                   [class.bg-primary-500]="isDuplicateInternSelected(intern.id)"
-                   [class.border-primary-500]="isDuplicateInternSelected(intern.id)"
-                   [class.border-gray-300]="!isDuplicateInternSelected(intern.id)">
-                <mat-icon *ngIf="isDuplicateInternSelected(intern.id)" class="!text-[10px] !w-auto !h-auto text-white">check</mat-icon>
-              </div>
-              <span class="text-sm font-medium text-gray-700">{{intern.name}}</span>
+  <!-- MODAL: TASK DETAIL (Keeping existing Side-by-Side design) -->
+  <div *ngIf="showTaskModal" class="fixed inset-0 bg-gray-950/80 backdrop-blur-xl flex items-center justify-center z-50 p-4 md:p-10 animate-fade-in">
+    <div class="bg-white w-full max-w-5xl h-full max-h-[850px] rounded-[40px] shadow-2xl relative overflow-hidden flex flex-col border border-white/20">
+      <div class="px-12 py-8 border-b border-surface-50 flex items-center justify-between">
+        <div class="flex items-center space-x-4">
+          <div class="w-14 h-14 bg-primary-500 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-primary-100">
+             <mat-icon class="!text-2xl">{{isEditing ? 'edit_note' : 'assignment'}}</mat-icon>
+          </div>
+          <div>
+            <h2 class="text-2xl font-black text-gray-900 tracking-tight leading-none">{{isEditing ? 'Chỉnh sửa' : 'Chi tiết Nhiệm vụ'}}</h2>
+            <div class="flex items-center space-x-2 mt-2">
+              <span [class]="'px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-widest border ' + getStatusClass(taskDetail?.status)">{{taskDetail?.status}}</span>
+              <span class="text-[10px] text-gray-300 font-mono tracking-tighter">TASK-ID: {{taskDetail?.id}}</span>
             </div>
           </div>
         </div>
+        <button mat-icon-button (click)="closeTaskModal()" class="!w-12 !h-12 bg-surface-50 hover:bg-surface-100 rounded-2xl transition-all"><mat-icon>close</mat-icon></button>
       </div>
-      <div class="px-8 py-6 border-t border-surface-50 flex justify-end space-x-3">
-        <button mat-stroked-button class="!rounded-xl" (click)="closeDuplicateModal()">Hủy</button>
-        <button mat-flat-button color="primary" class="!rounded-xl shadow-lg shadow-primary-200" (click)="confirmDuplicate()" 
-                [disabled]="duplicateSelectedInternIds.length === 0 || !duplicateDeadlineStr || isDuplicating">
-          Sao chép ({{duplicateSelectedInternIds.length}})
-        </button>
+      <div class="flex-1 overflow-y-auto custom-scrollbar p-12">
+        <div *ngIf="!isEditing" class="grid grid-cols-12 gap-12 animate-fade-in-up">
+          <div class="col-span-12 lg:col-span-7 space-y-10">
+            <div class="space-y-4">
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 font-mono tracking-widest">Tiêu đề nhiệm vụ</label>
+              <h3 class="text-3xl font-extrabold text-gray-900 leading-tight tracking-tight">{{taskDetail?.title}}</h3>
+            </div>
+            <div class="space-y-4">
+              <label class="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2 font-mono tracking-widest">Mô tả chi tiết</label>
+              <div class="text-base text-gray-600 leading-relaxed font-medium bg-surface-50 p-8 rounded-[32px] border border-surface-100 min-h-[120px]">{{taskDetail?.description}}</div>
+            </div>
+            <div class="grid grid-cols-2 gap-6">
+               <div class="p-6 bg-surface-50 rounded-3xl border border-surface-100 flex flex-col justify-between h-32">
+                  <mat-icon class="text-gray-300">calendar_month</mat-icon>
+                  <div>
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Thời hạn</label>
+                    <div class="text-sm font-bold text-gray-800">{{taskDetail?.deadline | date:'dd/MM/yyyy'}}</div>
+                  </div>
+               </div>
+               <div class="p-6 bg-surface-50 rounded-3xl border border-surface-100 flex flex-col justify-between h-32">
+                  <mat-icon class="text-gray-300">military_tech</mat-icon>
+                  <div>
+                    <label class="text-[9px] font-black text-gray-400 uppercase tracking-widest">Độ khó</label>
+                    <div class="flex items-center space-x-1">
+                      <mat-icon *ngFor="let s of getStars(taskDetail?.weight || 1)" class="!text-xs text-amber-500 !w-auto !h-auto">star</mat-icon>
+                    </div>
+                  </div>
+               </div>
+            </div>
+          </div>
+          <div class="col-span-12 lg:col-span-5 space-y-10">
+            <div class="space-y-4 p-8 bg-emerald-50/50 border border-emerald-100 rounded-[32px]">
+               <label class="text-[10px] font-black text-emerald-600 uppercase tracking-widest flex items-center"><mat-icon class="!text-sm mr-1">verified</mat-icon> Đánh giá & Kết quả</label>
+               <div class="flex items-baseline space-x-2">
+                 <span class="text-5xl font-black text-emerald-600 leading-none">{{ taskDetail?.score !== null ? taskDetail?.score : '—' }}</span>
+                 <span class="text-xs font-bold text-emerald-400 uppercase tracking-widest">/ 10 điểm</span>
+               </div>
+               <p class="text-xs text-emerald-800/60 font-medium italic leading-relaxed pt-2">{{ taskDetail?.reviewComment || 'Chưa có nhận xét.' }}</p>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="isEditing" class="max-w-3xl mx-auto space-y-8 animate-fade-in-up">
+           <mat-form-field appearance="outline" class="w-full"><mat-label>Tiêu đề</mat-label><input matInput [(ngModel)]="editForm.title"></mat-form-field>
+           <mat-form-field appearance="outline" class="w-full"><mat-label>Mô tả chi tiết</mat-label><textarea matInput rows="6" [(ngModel)]="editForm.description"></textarea></mat-form-field>
+           <div class="grid grid-cols-2 gap-8">
+             <mat-form-field appearance="outline"><mat-label>Thời hạn</mat-label><input matInput [matDatepicker]="modalEditPicker" [(ngModel)]="editForm.deadline"><mat-datepicker-toggle matIconSuffix [for]="modalEditPicker"></mat-datepicker-toggle><mat-datepicker #modalEditPicker></mat-datepicker></mat-form-field>
+             <mat-form-field appearance="outline"><mat-label>Trọng số</mat-label><mat-select [(ngModel)]="editForm.weight"><mat-option *ngFor="let n of [1,2,3,4,5]" [value]="n">{{n}} ⭐</mat-option></mat-select></mat-form-field>
+           </div>
+        </div>
+      </div>
+      <div class="px-12 py-8 bg-surface-50/50 border-t border-surface-50 flex items-center justify-between">
+        <button *ngIf="!isEditing" mat-stroked-button color="warn" class="!rounded-2xl !px-6" (click)="deleteTask(selectedTask)">Xóa Task</button>
+        <div class="flex space-x-3">
+          <button *ngIf="!isEditing" mat-flat-button color="primary" class="!rounded-2xl !px-10 !py-6 shadow-lg shadow-primary-200 font-bold" (click)="startEditing()">Chỉnh sửa</button>
+          <button *ngIf="isEditing" mat-button class="!rounded-2xl !px-10" (click)="cancelEdit()">Hủy bỏ</button>
+          <button *ngIf="isEditing" mat-flat-button color="primary" class="!rounded-2xl !px-10 !py-6 shadow-lg shadow-primary-200 font-bold" (click)="saveEdit()">Lưu thay đổi</button>
+        </div>
       </div>
     </div>
   </div>
