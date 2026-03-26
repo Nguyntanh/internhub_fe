@@ -13,6 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import { RoleService } from '../../../auth/role.service';
+import { ExportService } from '../../../services/export.service';
 
 // ─── Models ───────────────────────────────────────────────────────────────────
 
@@ -81,11 +82,15 @@ export class AnalyticsComponent implements OnInit {
   // Chart rendered flag
   chartRendered = false;
 
+  // Export state
+  isExporting = false;
+
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private roleService: RoleService,
+    private exportService: ExportService,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     afterNextRender(() => {
@@ -100,10 +105,8 @@ export class AnalyticsComponent implements OnInit {
     this.isIntern = this.roleService.isIntern();
 
     if (this.isIntern) {
-      // INTERN: tự động load radar cho chính mình
       this.loadOwnRadar();
     } else {
-      // ADMIN / HR / MANAGER / MENTOR: load danh sách intern
       this.loadInterns();
     }
   }
@@ -113,8 +116,6 @@ export class AnalyticsComponent implements OnInit {
   private loadInterns(): void {
     this.isLoadingInterns = true;
 
-    // ADMIN, HR: lấy tất cả intern
-    // MENTOR: lấy intern mình phụ trách
     const url =
       this.currentRole === 'ADMIN' || this.currentRole === 'HR'
         ? `${this.API}/admin/users/all`
@@ -131,7 +132,6 @@ export class AnalyticsComponent implements OnInit {
       .subscribe({
         next: (data) => {
           this.zone.run(() => {
-            // Lọc chỉ lấy role INTERN nếu gọi /admin/users/all
             if (this.currentRole === 'ADMIN' || this.currentRole === 'HR') {
               this.interns = data
                 .filter((u) => (u.roleName || '').toUpperCase() === 'INTERN')
@@ -151,24 +151,14 @@ export class AnalyticsComponent implements OnInit {
   // ── INTERN xem radar của chính mình ───────────────────────────────────────
 
   private loadOwnRadar(): void {
-    // Lấy userId từ JWT
     try {
       const token = localStorage.getItem('jwt_token');
       if (!token) return;
       const payload = JSON.parse(atob(token.split('.')[1]));
-      // Tìm user id — cần gọi profile để lấy
       this.http.get<any>(`${this.API}/user/profile`).subscribe({
         next: () => {
-          // Gọi radar với intern's own ID
-          // Vì INTERN có thể lấy id từ endpoint intern dashboard hoặc profile
-          // Ta dùng endpoint radar và pass "me" concept — nhưng BE cần internId
-          // Giải pháp: gọi /api/v1/intern/dashboard để lấy context, rồi xác định ID
           this.http.get<any>(`${this.API}/v1/intern/dashboard`).subscribe({
             next: (_) => {
-              // Gọi radar — cần internId; lấy từ JWT sub (email) → tìm user
-              // Dùng profile để biết, nhưng profile không trả id trực tiếp
-              // Giải pháp đơn giản: parse JWT để lấy email, rồi gọi radar với sub=self
-              // Thay thế bằng cách dùng endpoint /api/radar/intern/{id} với id từ users/all
               this.fetchCurrentUserId();
             },
             error: () => this.fetchCurrentUserId(),
@@ -182,15 +172,12 @@ export class AnalyticsComponent implements OnInit {
   }
 
   private fetchCurrentUserId(): void {
-    // Lấy userId từ admin users list (self-reference thông qua email trong token)
     try {
       const token = localStorage.getItem('jwt_token');
       if (!token) return;
       const payload = JSON.parse(atob(token.split('.')[1]));
       const email = payload.sub || payload.email || '';
 
-      // Dùng /api/admin/users/all để tìm mình — nhưng INTERN không có quyền
-      // Thay thế: tìm từ /api/user/interns (public intern list)
       this.http.get<any[]>(`${this.API}/user/interns`).subscribe({
         next: (interns) => {
           const me = interns.find((i) => i.email === email);
@@ -241,7 +228,6 @@ export class AnalyticsComponent implements OnInit {
           this.zone.run(() => {
             this.radarData = data;
             this.cdr.detectChanges();
-            // Render chart sau khi DOM cập nhật
             setTimeout(() => this.renderRadarChart(), 100);
           });
         },
@@ -260,6 +246,31 @@ export class AnalyticsComponent implements OnInit {
       });
   }
 
+  // ── Xuất Excel ────────────────────────────────────────────────────────────
+
+  exportInternExcel(): void {
+    if (!this.radarData) return;
+    const internId = this.radarData.internId;
+    const internName = this.radarData.internName;
+
+    this.isExporting = true;
+    this.cdr.detectChanges();
+
+    this.exportService.exportInternExcel(internId).subscribe({
+      next: (blob) => {
+        const filename = `bao-cao-${internName.replace(/\s+/g, '-')}.xlsx`;
+        this.exportService.downloadBlob(blob, filename);
+        this.isExporting = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        alert('Xuất báo cáo thất bại. Vui lòng thử lại.');
+        this.isExporting = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
   // ── Vẽ Radar Chart với Chart.js ───────────────────────────────────────────
 
   private renderRadarChart(): void {
@@ -269,7 +280,6 @@ export class AnalyticsComponent implements OnInit {
     const canvas = document.getElementById('radarChart') as HTMLCanvasElement;
     if (!canvas) return;
 
-    // Destroy old chart nếu có
     const existing = (window as any).__radarChartInstance;
     if (existing) {
       existing.destroy();
@@ -290,7 +300,6 @@ export class AnalyticsComponent implements OnInit {
 
     const Chart = (window as any).Chart;
     if (!Chart) {
-      // Chart.js chưa load xong — thử lại
       setTimeout(() => this.renderRadarChart(), 300);
       return;
     }
@@ -410,10 +419,10 @@ export class AnalyticsComponent implements OnInit {
     return !!this.radarData && this.radarData.skillScores.length > 0;
   }
 
-  // Track by
   trackBySkillId(_: number, s: SkillScore): number {
     return s.skillId;
   }
+
   trackByInternId(_: number, i: InternItem): number {
     return i.id;
   }

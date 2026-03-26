@@ -43,4 +43,15 @@ export const API_ENDPOINTS = {
   Radar: {
     byInternId: (id: number) => `${BASE_API_URL}/radar/intern/${id}`,
   },
+
+  Export: {
+    internExcel: (id: number) => `${BASE_API_URL}/export/intern/${id}/excel`,
+    groupExcel: (departmentId?: number, universityId?: number) => {
+      const params = new URLSearchParams();
+      if (departmentId) params.set('departmentId', String(departmentId));
+      if (universityId) params.set('universityId', String(universityId));
+      const q = params.toString();
+      return `${BASE_API_URL}/export/group/excel${q ? '?' + q : ''}`;
+    },
+  },
 };
