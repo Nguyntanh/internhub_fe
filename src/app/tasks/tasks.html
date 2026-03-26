@@ -207,14 +207,14 @@
   <!-- DRAWER OVERLAY (BACKDROP) -->
   <div
     *ngIf="showAddModal || showTaskModal"
-    class="fixed inset-0 bg-gray-900/20 backdrop-blur-[2px] z-[40] transition-all animate-fade-in"
+    class="fixed top-16 inset-x-0 bottom-0 bg-gray-900/30 backdrop-blur-sm z-[40] transition-all animate-fade-in"
     (click)="closeAddModal(); closeTaskModal()"
   ></div>
 
   <!-- CREATE TASK DRAWER -->
   <div
     [class]="
-      'fixed top-0 right-0 h-full w-full max-w-md bg-white shadow-2xl z-[50] transition-transform duration-300 border-l border-surface-50 flex flex-col ' +
+      'fixed top-16 right-0 h-[calc(100vh-4rem)] w-full max-w-md bg-white shadow-2xl z-[50] transition-transform duration-300 border-l border-surface-50 flex flex-col ' +
       (showAddModal ? 'translate-x-0' : 'translate-x-full')
     "
   >
@@ -304,7 +304,7 @@
   <!-- TASK DETAIL DRAWER -->
   <div
     [class]="
-      'fixed top-0 right-0 h-full w-full max-w-lg bg-white shadow-2xl z-[50] transition-transform duration-300 border-l border-surface-50 flex flex-col ' +
+      'fixed top-16 right-0 h-[calc(100vh-4rem)] w-full max-w-lg bg-white shadow-2xl z-[50] transition-transform duration-300 border-l border-surface-50 flex flex-col ' +
       (showTaskModal ? 'translate-x-0' : 'translate-x-full')
     "
   >
