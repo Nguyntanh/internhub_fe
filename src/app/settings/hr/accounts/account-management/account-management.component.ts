@@ -31,6 +31,9 @@ import { RolePermissionService } from '../../../../services/role-permission.serv
 import { PermissionService } from '../../../../services/permission.service'; // Import PermissionService
 import { Subject, takeUntil, combineLatest } from 'rxjs'; // Import Subject, takeUntil, combineLatest
 
+import { UiCardComponent } from '../../../../shared/components/ui-card/ui-card.component';
+import { UiPageHeaderComponent } from '../../../../shared/components/ui-page-header/ui-page-header.component';
+
 @Component({
   selector: 'app-account-management',
   standalone: true,
@@ -44,11 +47,14 @@ import { Subject, takeUntil, combineLatest } from 'rxjs'; // Import Subject, tak
     MatCheckboxModule,
     MatRadioModule, // For mat-radio-group
     MatProgressSpinnerModule, // For mat-spinner
+    UiCardComponent, // New
+    UiPageHeaderComponent, // New
   ],
   templateUrl: './account-management.component.html',
   styleUrls: ['./account-management.component.css'],
 })
-export class AccountManagementComponent implements OnInit, OnDestroy { // Implement OnDestroy
+export class AccountManagementComponent implements OnInit, OnDestroy {
+ // Implement OnDestroy
   rolesHeader: string[] = [];
   roleDefinitions: Role[] = [];
   permissionMatrix: PermissionMatrix | null = null;

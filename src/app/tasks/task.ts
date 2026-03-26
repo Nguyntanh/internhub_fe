@@ -20,6 +20,8 @@ import { MatTableModule } from '@angular/material/table';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatRadioModule } from '@angular/material/radio';
+import { UiCardComponent } from '../shared/components/ui-card/ui-card.component';
+import { UiPageHeaderComponent } from '../shared/components/ui-page-header/ui-page-header.component';
 
 @Component({
   selector: 'app-tasks',
@@ -40,7 +42,9 @@ import { MatRadioModule } from '@angular/material/radio';
     MatTableModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
-    MatRadioModule
+    MatRadioModule,
+    UiCardComponent,
+    UiPageHeaderComponent
   ],
   templateUrl: './tasks.html'
 })

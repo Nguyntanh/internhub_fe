@@ -12,7 +12,9 @@ import { InternDashboardService, InternDashboardResponse } from '../../services/
 import { catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // Import MatProgressSpinnerModule
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { UiCardComponent } from '../../shared/components/ui-card/ui-card.component';
+import { UiPageHeaderComponent } from '../../shared/components/ui-page-header/ui-page-header.component';
 
 @Component({
   selector: 'app-intern-dashboard',
@@ -26,7 +28,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; /
     MatTooltipModule,
     MatChipsModule,
     MatExpansionModule,
-    MatProgressSpinnerModule // Add MatProgressSpinnerModule here
+    MatProgressSpinnerModule,
+    UiCardComponent,
+    UiPageHeaderComponent,
   ],
   providers: [DatePipe],
   templateUrl: './intern-dashboard.component.html',

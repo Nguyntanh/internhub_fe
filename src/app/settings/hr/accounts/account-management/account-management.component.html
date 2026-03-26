@@ -1,56 +1,81 @@
-<div class="account-management-container">
-  <div class="header">
-    <h2 class="title">Quản lý Tài khoản & Phân quyền</h2>
-    <button mat-raised-button color="primary" (click)="openCreateUserDialog()">
-      <mat-icon>add</mat-icon> Thêm tài khoản mới
-    </button>
+<app-ui-page-header 
+  title="Quản lý Tài khoản & Phân quyền" 
+  subtitle="Thiết lập vai trò và quyền hạn truy cập hệ thống"
+>
+  <button 
+    mat-flat-button 
+    color="primary" 
+    class="!rounded-xl !py-6 !px-6 shadow-lg shadow-primary-200"
+    (click)="openCreateUserDialog()"
+  >
+    <mat-icon class="mr-2">add</mat-icon> 
+    <span class="font-semibold text-white">Thêm tài khoản mới</span>
+  </button>
+</app-ui-page-header>
+
+<app-ui-card [hasHeader]="true" paddingClass="p-0">
+  <div card-header-title class="flex items-center space-x-2">
+    <mat-icon class="text-primary-500">security</mat-icon>
+    <span class="text-lg font-bold text-gray-800">Bảng Phân quyền (RBAC Matrix)</span>
   </div>
 
-  <mat-card class="rbac-matrix-card">
-    <mat-card-header>
-      <mat-card-title>Bảng Phân quyền (RBAC Matrix)</mat-card-title>
-    </mat-card-header>
-    <mat-card-content>
-      <div *ngIf="isLoading" class="loading-spinner">
-        <mat-spinner></mat-spinner>
-        <p>Đang tải quyền hạn...</p>
-      </div>
+  <div card-actions *ngIf="!isLoading && permissionMatrix">
+    <div class="bg-surface-50 p-1 rounded-xl border border-surface-100 scale-90 md:scale-100">
+      <mat-radio-group [(ngModel)]="selectedPermissionType" class="flex items-center space-x-1">
+        <mat-radio-button value="canCreate" class="modern-radio">Create</mat-radio-button>
+        <mat-radio-button value="canAccess" class="modern-radio">Read</mat-radio-button>
+        <mat-radio-button value="canEdit" class="modern-radio">Update</mat-radio-button>
+        <mat-radio-button value="canDelete" class="modern-radio">Delete</mat-radio-button>
+      </mat-radio-group>
+    </div>
+  </div>
 
-      <div *ngIf="!isLoading && permissionMatrix" class="permission-controls">
-        <mat-radio-group [(ngModel)]="selectedPermissionType" class="permission-radio-group">
-          <mat-radio-button value="canCreate">Create</mat-radio-button>
-          <mat-radio-button value="canAccess">Read (Access)</mat-radio-button>
-          <mat-radio-button value="canEdit">Update</mat-radio-button>
-          <mat-radio-button value="canDelete">Delete</mat-radio-button>
-        </mat-radio-group>
-      </div>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex flex-col items-center justify-center p-20 space-y-4">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p class="text-sm text-gray-400 font-medium animate-pulse">Đang tải dữ liệu hệ thống...</p>
+  </div>
 
-      <div *ngIf="!isLoading && permissionMatrix" class="table-responsive">
-        <table class="rbac-table">
-          <thead>
-            <tr>
-              <th class="sticky-col-1">Tính năng / Module</th>
-              <th *ngFor="let roleDef of roleDefinitions" class="role-header">{{ roleDef.name }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <ng-container *ngFor="let group of permissionMatrix!.groups; trackBy: trackByGroup">
-              <tr class="group-header-row">
-                <td [attr.colspan]="roleDefinitions.length + 1">{{ group.name }}</td>
-              </tr>
-              <tr *ngFor="let feature of group.features; trackBy: trackByFeatureId">
-                <td class="sticky-col-1 feature-name">{{ feature.name }} ({{ feature.id }})</td>
-                <td *ngFor="let roleDef of roleDefinitions; trackBy: trackByRoleId" class="permission-cell">
-                  <mat-checkbox
-                    [checked]="isPermissionEnabled(feature, roleDef.id, selectedPermissionType)"
-                    (change)="onPermissionChange(feature, roleDef, selectedPermissionType, $event)"
-                  ></mat-checkbox>
-                </td>
-              </tr>
-            </ng-container>
-          </tbody>
-        </table>
-      </div>
-    </mat-card-content>
-  </mat-card>
-</div>
+  <!-- Table Section -->
+  <div *ngIf="!isLoading && permissionMatrix" class="overflow-x-auto">
+    <table class="w-full border-collapse">
+      <thead class="bg-surface-50">
+        <tr>
+          <th class="sticky left-0 z-20 bg-surface-50 px-8 py-5 text-left text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-surface-100 min-w-[300px]">
+            Tính năng / Module
+          </th>
+          <th *ngFor="let roleDef of roleDefinitions" class="px-6 py-5 text-center text-xs font-bold text-gray-500 uppercase tracking-widest border-b border-surface-100 min-w-[120px]">
+            {{ roleDef.name }}
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-surface-50">
+        <ng-container *ngFor="let group of permissionMatrix!.groups; trackBy: trackByGroup">
+          <!-- Group Header -->
+          <tr class="bg-surface-50/50">
+            <td [attr.colspan]="roleDefinitions.length + 1" class="px-8 py-3 text-[11px] font-bold text-primary-600 bg-primary-50/20 uppercase tracking-widest">
+              {{ group.name }}
+            </td>
+          </tr>
+          <!-- Feature Rows -->
+          <tr *ngFor="let feature of group.features; trackBy: trackByFeatureId" class="hover:bg-surface-50/50 transition-colors group">
+            <td class="sticky left-0 z-10 bg-white group-hover:bg-surface-50/80 px-8 py-4 text-sm font-semibold text-gray-700 border-r border-surface-50">
+              <div class="flex flex-col">
+                <span class="group-hover:text-primary-600 transition-colors">{{ feature.name }}</span>
+                <span class="text-[10px] text-gray-400 font-mono">{{ feature.id }}</span>
+              </div>
+            </td>
+            <td *ngFor="let roleDef of roleDefinitions; trackBy: trackByRoleId" class="px-6 py-4 text-center">
+              <mat-checkbox
+                color="primary"
+                class="scale-110"
+                [checked]="isPermissionEnabled(feature, roleDef.id, selectedPermissionType)"
+                (change)="onPermissionChange(feature, roleDef, selectedPermissionType, $event)"
+              ></mat-checkbox>
+            </td>
+          </tr>
+        </ng-container>
+      </tbody>
+    </table>
+  </div>
+</app-ui-card>

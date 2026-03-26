@@ -1,38 +1,58 @@
-<div class="flex items-center justify-between h-16 px-6 bg-white border-b border-gray-200">
-  <div class="flex items-center">
-    <!-- Left: Sidebar Toggle -->
-    <button class="text-gray-500 hover:text-gray-700 focus:outline-none ml-4" (click)="onToggleSidebar()">
-      <svg class="h-6 w-6 transition-transform duration-300" [ngClass]="{'rotate-180': !isSidebarVisible}" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M3 6.75C3 6.33579 3.33579 6 3.75 6H20.25C20.6642 6 21 6.33579 21 6.75C21 7.16421 20.6642 7.5 20.25 7.5H3.75C3.33579 7.5 3 7.16421 3 6.75ZM3 12C3 11.5858 3.33579 11.25 3.75 11.25H20.25C20.6642 11.25 21 11.5858 21 12C21 12.4142 20.6642 12.75 20.25 12.75H3.75C3.33579 7.5 3 7.16421 3 6.75ZM3 17.25C3 16.8358 3.33579 16.5 3.75 16.5H20.25C20.6642 16.5 21 16.8358 21 17.25C21 17.6642 20.6642 18 20.25 18H3.75C3.33579 18 3 17.6642 3 17.25Z" />
+<div class="flex items-center justify-between h-20 px-8 bg-white/80 backdrop-blur-md border-b border-surface-100 sticky top-0 z-30">
+  <div class="flex items-center space-x-6">
+    <!-- Sidebar Toggle -->
+    <button 
+      class="p-2 rounded-xl text-gray-400 hover:bg-surface-50 hover:text-primary-500 transition-all duration-200 focus:outline-none" 
+      (click)="onToggleSidebar()"
+    >
+      <svg class="h-6 w-6 transition-transform duration-300" [ngClass]="{'rotate-180': !isSidebarVisible}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
       </svg>
     </button>
 
-    <!-- Grouped Navigation and Breadcrumb -->
-    <div class="flex items-center ml-4">
-      <button *ngIf="showBackArrow" class="text-gray-500 hover:text-gray-700 focus:outline-none mr-2 h-full inline-flex items-center justify-center" (click)="navigateBack()">
-        <mat-icon>chevron_left</mat-icon>
+    <!-- Breadcrumb & Back Arrow -->
+    <div class="flex items-center space-x-2">
+      <button 
+        *ngIf="showBackArrow" 
+        class="p-1.5 rounded-lg text-gray-400 hover:bg-surface-50 hover:text-primary-500 transition-all" 
+        (click)="navigateBack()"
+      >
+        <mat-icon class="!text-xl">arrow_back</mat-icon>
       </button>
+      <div class="h-6 w-px bg-surface-100 mx-2" *ngIf="showBackArrow"></div>
       <app-breadcrumb></app-breadcrumb>
     </div>
   </div>
 
-  <!-- Right: Notification and User Profile -->
-  <div class="flex items-center space-x-4">
-    <!-- Notification Icon -->
-    <button class="text-gray-500 hover:text-gray-700 focus:outline-none">
-      <svg class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-        <path fill-rule="evenodd" clip-rule="evenodd" d="M5.25001 8.9998C5.25012 5.27197 8.27215 2.25 12 2.25C15.7279 2.25 18.75 5.27208 18.75 9L18.7498 9.04919V9.75C18.7498 11.8731 19.5508 13.8074 20.8684 15.2699C21.0349 15.4547 21.0989 15.71 21.0393 15.9516C20.9797 16.1931 20.8042 16.3893 20.5709 16.4755C19.0269 17.0455 17.4105 17.4659 15.7396 17.7192C15.7465 17.812 15.75 17.9056 15.75 18C15.75 20.0711 14.0711 21.75 12 21.75C9.92894 21.75 8.25001 20.0711 8.25001 18C8.25001 17.9056 8.25351 17.812 8.2604 17.7192C6.58934 17.4659 4.97287 17.0455 3.42875 16.4755C3.19539 16.3893 3.01992 16.1931 2.96033 15.9516C2.90073 15.71 2.96476 15.4547 3.13126 15.2699C4.44879 13.8074 5.24981 11.8731 5.24981 9.75L5.25001 8.9998ZM9.75221 17.8993C9.75075 17.9326 9.75001 17.9662 9.75001 18C9.75001 19.2426 10.7574 20.25 12 20.25C13.2427 20.25 14.25 19.2426 14.25 18C14.25 17.9662 14.2493 17.9326 14.2478 17.8992C13.5072 17.9659 12.7574 18 11.9998 18C11.2424 18 10.4927 17.966 9.75221 17.8993Z" />
+  <!-- Right Actions -->
+  <div class="flex items-center space-x-3">
+    <!-- Notifications -->
+    <button class="p-2.5 rounded-xl text-gray-400 hover:bg-surface-50 hover:text-primary-500 transition-all relative group">
+      <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
       </svg>
+      <span class="absolute top-2 right-2.5 w-2 h-2 bg-danger rounded-full border-2 border-white group-hover:scale-110 transition-transform"></span>
     </button>
 
-    <!-- User Profile Avatar -->
-    <div class="relative">
-      <img
-        class="h-8 w-8 rounded-full object-cover border-2 border-gray-300 cursor-pointer"
-        [src]="userAvatarUrl || userService.getDefaultAvatar()"
-        alt="User Avatar"
-        (click)="navigateToProfile()"
-      />
-    </div>
+    <div class="h-8 w-px bg-surface-100 mx-2"></div>
+
+    <!-- User Profile -->
+    <button 
+      (click)="navigateToProfile()"
+      class="flex items-center space-x-3 p-1.5 pl-1.5 pr-3 rounded-2xl hover:bg-surface-50 transition-all group"
+    >
+      <div class="relative">
+        <img
+          class="h-9 w-9 rounded-xl object-cover ring-2 ring-surface-50 group-hover:ring-primary-100 transition-all"
+          [src]="userAvatarUrl || userService.getDefaultAvatar()"
+          alt="User"
+        />
+        <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-success rounded-full border-2 border-white"></div>
+      </div>
+      <div class="hidden md:block text-left">
+        <p class="text-sm font-semibold text-gray-700 leading-tight">Admin User</p>
+        <p class="text-xs text-gray-400 font-medium">System Manager</p>
+      </div>
+    </button>
   </div>
 </div>
