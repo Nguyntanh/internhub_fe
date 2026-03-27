@@ -13,7 +13,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 import { RoleService } from '../../../auth/role.service';
-import { ExportService } from '../../../services/export.service';
+import { API_ENDPOINTS } from '../../../api-endpoints';
 
 // ─── Models ───────────────────────────────────────────────────────────────────
 
@@ -63,7 +63,6 @@ interface InternItem {
   styleUrl: './analytics.css',
 })
 export class AnalyticsComponent implements OnInit {
-  private readonly API = 'http://localhost:8090/api';
 
   // Role state
   currentRole = '';
@@ -82,15 +81,11 @@ export class AnalyticsComponent implements OnInit {
   // Chart rendered flag
   chartRendered = false;
 
-  // Export state
-  isExporting = false;
-
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private roleService: RoleService,
-    private exportService: ExportService,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     afterNextRender(() => {
@@ -118,8 +113,8 @@ export class AnalyticsComponent implements OnInit {
 
     const url =
       this.currentRole === 'ADMIN' || this.currentRole === 'HR'
-        ? `${this.API}/admin/users/all`
-        : `${this.API}/mentor/interns`;
+        ? `${API_ENDPOINTS.Admin.users}/all`
+        : API_ENDPOINTS.Mentor.interns;
 
     this.http
       .get<any[]>(url)
@@ -155,9 +150,9 @@ export class AnalyticsComponent implements OnInit {
       const token = localStorage.getItem('jwt_token');
       if (!token) return;
       const payload = JSON.parse(atob(token.split('.')[1]));
-      this.http.get<any>(`${this.API}/user/profile`).subscribe({
+      this.http.get<any>(API_ENDPOINTS.User.profile).subscribe({
         next: () => {
-          this.http.get<any>(`${this.API}/v1/intern/dashboard`).subscribe({
+          this.http.get<any>(API_ENDPOINTS.Intern.dashboard).subscribe({
             next: (_) => {
               this.fetchCurrentUserId();
             },
@@ -178,7 +173,7 @@ export class AnalyticsComponent implements OnInit {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const email = payload.sub || payload.email || '';
 
-      this.http.get<any[]>(`${this.API}/user/interns`).subscribe({
+      this.http.get<any[]>(API_ENDPOINTS.User.interns).subscribe({
         next: (interns) => {
           const me = interns.find((i) => i.email === email);
           if (me) {
@@ -216,7 +211,7 @@ export class AnalyticsComponent implements OnInit {
     this.chartRendered = false;
 
     this.http
-      .get<RadarAnalyticsResponse>(`${this.API}/radar/intern/${internId}`)
+      .get<RadarAnalyticsResponse>(API_ENDPOINTS.Radar.byInternId(internId))
       .pipe(
         finalize(() => {
           this.isLoadingRadar = false;
@@ -244,31 +239,6 @@ export class AnalyticsComponent implements OnInit {
           });
         },
       });
-  }
-
-  // ── Xuất Excel ────────────────────────────────────────────────────────────
-
-  exportInternExcel(): void {
-    if (!this.radarData) return;
-    const internId = this.radarData.internId;
-    const internName = this.radarData.internName;
-
-    this.isExporting = true;
-    this.cdr.detectChanges();
-
-    this.exportService.exportInternExcel(internId).subscribe({
-      next: (blob) => {
-        const filename = `bao-cao-${internName.replace(/\s+/g, '-')}.xlsx`;
-        this.exportService.downloadBlob(blob, filename);
-        this.isExporting = false;
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        alert('Xuất báo cáo thất bại. Vui lòng thử lại.');
-        this.isExporting = false;
-        this.cdr.detectChanges();
-      },
-    });
   }
 
   // ── Vẽ Radar Chart với Chart.js ───────────────────────────────────────────

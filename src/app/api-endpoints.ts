@@ -39,6 +39,10 @@ export const API_ENDPOINTS = {
     profile: `${BASE_API_URL}/user/profile`,
     changePassword: `${BASE_API_URL}/user/change-password`,
     updateAvatar: `${BASE_API_URL}/user/profile/avatar`,
+    interns: `${BASE_API_URL}/user/interns`,
+  },
+  Mentor: {
+    interns: `${BASE_API_URL}/mentor/interns`,
   },
   Radar: {
     byInternId: (id: number) => `${BASE_API_URL}/radar/intern/${id}`,
