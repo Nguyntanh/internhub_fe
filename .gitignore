@@ -54,3 +54,4 @@ src/environments/environment.ts
 # OS metadata
 .Spotlight-V100
 .Trashes
+.aider*
