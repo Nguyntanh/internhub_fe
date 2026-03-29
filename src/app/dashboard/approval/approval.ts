@@ -11,6 +11,8 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { finalize } from 'rxjs/operators';
 
+// ─── Models chung ────────────────────────────────────────────────────────────
+
 interface InternItem {
   id: number;
   name: string;
@@ -20,6 +22,7 @@ interface InternItem {
 interface SkillSummary {
   skillId: number;
   skillName: string;
+  parentSkillName?: string;
   averageScore: number;
   totalWeight: number;
   taskCount: number;
@@ -40,8 +43,80 @@ interface EvaluationResponse {
   skillSummaries?: SkillSummary[];
   totalTasksReviewed?: number;
   totalTasksAll?: number;
-  evaluationType?: 'write' | 'upload'; // lưu local, không từ backend
 }
+
+// ─── Models Manager Review ────────────────────────────────────────────────────
+
+interface TaskSkillItem {
+  skillName: string;
+  weight: number;
+  ratingScore: number | null;
+  reviewComment: string | null;
+}
+
+interface TaskHistoryItem {
+  taskId: number;
+  title: string;
+  description: string;
+  status: string;
+  deadline: string;
+  createdAt: string;
+  skills: TaskSkillItem[];
+}
+
+interface DecisionInfo {
+  decisionId: number;
+  decision: 'PASS' | 'FAIL' | 'CONVERT_TO_STAFF';
+  managerComment: string;
+  managerName: string;
+  createdAt: string;
+  hrNotified: boolean;
+}
+
+interface ManagerReviewResponse {
+  internId: number;
+  internName: string;
+  internEmail: string;
+  internPhone: string;
+  internAvatar: string | null;
+  universityName: string | null;
+  major: string | null;
+  internshipProfileId: number;
+  positionName: string | null;
+  departmentName: string | null;
+  startDate: string;
+  endDate: string;
+  internshipStatus: string;
+  mentorId: number;
+  mentorName: string;
+  mentorEmail: string;
+  evaluationId: number;
+  overallComment: string;
+  evaluationStatus: string;
+  evaluationSubmittedAt: string;
+  skillSummaries: SkillSummary[];
+  overallScore: number;
+  totalTasksAll: number;
+  totalTasksReviewed: number;
+  taskHistory: TaskHistoryItem[];
+  currentDecision: DecisionInfo | null;
+}
+
+interface HrNotificationItem {
+  id: number;
+  type: string;
+  title: string;
+  message: string;
+  referenceId: number | null;
+  referenceType: string | null;
+  isRead: boolean;
+  createdAt: string;
+  senderName?: string;
+}
+
+type DecisionType = 'PASS' | 'FAIL' | 'CONVERT_TO_STAFF';
+
+// ─── Toast ────────────────────────────────────────────────────────────────────
 
 interface Toast {
   id: number;
@@ -58,37 +133,71 @@ interface Toast {
 })
 export class Approval {
   private readonly apiUrl = 'http://localhost:8090/api';
+  private toastCounter = 0;
 
+  // ── Role detection ────────────────────────────────────────────────────────
   currentRole: 'MENTOR' | 'MANAGER' | string = 'MENTOR';
 
+  // ── Shared: danh sách intern + loading ───────────────────────────────────
   interns: InternItem[] = [];
   selectedInternId: number | null = null;
-  evaluation: EvaluationResponse | null = null;
+  isInternsLoading = false;
+  isLoading = false;
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // MENTOR STATE
+  // ════════════════════════════════════════════════════════════════════════════
+  evaluation: EvaluationResponse | null = null;
   activeTab: 'write' | 'upload' = 'upload';
   overallComment = '';
   uploadNote = '';
-  // Mỗi slot = 1 hàng có nút Tải tệp + Camera + X
   uploadSlots: Array<{ file: File | null }> = [{ file: null }];
-
-  // Tách isInternsLoading và isLoading để tránh conflict
-  isInternsLoading = false;
-  isLoading = false;
   isSaving = false;
   isSubmitting = false;
   showSubmitModal = false;
-
-  managerDecision: 'APPROVE' | 'REJECT' | null = null;
-  showManagerModal = false;
-  pendingDecision: 'APPROVE' | 'REJECT' = 'APPROVE';
-  rejectReason = '';
-
   isExporting = false;
   isResetting = false;
   showResetModal = false;
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // MANAGER STATE
+  // ════════════════════════════════════════════════════════════════════════════
+
+  // Danh sách hồ sơ chờ duyệt (SUBMITTED + chưa có quyết định)
+  pendingReviews: ManagerReviewResponse[] = [];
+  isPendingLoading = false;
+
+  // Hồ sơ đang được xem chi tiết
+  selectedReview: ManagerReviewResponse | null = null;
+  isReviewDetailLoading = false;
+
+  // Decision modal
+  showDecisionModal = false;
+  pendingDecision: DecisionType = 'PASS';
+  managerComment = '';
+  isSubmittingDecision = false;
+
+  // Expand task history
+  expandedTaskIds = new Set<number>();
+
+  // Tab: pending | all
+  managerTab: 'pending' | 'all' = 'pending';
+  allReviews: ManagerReviewResponse[] = [];
+  isAllLoading = false;
+
+  // HR notification state
+  hrNotifications: HrNotificationItem[] = [];
+  hrUnreadCount = 0;
+  isHrNotificationsLoading = false;
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
   toasts: Toast[] = [];
-  private toastCounter = 0;
+
+  // ── Manager decision: local copy ─────────────────────────────────────────
+  managerDecision: 'APPROVE' | 'REJECT' | null = null;
+  showManagerModal = false;
+  pendingDecisionOld: 'APPROVE' | 'REJECT' = 'APPROVE';
+  rejectReason = '';
 
   constructor(
     private http: HttpClient,
@@ -98,9 +207,17 @@ export class Approval {
   ) {
     afterNextRender(() => {
       this.detectCurrentRole();
-      this.loadInterns();
+      if (this.currentRole === 'MANAGER') {
+        this.loadManagerPendingReviews();
+      } else if (this.currentRole === 'HR') {
+        this.loadHrNotifications();
+      } else {
+        this.loadInterns();
+      }
     });
   }
+
+  // ── Role detection ─────────────────────────────────────────────────────────
 
   private detectCurrentRole(): void {
     try {
@@ -108,8 +225,13 @@ export class Approval {
       if (!token) return;
       const payload = JSON.parse(atob(token.split('.')[1]));
       const roles: string[] = payload.roles ?? payload.authorities ?? [];
-      if (roles.some((r: string) => r.includes('MANAGER'))) {
+
+      if (roles.some((r: string) => r.includes('HR'))) {
+        this.currentRole = 'HR';
+      } else if (roles.some((r: string) => r.includes('MANAGER'))) {
         this.currentRole = 'MANAGER';
+      } else if (roles.some((r: string) => r.includes('ADMIN'))) {
+        this.currentRole = 'MANAGER'; // Admin cũng xem được trang này
       } else {
         this.currentRole = 'MENTOR';
       }
@@ -118,14 +240,20 @@ export class Approval {
     }
   }
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // MENTOR LOGIC (giữ nguyên toàn bộ)
+  // ════════════════════════════════════════════════════════════════════════════
+
   private loadInterns(): void {
     this.isInternsLoading = true;
     this.http
       .get<any[]>(`${this.apiUrl}/mentor/interns`)
-      .pipe(finalize(() => {
-        this.isInternsLoading = false;
-        this.cdr.detectChanges();
-      }))
+      .pipe(
+        finalize(() => {
+          this.isInternsLoading = false;
+          this.cdr.detectChanges();
+        }),
+      )
       .subscribe({
         next: (data) => {
           this.zone.run(() => {
@@ -134,7 +262,6 @@ export class Approval {
               name: u.name,
               email: u.email,
             }));
-
             this.cdr.detectChanges();
           });
         },
@@ -145,7 +272,6 @@ export class Approval {
   }
 
   onInternChange(internId: any): void {
-    // Ép kiểu về number để tránh string comparison bug
     const id = internId ? Number(internId) : null;
     this.selectedInternId = id;
     this.evaluation = null;
@@ -171,14 +297,15 @@ export class Approval {
           this.zone.run(() => {
             this.evaluation = data;
             this.overallComment = data.overallComment ?? '';
-            // Restore tab đã dùng lần trước cho intern này
-            const savedType = localStorage.getItem(`eval_type_${data.internId}`) as 'write' | 'upload' | null;
+            const savedType = localStorage.getItem(`eval_type_${data.internId}`) as
+              | 'write'
+              | 'upload'
+              | null;
             this.activeTab = savedType ?? 'upload';
             this.cdr.detectChanges();
           });
         },
         error: () => {
-          // Intern chưa có evaluation — bình thường, không báo lỗi
           this.evaluation = null;
           this.overallComment = '';
         },
@@ -188,10 +315,10 @@ export class Approval {
   saveDraft(): void {
     if (!this.selectedInternId) return;
     this.isSaving = true;
-
-    const commentToSave = this.activeTab === 'write'
-      ? this.overallComment.trim()
-      : (this.uploadNote.trim() || '(Bản nháp - chưa có nhận xét)');
+    const commentToSave =
+      this.activeTab === 'write'
+        ? this.overallComment.trim()
+        : this.uploadNote.trim() || '(Bản nháp - chưa có nhận xét)';
 
     this.http
       .post<EvaluationResponse>(`${this.apiUrl}/mentor/evaluations`, {
@@ -212,25 +339,20 @@ export class Approval {
       });
   }
 
-  /** Kiểm tra có thể submit không — tuỳ theo tab đang active */
   switchTab(tab: 'write' | 'upload'): void {
     this.activeTab = tab;
-    // Lưu lựa chọn tab cho intern này
     if (this.selectedInternId) {
       localStorage.setItem(`eval_type_${this.selectedInternId}`, tab);
     }
   }
 
   hasNoFiles(): boolean {
-    return !this.uploadSlots || this.uploadSlots.every(s => !s.file);
+    return !this.uploadSlots || this.uploadSlots.every((s) => !s.file);
   }
 
   canSubmit(): boolean {
-    if (this.activeTab === 'write') {
-      return this.overallComment.trim().length > 0;
-    }
-    // Tab upload: phải có ít nhất 1 file hoặc có ghi chú
-    const hasFile = this.uploadSlots.some(s => s.file !== null);
+    if (this.activeTab === 'write') return this.overallComment.trim().length > 0;
+    const hasFile = this.uploadSlots.some((s) => s.file !== null);
     const hasNote = this.uploadNote.trim().length > 0;
     return hasFile || hasNote;
   }
@@ -245,9 +367,10 @@ export class Approval {
     this.showSubmitModal = false;
     this.isSubmitting = true;
 
-    const finalComment = this.activeTab === 'write'
-      ? this.overallComment.trim()
-      : (this.uploadNote.trim() || '(Đã gửi kèm tệp đính kèm)');
+    const finalComment =
+      this.activeTab === 'write'
+        ? this.overallComment.trim()
+        : this.uploadNote.trim() || '(Đã gửi kèm tệp đính kèm)';
 
     this.http
       .post<EvaluationResponse>(`${this.apiUrl}/mentor/evaluations`, {
@@ -262,10 +385,7 @@ export class Approval {
             return;
           }
           this.http
-            .post<EvaluationResponse>(
-              `${this.apiUrl}/mentor/evaluations/${saved.id}/submit`,
-              {},
-            )
+            .post<EvaluationResponse>(`${this.apiUrl}/mentor/evaluations/${saved.id}/submit`, {})
             .subscribe({
               next: (submitted) => {
                 this.evaluation = submitted;
@@ -287,17 +407,17 @@ export class Approval {
   }
 
   openManagerDecision(decision: 'APPROVE' | 'REJECT'): void {
-    this.pendingDecision = decision;
+    this.pendingDecisionOld = decision;
     this.rejectReason = '';
     this.showManagerModal = true;
   }
 
   confirmManagerDecision(): void {
-    if (this.pendingDecision === 'REJECT' && !this.rejectReason.trim()) return;
+    if (this.pendingDecisionOld === 'REJECT' && !this.rejectReason.trim()) return;
     this.showManagerModal = false;
-    this.managerDecision = this.pendingDecision;
+    this.managerDecision = this.pendingDecisionOld;
     const msg =
-      this.pendingDecision === 'APPROVE'
+      this.pendingDecisionOld === 'APPROVE'
         ? 'Đã phê duyệt kết quả đánh giá thành công.'
         : `Đã từ chối. Lý do: ${this.rejectReason}`;
     this.showToast(msg);
@@ -306,12 +426,10 @@ export class Approval {
   exportReport(): void {
     if (!this.evaluation || !this.selectedInternId) return;
     this.isExporting = true;
-
     this.http
-      .get(
-        `${this.apiUrl}/mentor/evaluations/intern/${this.selectedInternId}/export`,
-        { responseType: 'blob' },
-      )
+      .get(`${this.apiUrl}/mentor/evaluations/intern/${this.selectedInternId}/export`, {
+        responseType: 'blob',
+      })
       .subscribe({
         next: (blob) => {
           this.isExporting = false;
@@ -327,7 +445,6 @@ export class Approval {
       });
   }
 
-  // ─── Đánh giá lại ───────────────────────────────────────────────────────
   openResetConfirm(): void {
     this.showResetModal = true;
   }
@@ -336,12 +453,8 @@ export class Approval {
     if (!this.evaluation?.id) return;
     this.showResetModal = false;
     this.isResetting = true;
-
     this.http
-      .post<EvaluationResponse>(
-        `${this.apiUrl}/mentor/evaluations/${this.evaluation.id}/reset`,
-        {},
-      )
+      .post<EvaluationResponse>(`${this.apiUrl}/mentor/evaluations/${this.evaluation.id}/reset`, {})
       .subscribe({
         next: (data) => {
           this.evaluation = data;
@@ -351,7 +464,6 @@ export class Approval {
           this.showToast('Đã mở khóa. Bạn có thể chỉnh sửa và gửi lại.');
         },
         error: () => {
-          // Nếu backend chưa có endpoint, reset local state
           if (this.evaluation) {
             this.evaluation = { ...this.evaluation, isLocked: false, status: 'DRAFT' };
           }
@@ -377,10 +489,8 @@ export class Approval {
         `  ${s.skillName}: ${s.averageScore.toFixed(2)}/10  (${s.taskCount} task, trọng số ${s.totalWeight})`,
       );
     });
-    lines.push('');
-    lines.push('--- NHẬN XÉT TỔNG KẾT ---');
+    lines.push('', '--- NHẬN XÉT TỔNG KẾT ---');
     lines.push(this.evaluation?.overallComment ?? '(Chưa có nhận xét)');
-
     const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
     this.downloadBlob(
       blob,
@@ -405,28 +515,21 @@ export class Approval {
     return 'Cần cải thiện';
   }
 
-  // ─── Upload slots ────────────────────────────────────────────────────────
   addUploadSlot(): void {
     this.uploadSlots.push({ file: null });
   }
 
   removeSlot(index: number): void {
     this.uploadSlots.splice(index, 1);
-    // Đảm bảo luôn có ít nhất 1 slot
-    if (this.uploadSlots.length === 0) {
-      this.uploadSlots.push({ file: null });
-    }
+    if (this.uploadSlots.length === 0) this.uploadSlots.push({ file: null });
   }
 
   triggerSlotFileInput(index: number): void {
-    // Tìm input[data-slot] tương ứng và click
     const inputs = document.querySelectorAll<HTMLInputElement>('input[data-slot]');
-    const input = inputs[index];
-    if (input) input.click();
+    inputs[index]?.click();
   }
 
   triggerSlotCamera(index: number): void {
-    // Mở input file với capture=camera
     const inputs = document.querySelectorAll<HTMLInputElement>('input[data-slot]');
     const input = inputs[index];
     if (input) {
@@ -443,11 +546,292 @@ export class Approval {
     input.value = '';
   }
 
+  // ════════════════════════════════════════════════════════════════════════════
+  // MANAGER LOGIC — MỚI
+  // ════════════════════════════════════════════════════════════════════════════
+
+  switchManagerTab(tab: 'pending' | 'all'): void {
+    this.managerTab = tab;
+    this.selectedReview = null;
+    this.expandedTaskIds.clear();
+    if (tab === 'pending') {
+      this.loadManagerPendingReviews();
+    } else {
+      this.loadManagerAllReviews();
+    }
+  }
+
+  loadManagerPendingReviews(): void {
+    this.isPendingLoading = true;
+    this.http
+      .get<ManagerReviewResponse[]>(`${this.apiUrl}/manager/reviews/pending`)
+      .pipe(
+        finalize(() => {
+          this.isPendingLoading = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (data) => {
+          this.zone.run(() => {
+            this.pendingReviews = data;
+            this.cdr.detectChanges();
+          });
+        },
+        error: () => {
+          this.showToast('Không thể tải danh sách hồ sơ chờ duyệt.', 'error');
+        },
+      });
+  }
+
+  loadManagerAllReviews(): void {
+    this.isAllLoading = true;
+    this.http
+      .get<ManagerReviewResponse[]>(`${this.apiUrl}/manager/reviews/all`)
+      .pipe(
+        finalize(() => {
+          this.isAllLoading = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (data) => {
+          this.zone.run(() => {
+            this.allReviews = data;
+            this.cdr.detectChanges();
+          });
+        },
+        error: () => {
+          this.showToast('Không thể tải danh sách hồ sơ.', 'error');
+        },
+      });
+  }
+
+  get currentManagerReviews(): ManagerReviewResponse[] {
+    return this.managerTab === 'pending' ? this.pendingReviews : this.allReviews;
+  }
+
+  get isManagerListLoading(): boolean {
+    return this.managerTab === 'pending' ? this.isPendingLoading : this.isAllLoading;
+  }
+
+  selectManagerReview(review: ManagerReviewResponse): void {
+    this.isReviewDetailLoading = true;
+    this.selectedReview = review;
+    this.expandedTaskIds.clear();
+    this.http
+      .get<ManagerReviewResponse>(`${this.apiUrl}/manager/reviews/${review.internshipProfileId}`)
+      .pipe(
+        finalize(() => {
+          this.isReviewDetailLoading = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (detail) => {
+          this.zone.run(() => {
+            this.selectedReview = detail;
+            this.cdr.detectChanges();
+          });
+        },
+        error: () => {
+          this.showToast('Không thể tải chi tiết hồ sơ.', 'error');
+        },
+      });
+  }
+
+  loadHrNotifications(): void {
+    this.isHrNotificationsLoading = true;
+    this.http
+      .get<any>(`${this.apiUrl}/notifications?size=30`)
+      .pipe(
+        finalize(() => {
+          this.isHrNotificationsLoading = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (res) => {
+          this.zone.run(() => {
+            this.hrNotifications = (res?.content ?? []).map((n: any) => ({
+              id: n.id,
+              type: n.type,
+              title: n.title,
+              message: n.message,
+              referenceId: n.referenceId,
+              referenceType: n.referenceType,
+              isRead: n.isRead,
+              createdAt: n.createdAt,
+              senderName: n.senderName,
+            }));
+            this.loadHrUnreadCount();
+            this.cdr.detectChanges();
+          });
+        },
+        error: () => {
+          this.showToast('Không thể tải thông báo HR.', 'error');
+        },
+      });
+  }
+
+  loadHrUnreadCount(): void {
+    this.http.get<any>(`${this.apiUrl}/notifications/unread-count`).subscribe({
+      next: (res) => {
+        this.hrUnreadCount = res?.unreadCount ?? 0;
+      },
+      error: () => {
+        this.hrUnreadCount = 0;
+      },
+    });
+  }
+
+  markHrNotificationRead(id: number): void {
+    this.http.patch<any>(`${this.apiUrl}/notifications/${id}/read`, {}).subscribe({
+      next: () => {
+        const item = this.hrNotifications.find((n) => n.id === id);
+        if (item && !item.isRead) {
+          item.isRead = true;
+          this.hrUnreadCount = Math.max(this.hrUnreadCount - 1, 0);
+        }
+      },
+      error: () => {
+        this.showToast('Không thể đánh dấu đã đọc.', 'error');
+      },
+    });
+  }
+
+  openManagerDecisionNew(decision: DecisionType): void {
+    this.pendingDecision = decision;
+    this.managerComment = '';
+    this.showDecisionModal = true;
+  }
+
+  closeDecisionModal(): void {
+    this.showDecisionModal = false;
+    this.managerComment = '';
+  }
+
+  confirmDecision(): void {
+    if (!this.selectedReview) return;
+    if (this.pendingDecision === 'FAIL' && !this.managerComment.trim()) return;
+
+    this.isSubmittingDecision = true;
+    this.http
+      .post<ManagerReviewResponse>(`${this.apiUrl}/manager/reviews/decision`, {
+        internshipProfileId: this.selectedReview.internshipProfileId,
+        decision: this.pendingDecision,
+        managerComment: this.managerComment.trim(),
+      })
+      .pipe(
+        finalize(() => {
+          this.isSubmittingDecision = false;
+          this.cdr.detectChanges();
+        }),
+      )
+      .subscribe({
+        next: (updated) => {
+          this.zone.run(() => {
+            this.showDecisionModal = false;
+            this.selectedReview = updated;
+            // Cập nhật trong danh sách
+            this.pendingReviews = this.pendingReviews.filter(
+              (r) => r.internshipProfileId !== updated.internshipProfileId,
+            );
+            this.allReviews = this.allReviews.map((r) =>
+              r.internshipProfileId === updated.internshipProfileId ? updated : r,
+            );
+            this.showToast(
+              `Đã gửi quyết định "${this.getDecisionLabel(this.pendingDecision)}" và thông báo cho HR.`,
+            );
+            this.cdr.detectChanges();
+          });
+        },
+        error: () => {
+          this.showToast('Gửi quyết định thất bại. Vui lòng thử lại.', 'error');
+        },
+      });
+  }
+
+  toggleTask(taskId: number): void {
+    if (this.expandedTaskIds.has(taskId)) {
+      this.expandedTaskIds.delete(taskId);
+    } else {
+      this.expandedTaskIds.add(taskId);
+    }
+  }
+
+  isTaskExpanded(taskId: number): boolean {
+    return this.expandedTaskIds.has(taskId);
+  }
+
+  // ── Manager helpers ───────────────────────────────────────────────────────
+
+  getDecisionLabel(d: DecisionType): string {
+    return { PASS: 'Đạt', FAIL: 'Không đạt', CONVERT_TO_STAFF: 'Tuyển dụng chính thức' }[d];
+  }
+
+  getDecisionBadgeClass(d: DecisionType | undefined): string {
+    if (!d) return '';
+    return {
+      PASS: 'bg-green-100 text-green-700 border-green-200',
+      FAIL: 'bg-red-100 text-red-700 border-red-200',
+      CONVERT_TO_STAFF: 'bg-purple-100 text-purple-700 border-purple-200',
+    }[d];
+  }
+
+  getManagerScoreColor(score: number): string {
+    if (score >= 8) return '#059669';
+    if (score >= 5) return '#d97706';
+    return '#dc2626';
+  }
+
+  getTaskStatusClass(status: string): string {
+    const map: Record<string, string> = {
+      Todo: 'bg-gray-100 text-gray-600',
+      In_Progress: 'bg-blue-50 text-blue-600',
+      Submitted: 'bg-amber-50 text-amber-600',
+      Reviewed: 'bg-green-50 text-green-600',
+      Rejected: 'bg-red-50 text-red-600',
+    };
+    return map[status] || 'bg-gray-100 text-gray-600';
+  }
+
+  getTaskStatusLabel(status: string): string {
+    const map: Record<string, string> = {
+      Todo: 'Chưa bắt đầu',
+      In_Progress: 'Đang thực hiện',
+      Submitted: 'Đã nộp',
+      Reviewed: 'Đã chấm',
+      Rejected: 'Từ chối',
+    };
+    return map[status] || status;
+  }
+
+  getInitials(name: string): string {
+    return name
+      .split(' ')
+      .map((w) => w[0])
+      .slice(0, 2)
+      .join('')
+      .toUpperCase();
+  }
+
+  canManagerDecide(review: ManagerReviewResponse): boolean {
+    return review.evaluationStatus === 'SUBMITTED' && review.currentDecision === null;
+  }
+
+  getProgressPct(score: number): number {
+    return Math.min((score / 10) * 100, 100);
+  }
+
+  // ── Toast ─────────────────────────────────────────────────────────────────
+
   private showToast(message: string, type: 'success' | 'error' = 'success'): void {
     const id = ++this.toastCounter;
     this.toasts.push({ id, message, type });
     setTimeout(() => {
       this.toasts = this.toasts.filter((t) => t.id !== id);
+      this.cdr.detectChanges();
     }, 3500);
   }
 }
