@@ -7,12 +7,15 @@ import { API_ENDPOINTS } from '../../../api-endpoints';
 
 interface InternProfile {
   id: number;
+  userId: number;
   name: string;
   email: string;
   major: string | null;
   universityName: string | null;
+  universityId: number | null;
   positionName: string | null;
   departmentName: string | null;
+  departmentId: number | null;
   mentorName: string | null;
   status: string;
   startDate: string | null;
@@ -20,6 +23,11 @@ interface InternProfile {
 }
 
 interface Department {
+  id: number;
+  name: string;
+}
+
+interface University {
   id: number;
   name: string;
 }
@@ -40,11 +48,23 @@ interface Department {
           <!-- Lọc phòng ban -->
           <select
             [(ngModel)]="selectedDepartmentId"
+            (ngModelChange)="onFilterChange()"
             class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             <option [ngValue]="null">Tất cả phòng ban</option>
             @for (dept of departments; track dept.id) {
               <option [ngValue]="dept.id">{{ dept.name }}</option>
+            }
+          </select>
+          <!-- Lọc trường đại học -->
+          <select
+            [(ngModel)]="selectedUniversityId"
+            (ngModelChange)="onFilterChange()"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option [ngValue]="null">Tất cả trường ĐH</option>
+            @for (uni of universities; track uni.id) {
+              <option [ngValue]="uni.id">{{ uni.name }}</option>
             }
           </select>
           <!-- Nút xuất nhóm Excel -->
@@ -143,7 +163,9 @@ interface Department {
 export class InternsComponent implements OnInit {
   profiles: InternProfile[] = [];
   departments: Department[] = [];
+  universities: University[] = [];
   selectedDepartmentId: number | null = null;
+  selectedUniversityId: number | null = null;
   isLoading = false;
   isExportingGroup = false;
   exportingId: number | null = null;
@@ -159,32 +181,43 @@ export class InternsComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.loadProfiles();
       this.loadDepartments();
+      this.loadUniversities();
     }
   }
 
   get filteredProfiles(): InternProfile[] {
-    if (!this.selectedDepartmentId) return this.profiles;
     return this.profiles.filter(p => {
-      // Lọc theo departmentName khớp với department đã chọn
-      const dept = this.departments.find(d => d.id === this.selectedDepartmentId);
-      return dept && p.departmentName === dept.name;
+      if (this.selectedDepartmentId && p.departmentId !== this.selectedDepartmentId) {
+        return false;
+      }
+      if (this.selectedUniversityId && p.universityId !== this.selectedUniversityId) {
+        return false;
+      }
+      return true;
     });
+  }
+
+  onFilterChange(): void {
+    // Filter is reactive via the getter; no action needed
   }
 
   private loadProfiles(): void {
     this.isLoading = true;
-    this.http.get<any[]>(`${API_ENDPOINTS.Intern.dashboard.replace('/v1/intern/dashboard', '/interns')}`)
+    this.http.get<any[]>(API_ENDPOINTS.Interns.base)
       .subscribe({
         next: (data) => {
           this.profiles = data.map(p => ({
-            id: p.user?.id ?? p.id,
-            name: p.user?.name ?? p.name ?? '—',
-            email: p.user?.email ?? p.email ?? '—',
+            id: p.id,
+            userId: p.userId,
+            name: p.fullName ?? '—',
+            email: p.email ?? '—',
             major: p.major ?? null,
-            universityName: p.university?.name ?? null,
-            positionName: p.position?.name ?? null,
-            departmentName: p.position?.department?.name ?? null,
-            mentorName: p.mentor?.name ?? null,
+            universityName: p.universityName ?? null,
+            universityId: p.universityId ?? null,
+            positionName: p.positionName ?? null,
+            departmentName: p.departmentName ?? null,
+            departmentId: p.departmentId ?? null,
+            mentorName: p.mentorName ?? null,
             status: p.status ?? '—',
             startDate: p.startDate ?? null,
             endDate: p.endDate ?? null,
@@ -208,11 +241,22 @@ export class InternsComponent implements OnInit {
       });
   }
 
+  private loadUniversities(): void {
+    this.http.get<any[]>(API_ENDPOINTS.Universities.base)
+      .subscribe({
+        next: (data) => {
+          this.universities = data.map(u => ({ id: u.id, name: u.name }));
+        },
+        error: () => {}
+      });
+  }
+
   exportIndividual(internId: number, internName: string): void {
     this.exportingId = internId;
     this.exportService.exportInternExcel(internId).subscribe({
       next: (blob) => {
-        const filename = `bao-cao-${internName.replace(/\s+/g, '-')}.xlsx`;
+        const safeName = internName.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '-');
+        const filename = `bao-cao-${safeName}.xlsx`;
         this.exportService.downloadBlob(blob, filename);
         this.exportingId = null;
       },
@@ -226,11 +270,13 @@ export class InternsComponent implements OnInit {
   exportGroup(): void {
     this.isExportingGroup = true;
     const deptId = this.selectedDepartmentId ?? undefined;
-    this.exportService.exportGroupExcel(deptId).subscribe({
+    const uniId = this.selectedUniversityId ?? undefined;
+    this.exportService.exportGroupExcel(deptId, uniId).subscribe({
       next: (blob) => {
-        const suffix = deptId
-          ? `phong-ban-${deptId}`
-          : 'tat-ca';
+        const parts = [];
+        if (deptId) parts.push(`phong-ban-${deptId}`);
+        if (uniId) parts.push(`truong-${uniId}`);
+        const suffix = parts.length > 0 ? parts.join('-') : 'tat-ca';
         this.exportService.downloadBlob(blob, `bao-cao-nhom-${suffix}.xlsx`);
         this.isExportingGroup = false;
       },

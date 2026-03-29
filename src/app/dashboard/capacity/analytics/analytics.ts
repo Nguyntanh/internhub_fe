@@ -1,7 +1,6 @@
 import {
   Component,
   OnInit,
-  AfterViewInit,
   ChangeDetectorRef,
   NgZone,
   afterNextRender,
@@ -11,8 +10,9 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { finalize } from 'rxjs/operators';
+import { finalize } from 'rxjs';
 import { RoleService } from '../../../auth/role.service';
+import { ExportService } from '../../../services/export.service';
 import { API_ENDPOINTS } from '../../../api-endpoints';
 
 // ─── Models ───────────────────────────────────────────────────────────────────
@@ -37,8 +37,21 @@ interface RadarAnalyticsResponse {
   internId: number;
   internName: string;
   internEmail: string;
+  phone: string | null;
+  // Profile info
+  universityName: string | null;
+  major: string | null;
   positionName: string | null;
   departmentName: string | null;
+  status: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  // Mentor / Manager
+  mentorId: number | null;
+  mentorName: string | null;
+  managerId: number | null;
+  managerName: string | null;
+  // Scores
   skillScores: SkillScore[];
   benchmarkScores: BenchmarkScore[];
   totalTasksReviewed: number;
@@ -63,8 +76,6 @@ interface InternItem {
   styleUrl: './analytics.css',
 })
 export class AnalyticsComponent implements OnInit {
-
-  // Role state
   currentRole = '';
   isIntern = false;
 
@@ -81,11 +92,15 @@ export class AnalyticsComponent implements OnInit {
   // Chart rendered flag
   chartRendered = false;
 
+  // Export state
+  isExporting = false;
+
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private roleService: RoleService,
+    private exportService: ExportService,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     afterNextRender(() => {
@@ -120,8 +135,10 @@ export class AnalyticsComponent implements OnInit {
       .get<any[]>(url)
       .pipe(
         finalize(() => {
-          this.isLoadingInterns = false;
-          this.cdr.detectChanges();
+          this.zone.run(() => {
+            this.isLoadingInterns = false;
+            this.cdr.detectChanges();
+          });
         }),
       )
       .subscribe({
@@ -149,18 +166,9 @@ export class AnalyticsComponent implements OnInit {
     try {
       const token = localStorage.getItem('jwt_token');
       if (!token) return;
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      this.http.get<any>(API_ENDPOINTS.User.profile).subscribe({
-        next: () => {
-          this.http.get<any>(API_ENDPOINTS.Intern.dashboard).subscribe({
-            next: (_) => {
-              this.fetchCurrentUserId();
-            },
-            error: () => this.fetchCurrentUserId(),
-          });
-        },
-        error: () => this.fetchCurrentUserId(),
-      });
+      // Validate token is parseable before proceeding
+      JSON.parse(atob(token.split('.')[1]));
+      this.fetchCurrentUserId();
     } catch {
       this.fetchCurrentUserId();
     }
@@ -192,7 +200,7 @@ export class AnalyticsComponent implements OnInit {
 
   // ── Khi MENTOR/MANAGER/ADMIN chọn intern ──────────────────────────────────
 
-  onInternChange(internId: any): void {
+  onInternChange(internId: number | string | null): void {
     const id = internId ? Number(internId) : null;
     this.selectedInternId = id;
     this.radarData = null;
@@ -214,8 +222,10 @@ export class AnalyticsComponent implements OnInit {
       .get<RadarAnalyticsResponse>(API_ENDPOINTS.Radar.byInternId(internId))
       .pipe(
         finalize(() => {
-          this.isLoadingRadar = false;
-          this.cdr.detectChanges();
+          this.zone.run(() => {
+            this.isLoadingRadar = false;
+            this.cdr.detectChanges();
+          });
         }),
       )
       .subscribe({
@@ -387,6 +397,34 @@ export class AnalyticsComponent implements OnInit {
 
   hasSkillData(): boolean {
     return !!this.radarData && this.radarData.skillScores.length > 0;
+  }
+
+  // ── Export ────────────────────────────────────────────────────────────────
+
+  exportInternExcel(): void {
+    if (!this.radarData || !this.selectedInternId) return;
+    this.isExporting = true;
+    this.exportService.exportInternExcel(this.selectedInternId).subscribe({
+      next: (blob) => {
+        const safeName = this.radarData!.internName.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '-');
+        this.exportService.downloadBlob(blob, `bao-cao-${safeName}.xlsx`);
+        this.isExporting = false;
+      },
+      error: () => {
+        alert('Xuất báo cáo thất bại. Vui lòng thử lại.');
+        this.isExporting = false;
+      },
+    });
+  }
+
+  translateStatus(status: string | null): string {
+    switch (status) {
+      case 'In_Progress': return 'Đang thực tập';
+      case 'Completed':   return 'Hoàn thành';
+      case 'Terminated':  return 'Đã chấm dứt';
+      case 'Extended':    return 'Gia hạn';
+      default:            return status ?? '—';
+    }
   }
 
   trackBySkillId(_: number, s: SkillScore): number {

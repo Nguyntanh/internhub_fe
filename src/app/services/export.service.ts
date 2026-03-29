@@ -3,13 +3,15 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_ENDPOINTS } from '../api-endpoints';
 
-@Injectable({ providedIn: 'root' })
+@Injectable({
+  providedIn: 'root',
+})
 export class ExportService {
   constructor(private http: HttpClient) {}
 
   /**
-   * Tải file Excel báo cáo 1 intern.
-   * JWT interceptor tự thêm Authorization header.
+   * Xuất báo cáo Excel cho 1 intern theo ID.
+   * GET /api/export/intern/{id}/excel
    */
   exportInternExcel(internId: number): Observable<Blob> {
     return this.http.get(API_ENDPOINTS.Export.internExcel(internId), {
@@ -18,8 +20,8 @@ export class ExportService {
   }
 
   /**
-   * Tải file Excel báo cáo nhóm.
-   * Có thể lọc theo departmentId và/hoặc universityId.
+   * Xuất báo cáo Excel theo nhóm (lọc theo phòng ban hoặc trường ĐH).
+   * GET /api/export/group/excel?departmentId=&universityId=
    */
   exportGroupExcel(departmentId?: number, universityId?: number): Observable<Blob> {
     return this.http.get(API_ENDPOINTS.Export.groupExcel(departmentId, universityId), {
@@ -27,13 +29,15 @@ export class ExportService {
     });
   }
 
-  /** Trigger download từ Blob */
+  /**
+   * Tải blob file về máy người dùng.
+   */
   downloadBlob(blob: Blob, filename: string): void {
-    const url = URL.createObjectURL(blob);
+    const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = filename;
     a.click();
-    URL.revokeObjectURL(url);
+    window.URL.revokeObjectURL(url);
   }
 }

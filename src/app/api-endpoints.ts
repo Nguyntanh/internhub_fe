@@ -47,7 +47,14 @@ export const API_ENDPOINTS = {
   Radar: {
     byInternId: (id: number) => `${BASE_API_URL}/radar/intern/${id}`,
   },
+  Universities: {
+    base: `${BASE_API_URL}/universities`,
+  },
 
+  Interns: {
+    base: `${BASE_API_URL}/interns`,
+    byId: (id: number) => `${BASE_API_URL}/interns/${id}`,
+  },
   Export: {
     internExcel: (id: number) => `${BASE_API_URL}/export/intern/${id}/excel`,
     groupExcel: (departmentId?: number, universityId?: number) => {
