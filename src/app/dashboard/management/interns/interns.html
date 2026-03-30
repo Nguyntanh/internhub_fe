@@ -224,7 +224,7 @@
   <!-- DRAWER OVERLAY (BACKDROP) -->
   <div
     *ngIf="isFormModalOpen || isDeleteDrawerOpen"
-    class="fixed top-20 inset-x-0 bottom-0 z-[40] bg-black/40 backdrop-blur-sm transition-opacity duration-300"
+    class="fixed top-20 inset-x-0 bottom-0 z-[40] !mt-0"
     (click)="isFormModalOpen = false; isDeleteDrawerOpen = false"
   ></div>
 
