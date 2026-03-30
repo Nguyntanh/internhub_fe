@@ -129,6 +129,8 @@ export class InternsComponent implements OnInit {
   isFormModalOpen = false;
   isEditMode = false;
   editingId: number | null = null;
+  isDeleteDrawerOpen = false;
+  selectedInternForDelete: Intern | null = null;
 
   // Filters
   searchQuery = '';
@@ -277,11 +279,18 @@ export class InternsComponent implements OnInit {
     });
   }
 
-  deleteIntern(id: number) {
-    if (!confirm('Bạn có chắc muốn xóa thực tập sinh này?')) return;
-    this.http.delete(`${this.API}/${id}`).subscribe(() => {
-      this.snackBar.open('Đã xóa', 'Đóng', { duration: 3000 });
+  deleteIntern(intern: Intern) {
+    this.selectedInternForDelete = intern;
+    this.isDeleteDrawerOpen = true;
+  }
+
+  confirmDelete() {
+    if (!this.selectedInternForDelete) return;
+    this.http.delete(`${this.API}/${this.selectedInternForDelete.id}`).subscribe(() => {
+      this.snackBar.open('Đã xóa hồ sơ thực tập sinh thành công', 'Đóng', { duration: 3000 });
       this.loadInterns();
+      this.isDeleteDrawerOpen = false;
+      this.selectedInternForDelete = null;
     });
   }
 

@@ -202,7 +202,7 @@
             </button>
             <button
               mat-icon-button
-              (click)="deleteIntern(row.id)"
+              (click)="deleteIntern(row)"
               class="text-gray-400 hover:text-danger transition-all !w-8 !h-8"
               matTooltip="Xóa"
             >
@@ -223,9 +223,9 @@
 
   <!-- DRAWER OVERLAY (BACKDROP) -->
   <div
-    *ngIf="isFormModalOpen"
+    *ngIf="isFormModalOpen || isDeleteDrawerOpen"
     class="fixed top-20 inset-x-0 bottom-0 z-[40] bg-black/40 backdrop-blur-sm transition-opacity duration-300"
-    (click)="isFormModalOpen = false"
+    (click)="isFormModalOpen = false; isDeleteDrawerOpen = false"
   ></div>
 
   <!-- INTERN FORM DRAWER -->
@@ -362,6 +362,62 @@
         mat-button
         class="w-full !rounded-xl text-gray-400 font-bold"
         (click)="isFormModalOpen = false"
+      >
+        Hủy bỏ
+      </button>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRMATION DRAWER -->
+  <div
+    [class]="
+      'fixed top-20 right-0 h-[calc(100vh-5rem)] w-full max-w-md bg-white shadow-2xl z-[50] transition-all duration-300 border-l border-surface-50 flex flex-col !mt-0 ' +
+      (isDeleteDrawerOpen
+        ? 'translate-x-0 opacity-100 pointer-events-auto'
+        : 'translate-x-full opacity-0 pointer-events-none')
+    "
+  >
+    <div
+      class="px-6 py-4 border-b border-surface-50 flex items-center justify-between flex-shrink-0 bg-white"
+    >
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500">
+          <mat-icon>delete_forever</mat-icon>
+        </div>
+        <h2 class="text-lg font-bold text-gray-900">Xác nhận xóa</h2>
+      </div>
+      <button mat-icon-button (click)="isDeleteDrawerOpen = false">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+
+    <div class="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-4">
+      <div
+        class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-2"
+      >
+        <mat-icon class="!w-12 !h-12 !text-5xl">warning</mat-icon>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900">Bạn có chắc chắn?</h3>
+      <p class="text-sm text-gray-500 max-w-xs">
+        Hành động này sẽ xóa vĩnh viễn hồ sơ của
+        <strong>{{ selectedInternForDelete?.fullName }}</strong
+        >. Dữ liệu đã xóa sẽ không thể khôi phục lại.
+      </p>
+    </div>
+
+    <div class="px-6 py-4 border-t border-surface-50 bg-surface-50/50 flex flex-col space-y-3">
+      <button
+        mat-flat-button
+        color="warn"
+        class="w-full !rounded-xl !py-7 font-bold shadow-lg shadow-red-100"
+        (click)="confirmDelete()"
+      >
+        XÁC NHẬN XÓA HỒ SƠ
+      </button>
+      <button
+        mat-button
+        class="w-full !rounded-xl text-gray-400 font-bold"
+        (click)="isDeleteDrawerOpen = false"
       >
         Hủy bỏ
       </button>
