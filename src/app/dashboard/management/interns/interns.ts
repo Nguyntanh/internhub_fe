@@ -158,26 +158,38 @@ export class InternsComponent implements OnInit {
     private snackBar: MatSnackBar,
   ) {
     this.buildForm();
-    afterNextRender(() => {
-      this.loadAllData();
-    });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadAllData();
+  }
 
   loadAllData() {
     this.isLoading = true;
-    this.http.get<University[]>(this.API_UNIV).subscribe((res) => (this.UNIVERSITIES = res));
-    this.http.get<Department[]>(this.API_DEPT).subscribe((res) => (this.DEPARTMENTS = res));
+    this.http.get<University[]>(this.API_UNIV).subscribe((res) => {
+      this.UNIVERSITIES = res;
+      this.cdr.detectChanges();
+    });
+    this.http.get<Department[]>(this.API_DEPT).subscribe((res) => {
+      this.DEPARTMENTS = res;
+      this.cdr.detectChanges();
+    });
     this.http.get<any[]>(this.API_POS).subscribe((res) => {
       this.ALL_POSITIONS = res;
       res.forEach((p) => {
         if (!this.DEPT_POSITIONS[p.departmentId]) this.DEPT_POSITIONS[p.departmentId] = [];
         this.DEPT_POSITIONS[p.departmentId].push({ id: p.id, name: p.name });
       });
+      this.cdr.detectChanges();
     });
-    this.http.get<Mentor[]>(this.API_MENTOR).subscribe((res) => (this.MENTORS = res));
-    this.http.get<Manager[]>(this.API_MANAGER).subscribe((res) => (this.MANAGERS = res));
+    this.http.get<Mentor[]>(this.API_MENTOR).subscribe((res) => {
+      this.MENTORS = res;
+      this.cdr.detectChanges();
+    });
+    this.http.get<Manager[]>(this.API_MANAGER).subscribe((res) => {
+      this.MANAGERS = res;
+      this.cdr.detectChanges();
+    });
     this.loadInterns();
   }
 
