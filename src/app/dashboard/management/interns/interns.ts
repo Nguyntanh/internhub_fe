@@ -129,7 +129,7 @@ export class InternsComponent implements OnInit {
   isFormModalOpen = false;
   isEditMode = false;
   editingId: number | null = null;
-  isDeleteDrawerOpen = false;
+  public isDeleteDrawerOpen: boolean = false;
   selectedInternForDelete: Intern | null = null;
 
   // Filters
@@ -204,7 +204,14 @@ export class InternsComponent implements OnInit {
   buildForm(): void {
     this.internForm = this.fb.group(
       {
-        fullName: ['', [Validators.required, Validators.minLength(2)]],
+        fullName: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(2),
+            Validators.pattern(/^[a-zA-ZÀ-ỹà-ỹĂăÂâĐđÊêÔôƠơƯư\s]+$/),
+          ],
+        ],
         email: ['', [Validators.required, Validators.email]],
         phone: ['', [Validators.required, Validators.pattern(/^(0|\+84)\d{9}$/)]],
         major: [''],
@@ -229,6 +236,13 @@ export class InternsComponent implements OnInit {
 
     this.internForm.get('departmentId')?.valueChanges.subscribe(() => {
       this.internForm.patchValue({ positionId: null }, { emitEvent: false });
+    });
+
+    this.internForm.get('endDate')?.valueChanges.subscribe((endDate) => {
+      if (!endDate) return;
+      if (new Date(endDate) < new Date()) {
+        this.internForm.patchValue({ status: 'Completed' }, { emitEvent: false });
+      }
     });
   }
 

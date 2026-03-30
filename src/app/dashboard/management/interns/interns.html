@@ -226,6 +226,10 @@
     *ngIf="isFormModalOpen || isDeleteDrawerOpen"
     class="fixed -top-16 inset-x-0 bottom-0 z-[40] !mt-0"
     (click)="isFormModalOpen = false; isDeleteDrawerOpen = false"
+    (keydown.enter)="isFormModalOpen = false; isDeleteDrawerOpen = false"
+    tabindex="0"
+    role="button"
+    aria-label="Đóng overlay"
   ></div>
 
   <!-- INTERN FORM DRAWER -->
