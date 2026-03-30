@@ -647,7 +647,7 @@
     <button
       type="submit"
       (click)="saveIntern()"
-      class="w-full py-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-100 transition uppercase tracking-widest"
+      class="w-full py-7 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-bold shadow-lg shadow-blue-100 transition uppercase tracking-widest"
     >
       {{ isEditMode ? 'Xác nhận cập nhật' : 'Xác nhận lưu hồ sơ' }}
     </button>
@@ -677,7 +677,7 @@
         <!-- Nút Thêm mới (tạo user + profile) -->
         <button
           (click)="openAddModal()"
-          class="flex items-center gap-1.5 bg-[#2563eb] hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-medium px-3.5 py-2 rounded-lg transition shadow-sm"
+          class="flex items-center gap-1.5 bg-[#2563eb] hover:bg-blue-700 active:bg-blue-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-blue-100"
         >
           <svg
             class="w-4 h-4"
@@ -694,7 +694,7 @@
         <!-- Nút Chọn từ danh sách (tài khoản có sẵn) -->
         <button
           (click)="openPickUserModal()"
-          class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-medium px-3.5 py-2 rounded-lg transition shadow-sm"
+          class="flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition shadow-lg shadow-emerald-100"
         >
           <svg
             class="w-4 h-4"
@@ -715,7 +715,7 @@
         <!-- Nút Import Excel -->
         <button
           (click)="triggerImport()"
-          class="flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-600 text-sm font-medium px-3.5 py-2 rounded-lg transition bg-white shadow-sm"
+          class="flex items-center gap-1.5 border border-gray-300 hover:bg-gray-50 text-gray-600 text-sm font-bold px-4 py-2.5 rounded-xl transition bg-white shadow-sm"
         >
           <svg
             class="w-4 h-4"
@@ -835,35 +835,35 @@
     <!-- Table -->
     <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
-        <thead class="bg-surface-50">
-          <tr class="border-b border-gray-100 bg-white">
+        <thead>
+          <tr class="bg-surface-50 border-b border-surface-50">
             <th
-              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
+              class="!px-8 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
             >
               Thực tập sinh
             </th>
             <th
-              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
+              class="!px-6 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
             >
               Liên hệ
             </th>
             <th
-              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
+              class="!px-6 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
             >
               Trường ĐH
             </th>
             <th
-              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
+              class="!px-6 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
             >
               Tổ chức
             </th>
             <th
-              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center"
+              class="!px-6 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center"
             >
               Trạng thái
             </th>
             <th
-              class="px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right"
+              class="!px-8 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right"
             >
               Thao tác
             </th>
@@ -874,15 +874,18 @@
             *ngFor="let intern of filtered; trackBy: trackById"
             class="hover:bg-surface-50/50 transition-colors group border-b border-gray-50"
           >
-            <td class="px-6 py-5">
+            <td class="!px-8 !py-5">
               <div class="flex items-center gap-2.5">
                 <div
-                  class="w-9 h-9 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary-100 shrink-0"
+                  class="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary-100 shrink-0"
                 >
                   {{ intern.fullName.charAt(0).toUpperCase() }}
                 </div>
                 <div class="flex flex-col">
-                  <span class="font-bold text-gray-800 leading-tight">{{ intern.fullName }}</span>
+                  <span
+                    class="font-bold text-gray-800 leading-tight hover:text-primary-600 transition-colors cursor-pointer"
+                    >{{ intern.fullName }}</span
+                  >
                   <span
                     class="text-[10px] text-gray-400 font-medium mt-0.5 uppercase tracking-tighter"
                     >{{ intern.major || '—' }}</span
@@ -890,18 +893,18 @@
                 </div>
               </div>
             </td>
-            <td class="px-6 py-5">
+            <td class="!px-6 !py-5">
               <div class="flex flex-col space-y-0.5">
                 <span class="text-xs text-gray-600 font-medium">{{ intern.email }}</span>
                 <span class="text-[11px] text-gray-400">{{ intern.phone }}</span>
               </div>
             </td>
-            <td class="px-6 py-5 text-gray-500 text-[13px]">
+            <td class="!px-6 !py-5 text-gray-500 text-[13px]">
               <span class="block truncate" [title]="getUnivFull(intern.universityId)">{{
                 intern.universityName
               }}</span>
             </td>
-            <td class="px-6 py-5">
+            <td class="!px-6 !py-5">
               <div class="flex flex-col">
                 <span class="text-xs font-bold text-gray-700">{{ intern.deptName }}</span>
                 <span class="text-[10px] text-gray-400 font-medium mt-0.5">{{
@@ -909,20 +912,20 @@
                 }}</span>
               </div>
             </td>
-            <td class="px-6 py-5 text-center">
+            <td class="!px-6 !py-5 text-center">
               <button
                 (click)="openStatusModal(intern)"
                 [ngClass]="STATUS_META[intern.status].cls"
-                class="px-2.5 py-0.5 rounded-full text-[11px] font-medium cursor-pointer hover:opacity-75 transition-opacity whitespace-nowrap"
+                class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-opacity whitespace-nowrap"
               >
                 {{ STATUS_META[intern.status].label }}
               </button>
             </td>
-            <td class="px-8 py-5 text-right">
+            <td class="!px-8 !py-5 text-right">
               <div class="row-act flex gap-1">
                 <button
                   (click)="openEditModal(intern)"
-                  class="p-1.5 rounded-lg text-blue-500 hover:bg-blue-50 transition-colors"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 transition-colors"
                   title="Chỉnh sửa"
                 >
                   <svg
@@ -941,7 +944,7 @@
                 </button>
                 <button
                   (click)="openDeleteModal(intern)"
-                  class="p-1.5 rounded-lg text-red-400 hover:bg-red-50 transition-colors"
+                  class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
                   title="Xóa"
                 >
                   <svg
