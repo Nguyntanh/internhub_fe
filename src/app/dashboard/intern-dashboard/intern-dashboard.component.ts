@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule, DatePipe } from '@angular/common';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, DatePipe, isPlatformBrowser } from '@angular/common';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,7 +8,10 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatExpansionModule } from '@angular/material/expansion';
 
-import { InternDashboardService, InternDashboardResponse } from '../../services/intern-dashboard.service'; // Import the service and response interface
+import {
+  InternDashboardService,
+  InternDashboardResponse,
+} from '../../services/intern-dashboard.service'; // Import the service and response interface
 import { catchError, finalize } from 'rxjs/operators';
 import { throwError } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -34,7 +37,7 @@ import { UiPageHeaderComponent } from '../../shared/components/ui-page-header/ui
   ],
   providers: [DatePipe],
   templateUrl: './intern-dashboard.component.html',
-  styleUrls: ['./intern-dashboard.component.css']
+  styleUrls: ['./intern-dashboard.component.css'],
 })
 export class InternDashboardComponent implements OnInit {
   dashboardData: InternDashboardResponse | null = null;
@@ -43,39 +46,60 @@ export class InternDashboardComponent implements OnInit {
 
   constructor(
     private datePipe: DatePipe,
-    private internDashboardService: InternDashboardService // Inject the service
-  ) { }
+    private internDashboardService: InternDashboardService,
+    @Inject(PLATFORM_ID) private platformId: Object,
+  ) {}
 
   ngOnInit(): void {
+    this.loadCache();
     this.fetchDashboardData();
   }
 
-  fetchDashboardData(): void {
-    this.isLoading = true;
-    this.error = null;
-    this.internDashboardService.getInternDashboard().pipe(
-      catchError((error: HttpErrorResponse) => {
-        console.error('Error fetching intern dashboard data', error);
-        this.error = 'Failed to load dashboard data. Please try again later.';
-        if (error.status === 404) {
-          this.error = 'Dashboard data not found.';
-        } else if (error.error && error.error.message) {
-          this.error = error.error.message;
-        }
-        return throwError(() => error);
-      }),
-      finalize(() => {
-        this.isLoading = false;
-      })
-    ).subscribe({
-      next: (data) => {
-        this.dashboardData = data;
-        // Optionally process data here if needed, e.g., format dates
-      },
-      error: () => {
-        // Error already handled by catchError and assigned to this.error
+  private loadCache(): void {
+    if (isPlatformBrowser(this.platformId)) {
+      const cached = localStorage.getItem('intern_dashboard_data');
+      if (cached) {
+        this.dashboardData = JSON.parse(cached);
+        this.isLoading = false; // Hiển thị ngay lập tức, không chờ API
       }
-    });
+    }
+  }
+
+  fetchDashboardData(): void {
+    // Chỉ hiện loading nếu chưa có dữ liệu trong cache
+    if (!this.dashboardData) {
+      this.isLoading = true;
+    }
+    this.error = null;
+    this.internDashboardService
+      .getInternDashboard()
+      .pipe(
+        catchError((error: HttpErrorResponse) => {
+          console.error('Error fetching intern dashboard data', error);
+          this.error = 'Failed to load dashboard data. Please try again later.';
+          if (error.status === 404) {
+            this.error = 'Dashboard data not found.';
+          } else if (error.error && error.error.message) {
+            this.error = error.error.message;
+          }
+          return throwError(() => error);
+        }),
+        finalize(() => {
+          this.isLoading = false;
+        }),
+      )
+      .subscribe({
+        next: (data) => {
+          this.dashboardData = data;
+          if (isPlatformBrowser(this.platformId)) {
+            localStorage.setItem('intern_dashboard_data', JSON.stringify(data));
+          }
+          // Optionally process data here if needed, e.g., format dates
+        },
+        error: () => {
+          // Error already handled by catchError and assigned to this.error
+        },
+      });
   }
   // Helper to format date
   formatDate(dateString: string): string {
@@ -85,10 +109,14 @@ export class InternDashboardComponent implements OnInit {
   // Helper to get status class for tasks
   getTaskStatusClass(status: string): string {
     switch (status) {
-      case 'Todo': return 'status-todo';
-      case 'In_Progress': return 'status-in-progress';
-      case 'Completed': return 'status-completed';
-      default: return '';
+      case 'Todo':
+        return 'status-todo';
+      case 'In_Progress':
+        return 'status-in-progress';
+      case 'Completed':
+        return 'status-completed';
+      default:
+        return '';
     }
   }
 

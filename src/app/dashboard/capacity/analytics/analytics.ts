@@ -87,13 +87,11 @@ export class AnalyticsComponent implements OnInit {
     private zone: NgZone,
     private roleService: RoleService,
     @Inject(PLATFORM_ID) private platformId: Object,
-  ) {
-    afterNextRender(() => {
-      this.init();
-    });
-  }
+  ) {}
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.init();
+  }
 
   private init(): void {
     this.currentRole = this.roleService.getRole();
@@ -151,6 +149,18 @@ export class AnalyticsComponent implements OnInit {
   // ── INTERN xem radar của chính mình ───────────────────────────────────────
 
   private loadOwnRadar(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Ưu tiên lấy ID và dữ liệu từ cache để hiển thị ngay
+    const cachedId = localStorage.getItem('cached_intern_id');
+    const cachedRadar = localStorage.getItem('cached_radar_data');
+
+    if (cachedId && cachedRadar) {
+      this.selectedInternId = Number(cachedId);
+      this.radarData = JSON.parse(cachedRadar);
+      setTimeout(() => this.renderRadarChart(), 0);
+    }
+
     // Lấy userId từ JWT
     try {
       const token = localStorage.getItem('jwt_token');
@@ -182,6 +192,8 @@ export class AnalyticsComponent implements OnInit {
   }
 
   private fetchCurrentUserId(): void {
+    if (!isPlatformBrowser(this.platformId)) return;
+
     // Lấy userId từ admin users list (self-reference thông qua email trong token)
     try {
       const token = localStorage.getItem('jwt_token');
@@ -195,6 +207,7 @@ export class AnalyticsComponent implements OnInit {
         next: (interns) => {
           const me = interns.find((i) => i.email === email);
           if (me) {
+            localStorage.setItem('cached_intern_id', me.id.toString());
             this.selectedInternId = me.id;
             this.loadRadar(me.id);
           }
@@ -223,9 +236,11 @@ export class AnalyticsComponent implements OnInit {
   // ── Gọi API Radar ─────────────────────────────────────────────────────────
 
   loadRadar(internId: number): void {
-    this.isLoadingRadar = true;
+    // Nếu đã có dữ liệu cache, không hiện spinner để tránh làm phiền người dùng
+    if (!this.radarData) {
+      this.isLoadingRadar = true;
+    }
     this.errorMsg = '';
-    this.radarData = null;
     this.chartRendered = false;
 
     this.http
@@ -239,6 +254,9 @@ export class AnalyticsComponent implements OnInit {
       .subscribe({
         next: (data) => {
           this.zone.run(() => {
+            if (isPlatformBrowser(this.platformId)) {
+              localStorage.setItem('cached_radar_data', JSON.stringify(data));
+            }
             this.radarData = data;
             this.cdr.detectChanges();
             // Render chart sau khi DOM cập nhật
