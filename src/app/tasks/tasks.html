@@ -201,6 +201,16 @@
           (click)="viewTask(row)"
         ></tr>
       </table>
+
+      <div
+        *ngIf="!loading && filteredTasks.length === 0"
+        class="p-20 flex flex-col items-center justify-center space-y-2"
+      >
+        <mat-icon class="text-gray-200 scale-[2]">assignment_late</mat-icon>
+        <p class="text-[10px] font-black text-gray-400 tracking-widest uppercase pt-4">
+          Không tìm thấy nhiệm vụ nào
+        </p>
+      </div>
     </div>
   </div>
 

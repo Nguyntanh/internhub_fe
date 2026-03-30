@@ -813,12 +813,12 @@
             </div>
           </div>
           <div
-            *ngIf="!selectedReview.skillSummaries?.length"
+            *ngIf="!selectedReview.skillSummaries.length"
             class="py-10 text-center text-gray-400 text-sm"
           >
             Chưa có dữ liệu kỹ năng
           </div>
-          <div *ngIf="selectedReview.skillSummaries?.length" class="overflow-x-auto">
+          <div *ngIf="selectedReview.skillSummaries.length" class="overflow-x-auto">
             <table class="w-full text-sm">
               <thead>
                 <tr class="bg-gray-50 border-b border-gray-100">
@@ -929,7 +929,7 @@
             <h3 class="text-sm font-semibold text-gray-700">
               Lịch sử thực thi
               <span class="ml-1 text-xs font-normal text-gray-400"
-                >({{ selectedReview.taskHistory?.length || 0 }} task)</span
+                >({{ selectedReview.taskHistory.length || 0 }} task)</span
               >
             </h3>
             <svg
@@ -950,7 +950,7 @@
 
           <div *ngIf="isTaskExpanded(-1)" class="border-t border-gray-100">
             <div
-              *ngIf="!selectedReview.taskHistory?.length"
+              *ngIf="!selectedReview.taskHistory.length"
               class="py-8 text-center text-gray-400 text-sm"
             >
               Chưa có task nào
@@ -995,7 +995,7 @@
               </div>
               <!-- Skills của task -->
               <div
-                *ngIf="isTaskExpanded(task.taskId) && task.skills?.length"
+                *ngIf="isTaskExpanded(task.taskId) && task.skills.length"
                 class="px-12 pb-3 space-y-1.5"
               >
                 <div
@@ -1010,7 +1010,7 @@
                     <span
                       *ngIf="s.ratingScore !== null"
                       class="font-bold"
-                      [style.color]="getManagerScoreColor(s.ratingScore ?? 0)"
+                      [style.color]="getManagerScoreColor(s.ratingScore)"
                     >
                       {{ s.ratingScore }}/10
                     </span>

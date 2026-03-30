@@ -1,5 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
-import { TaskService, Task, Intern, DuplicateTaskRequest } from '../services/task.service';
+import { TaskService, Intern, DuplicateTaskRequest } from './task.service';
+import { Task, TaskStatus } from './task.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpErrorResponse } from '@angular/common/http';
@@ -43,13 +44,11 @@ import { UiPageHeaderComponent } from '../shared/components/ui-page-header/ui-pa
     MatProgressSpinnerModule,
     MatTooltipModule,
     MatRadioModule,
-    UiCardComponent,
-    UiPageHeaderComponent
+    UiPageHeaderComponent,
   ],
-  templateUrl: './tasks.html'
+  templateUrl: './tasks.html',
 })
 export class Tasks implements OnInit {
-
   tasks: any[] = [];
   interns: Intern[] = [];
   skills: any[] = [];
@@ -60,7 +59,14 @@ export class Tasks implements OnInit {
   loadingInterns = false;
 
   displayedColumns: string[] = [
-    'stt', 'title', 'difficulty', 'deadline', 'status', 'submission', 'intern', 'actions'
+    'stt',
+    'title',
+    'difficulty',
+    'deadline',
+    'status',
+    'submission',
+    'intern',
+    'actions',
   ];
 
   selectedInternId: number | null = null;
@@ -95,20 +101,20 @@ export class Tasks implements OnInit {
     description: '',
     deadline: null,
     weight: 1,
-    internId: null
+    internId: null,
   };
 
   newTask: any = {
     title: '',
     description: '',
     weight: 1,
-    deadline: null
+    deadline: null,
   };
 
   constructor(
     private taskService: TaskService,
     private snackBar: MatSnackBar,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -145,24 +151,24 @@ export class Tasks implements OnInit {
           this.cdr.detectChanges();
           return;
         }
-        const detailRequests = data.map(task =>
-          this.taskService.getTaskDetail(task.id).pipe(catchError(() => of(task)))
+        const detailRequests = data.map((task) =>
+          this.taskService.getTaskDetail(task.id).pipe(catchError(() => of(task))),
         );
         forkJoin(detailRequests).subscribe({
           next: (details: any[]) => {
             this.tasks = details.map((detail, i) => ({
               ...data[i],
               ...detail,
-              weight: data[i].skills?.[0]?.weight ?? detail.weight ?? 1
+              weight: data[i].skills?.[0]?.weight ?? detail.weight ?? 1,
             }));
             this.loading = false;
             this.cdr.detectChanges();
           },
           error: () => {
-            this.tasks = data.map(task => ({ ...task, weight: task.skills?.[0]?.weight ?? 1 }));
+            this.tasks = data.map((task) => ({ ...task, weight: task.skills?.[0]?.weight ?? 1 }));
             this.loading = false;
             this.cdr.detectChanges();
-          }
+          },
         });
       },
       error: (error: HttpErrorResponse) => {
@@ -171,9 +177,10 @@ export class Tasks implements OnInit {
         this.loading = false;
         this.cdr.detectChanges();
         this.snackBar.open('Không thể tải danh sách task!', 'Đóng', {
-          duration: 5000, panelClass: ['error-snackbar']
+          duration: 5000,
+          panelClass: ['error-snackbar'],
         });
-      }
+      },
     });
   }
 
@@ -182,16 +189,16 @@ export class Tasks implements OnInit {
     this.taskService.getInterns().subscribe({
       next: (data: any) => {
         if (Array.isArray(data)) {
-          this.interns = data.map(item => ({
+          this.interns = data.map((item) => ({
             id: item.id,
             name: item.name || item.fullName || item.username || 'Không có tên',
-            email: item.email || ''
+            email: item.email || '',
           }));
         } else if (data?.content && Array.isArray(data.content)) {
           this.interns = data.content.map((item: any) => ({
             id: item.id,
             name: item.name || item.fullName || 'Không có tên',
-            email: item.email || ''
+            email: item.email || '',
           }));
         } else {
           this.interns = [];
@@ -204,7 +211,7 @@ export class Tasks implements OnInit {
         this.interns = [];
         this.loadingInterns = false;
         this.cdr.detectChanges();
-      }
+      },
     });
   }
 
@@ -214,7 +221,9 @@ export class Tasks implements OnInit {
         this.skills = Array.isArray(data) ? data : [];
         this.cdr.detectChanges();
       },
-      error: () => { this.skills = []; }
+      error: () => {
+        this.skills = [];
+      },
     });
   }
 
@@ -225,7 +234,7 @@ export class Tasks implements OnInit {
   }
 
   get filteredTasks(): any[] {
-    return this.tasks.filter(task => {
+    return this.tasks.filter((task) => {
       const matchesSearch = task.title?.toLowerCase().includes(this.searchText.toLowerCase());
       const matchesStatus = this.statusFilter ? task.status === this.statusFilter : true;
       return matchesSearch && matchesStatus;
@@ -243,13 +252,13 @@ export class Tasks implements OnInit {
 
   getInternName(id: number): string {
     if (!id) return '';
-    const intern = this.interns.find(i => i.id === id);
+    const intern = this.interns.find((i) => i.id === id);
     return intern ? intern.name : `Intern #${id}`;
   }
 
   getSkillName(skillId: number): string {
     if (!skillId) return '';
-    const skill = this.skills.find(s => s.id === skillId);
+    const skill = this.skills.find((s) => s.id === skillId);
     return skill ? skill.name : `Skill #${skillId}`;
   }
 
@@ -277,7 +286,9 @@ export class Tasks implements OnInit {
       description: this.newTask.description,
       deadline: deadlineDate.toISOString(),
       internIds: [this.selectedInternId],
-      skills: [{ skillId: this.selectedSkillId, weight: this.newTask.weight ?? 1 }]
+      skills: [{ skillId: this.selectedSkillId, weight: this.newTask.weight ?? 1 }],
+      status: TaskStatus.PENDING,
+      assignedInterns: [],
     };
 
     this.taskService.createTask(payload).subscribe({
@@ -292,8 +303,10 @@ export class Tasks implements OnInit {
       },
       error: (error) => {
         console.error('Lỗi tạo task:', error);
-        this.snackBar.open('Tạo task thất bại: ' + (error.message || 'Vui lòng thử lại'), 'Đóng', { duration: 5000 });
-      }
+        this.snackBar.open('Tạo task thất bại: ' + (error.message || 'Vui lòng thử lại'), 'Đóng', {
+          duration: 5000,
+        });
+      },
     });
   }
 
@@ -321,7 +334,7 @@ export class Tasks implements OnInit {
       },
       error: () => {
         this.snackBar.open('Không thể tải chi tiết task', 'Đóng', { duration: 3000 });
-      }
+      },
     });
   }
 
@@ -341,7 +354,7 @@ export class Tasks implements OnInit {
       description: this.taskDetail?.description || '',
       deadline: this.taskDetail?.deadline ? new Date(this.taskDetail.deadline) : null,
       weight: this.taskDetail?.weight || 1,
-      internId: this.taskDetail?.assignedInterns?.[0]?.id || null
+      internId: this.taskDetail?.assignedInterns?.[0]?.id || null,
     };
     if (this.taskDetail?.skills?.length > 0) {
       this.selectedSkillId = this.taskDetail.skills[0].skillId;
@@ -381,7 +394,7 @@ export class Tasks implements OnInit {
       description: this.editForm.description,
       deadline: deadlineDate.toISOString(),
       internIds: [this.editForm.internId],
-      skills: [{ skillId: this.selectedSkillId, weight: this.editForm.weight }]
+      skills: [{ skillId: this.selectedSkillId, weight: this.editForm.weight }],
     };
 
     this.taskService.updateTask(this.selectedTask.id, payload).subscribe({
@@ -397,7 +410,7 @@ export class Tasks implements OnInit {
       error: (error) => {
         console.error('Lỗi update task:', error);
         this.snackBar.open('Cập nhật task thất bại', 'Đóng', { duration: 3000 });
-      }
+      },
     });
   }
 
@@ -415,7 +428,7 @@ export class Tasks implements OnInit {
       error: (error) => {
         console.error('Lỗi xóa task:', error);
         this.snackBar.open('Xóa task thất bại', 'Đóng', { duration: 3000 });
-      }
+      },
     });
   }
 
@@ -440,7 +453,7 @@ export class Tasks implements OnInit {
           this.showReviewModal = true;
           this.cdr.detectChanges();
         }, 0);
-      }
+      },
     });
   }
 
@@ -470,14 +483,22 @@ export class Tasks implements OnInit {
     const taskSkillId = task?.skills?.[0]?.skillId ?? null;
 
     if (!taskSkillId) {
-      this.snackBar.open('Task này chưa có skill — không thể chấm điểm', 'Đóng', { duration: 4000 });
+      this.snackBar.open('Task này chưa có skill — không thể chấm điểm', 'Đóng', {
+        duration: 4000,
+      });
       return;
     }
 
-    const backendScore = Math.round((Number(this.reviewScore)) * 100) / 100;
+    const backendScore = Math.round(Number(this.reviewScore) * 100) / 100;
 
     const payload = {
-      skills: [{ skillId: taskSkillId, ratingScore: backendScore, reviewComment: this.reviewComment || '' }]
+      skills: [
+        {
+          skillId: taskSkillId,
+          ratingScore: backendScore,
+          reviewComment: this.reviewComment || '',
+        },
+      ],
     };
 
     this.taskService.reviewTask(task.id, payload).subscribe({
@@ -495,7 +516,7 @@ export class Tasks implements OnInit {
         }
         const msg = error?.error?.message || error?.message || 'Chấm điểm thất bại';
         this.snackBar.open(msg, 'Đóng', { duration: 4000 });
-      }
+      },
     });
   }
 
@@ -525,7 +546,9 @@ export class Tasks implements OnInit {
     if (idx === -1) {
       this.duplicateSelectedInternIds = [...this.duplicateSelectedInternIds, internId];
     } else {
-      this.duplicateSelectedInternIds = this.duplicateSelectedInternIds.filter(id => id !== internId);
+      this.duplicateSelectedInternIds = this.duplicateSelectedInternIds.filter(
+        (id) => id !== internId,
+      );
     }
   }
 
@@ -539,7 +562,11 @@ export class Tasks implements OnInit {
   }
 
   confirmDuplicate(): void {
-    if (!this.duplicateSourceTask || !this.duplicateDeadlineStr || this.duplicateSelectedInternIds.length === 0) {
+    if (
+      !this.duplicateSourceTask ||
+      !this.duplicateDeadlineStr ||
+      this.duplicateSelectedInternIds.length === 0
+    ) {
       return;
     }
 
@@ -550,7 +577,7 @@ export class Tasks implements OnInit {
 
     const request: DuplicateTaskRequest = {
       internIds: [...this.duplicateSelectedInternIds],
-      deadline
+      deadline,
     };
 
     this.taskService.duplicateTask(this.duplicateSourceTask.id, request).subscribe({
@@ -570,10 +597,11 @@ export class Tasks implements OnInit {
           this.isDuplicating = false;
           this.cdr.detectChanges();
           console.error('Lỗi duplicate task:', error);
-          const msg = error?.error?.message || error?.message || 'Duplicate thất bại, vui lòng thử lại.';
+          const msg =
+            error?.error?.message || error?.message || 'Duplicate thất bại, vui lòng thử lại.';
           this.snackBar.open(msg, 'Đóng', { duration: 5000, panelClass: ['error-snackbar'] });
         }, 0);
-      }
+      },
     });
   }
 
@@ -581,19 +609,27 @@ export class Tasks implements OnInit {
 
   getStatusColor(status: string): string {
     switch (status?.toLowerCase()) {
-      case 'pending': return 'warning';
-      case 'submitted': return 'info';
-      case 'reviewed': return 'success';
-      default: return 'primary';
+      case 'pending':
+        return 'warning';
+      case 'submitted':
+        return 'info';
+      case 'reviewed':
+        return 'success';
+      default:
+        return 'primary';
     }
   }
 
   getStatusClass(status: string): string {
     switch (status?.toLowerCase()) {
-      case 'pending': return 'bg-amber-50 text-amber-600 border-amber-100';
-      case 'submitted': return 'bg-blue-50 text-blue-600 border-blue-100';
-      case 'reviewed': return 'bg-emerald-50 text-emerald-600 border-emerald-100';
-      default: return 'bg-slate-50 text-slate-600 border-slate-100';
+      case 'pending':
+        return 'bg-amber-50 text-amber-600 border-amber-100';
+      case 'submitted':
+        return 'bg-blue-50 text-blue-600 border-blue-100';
+      case 'reviewed':
+        return 'bg-emerald-50 text-emerald-600 border-emerald-100';
+      default:
+        return 'bg-slate-50 text-slate-600 border-slate-100';
     }
   }
 
