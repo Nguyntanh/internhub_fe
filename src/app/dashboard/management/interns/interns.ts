@@ -202,20 +202,30 @@ export class InternsComponent implements OnInit {
   }
 
   buildForm(): void {
-    this.internForm = this.fb.group({
-      fullName: ['', [Validators.required, Validators.minLength(2)]],
-      email: ['', [Validators.required, Validators.email]],
-      phone: ['', [Validators.required, Validators.pattern(/^(0|\+84)\d{9}$/)]],
-      major: [''],
-      universityId: [null],
-      departmentId: [null],
-      positionId: [null],
-      status: ['In_Progress'],
-      startDate: ['', Validators.required],
-      endDate: [''],
-      mentorId: [null],
-      managerId: [null],
-    });
+    this.internForm = this.fb.group(
+      {
+        fullName: ['', [Validators.required, Validators.minLength(2)]],
+        email: ['', [Validators.required, Validators.email]],
+        phone: ['', [Validators.required, Validators.pattern(/^(0|\+84)\d{9}$/)]],
+        major: [''],
+        universityId: [null],
+        departmentId: [null],
+        positionId: [null],
+        status: ['In_Progress'],
+        startDate: ['', Validators.required],
+        endDate: [''],
+        mentorId: [null],
+        managerId: [null],
+      },
+      {
+        validators: (group: AbstractControl) => {
+          const start = group.get('startDate')?.value;
+          const end = group.get('endDate')?.value;
+          if (start && end && new Date(end) <= new Date(start)) return { dateRange: true };
+          return null;
+        },
+      },
+    );
 
     this.internForm.get('departmentId')?.valueChanges.subscribe(() => {
       this.internForm.patchValue({ positionId: null }, { emitEvent: false });
