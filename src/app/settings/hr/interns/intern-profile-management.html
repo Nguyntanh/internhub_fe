@@ -307,7 +307,12 @@
 <!-- ═══════════════════════════ ADD / EDIT MODAL ═══════════════════════════ -->
 <div
   *ngIf="isFormModalOpen"
-  class="fixed top-0 right-0 h-screen w-full max-w-2xl bg-white shadow-2xl z-[50] border-l border-gray-100 flex flex-col anim-slideright"
+  class="fixed inset-0 z-[49] bg-black/10 backdrop-blur-sm"
+  (click)="closeFormModal()"
+></div>
+<div
+  *ngIf="isFormModalOpen"
+  class="fixed top-0 right-0 h-screen w-full max-w-lg bg-white shadow-2xl z-[50] border-l border-gray-100 flex flex-col anim-slideright"
 >
   <div
     class="px-6 py-4 border-b border-gray-100 flex items-center justify-between flex-shrink-0 bg-white sticky top-0 z-10"
@@ -362,7 +367,7 @@
   <form
     [formGroup]="internForm"
     (ngSubmit)="saveIntern()"
-    class="flex-1 overflow-y-auto p-6 mt-20 space-y-8 custom-scrollbar"
+    class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar"
   >
     <!-- Banner: đang tạo từ user có sẵn (Nội dung mới giữ nguyên) -->
     <div
@@ -409,13 +414,15 @@
     <!-- Section: Thông tin cá nhân -->
     <div>
       <div
-        class="text-[10px] font-black text-blue-600 uppercase tracking-widest border-b border-blue-50 pb-2 mb-4"
+        class="text-[10px] font-black text-primary-600 uppercase tracking-widest border-b border-primary-50 pb-2 mb-4"
       >
         01. Thông tin định danh
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div class="sm:col-span-2">
-          <label class="fm-lbl">Họ và tên <span class="text-red-500">*</span></label>
+      <div class="grid grid-cols-2 gap-x-4 gap-y-4">
+        <div class="col-span-2">
+          <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 block"
+            >Họ và tên <span class="text-red-500">*</span></label
+          >
           <input
             formControlName="fullName"
             type="text"
@@ -429,8 +436,10 @@
           <p *ngIf="isInvalid('fullName')" class="fm-err">{{ getError('fullName') }}</p>
         </div>
 
-        <div>
-          <label class="fm-lbl">Email <span class="text-red-500">*</span></label>
+        <div class="col-span-2 sm:col-span-1">
+          <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 block"
+            >Email <span class="text-red-500">*</span></label
+          >
           <input
             formControlName="email"
             type="email"
@@ -444,8 +453,10 @@
           <p *ngIf="isInvalid('email')" class="fm-err">{{ getError('email') }}</p>
         </div>
 
-        <div>
-          <label class="fm-lbl">Số điện thoại <span class="text-red-500">*</span></label>
+        <div class="col-span-2 sm:col-span-1">
+          <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 block"
+            >Số điện thoại <span class="text-red-500">*</span></label
+          >
           <input
             formControlName="phone"
             type="tel"
@@ -456,8 +467,15 @@
           <p *ngIf="isInvalid('phone')" class="fm-err">{{ getError('phone') }}</p>
         </div>
 
-        <div class="sm:col-span-2">
-          <label class="fm-lbl">Ngành học</label>
+        <div class="col-span-2 mt-2">
+          <div
+            class="text-[10px] font-black text-primary-600 uppercase tracking-widest border-b border-primary-50 pb-2 mb-4"
+          >
+            02. Học vấn & Chuyên môn
+          </div>
+          <label class="text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1 block"
+            >Ngành học</label
+          >
           <input
             formControlName="major"
             type="text"
@@ -468,15 +486,15 @@
       </div>
     </div>
 
-    <div class="border-t border-dashed border-gray-200"></div>
-
     <!-- Section: Thông tin thực tập -->
     <div>
-      <p class="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-3">
-        Thông tin thực tập
-      </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
+      <div
+        class="text-[10px] font-black text-primary-600 uppercase tracking-widest border-b border-primary-50 pb-2 mb-4"
+      >
+        03. Phân công công tác
+      </div>
+      <div class="grid grid-cols-2 gap-x-4 gap-y-4">
+        <div class="col-span-2">
           <label class="fm-lbl">Trường Đại học <span class="text-red-500">*</span></label>
           <div class="relative">
             <input
@@ -526,7 +544,7 @@
           </p>
         </div>
 
-        <div>
+        <div class="col-span-2 sm:col-span-1">
           <label class="fm-lbl">Phòng ban <span class="text-red-500">*</span></label>
           <select
             formControlName="departmentId"
@@ -539,7 +557,7 @@
           <p *ngIf="isInvalid('departmentId')" class="fm-err">{{ getError('departmentId') }}</p>
         </div>
 
-        <div>
+        <div class="col-span-2 sm:col-span-1">
           <label class="fm-lbl">Vị trí thực tập <span class="text-red-500">*</span></label>
           <select
             formControlName="positionId"
@@ -555,7 +573,33 @@
           <p *ngIf="isInvalid('positionId')" class="fm-err">{{ getError('positionId') }}</p>
         </div>
 
-        <div>
+        <div class="col-span-2 sm:col-span-1">
+          <label class="fm-lbl">Mentor</label>
+          <select formControlName="mentorId" class="fm-inp">
+            <option value="">Không chỉ định</option>
+            <option *ngFor="let m of MENTORS" [value]="m.id">{{ m.name }}</option>
+          </select>
+        </div>
+
+        <div class="col-span-2 sm:col-span-1">
+          <label class="fm-lbl">Manager</label>
+          <select formControlName="managerId" class="fm-inp">
+            <option value="">Không chỉ định</option>
+            <option *ngFor="let m of MANAGERS" [value]="m.id">{{ m.name }}</option>
+          </select>
+        </div>
+
+        <!-- Section: Lộ trình & Trạng thái -->
+        <div class="col-span-2 mt-4">
+          <div
+            class="text-[10px] font-black text-primary-600 uppercase tracking-widest border-b border-primary-50 pb-2 mb-4"
+          >
+            04. Lộ trình & Trạng thái
+          </div>
+        </div>
+
+        <div class="col-span-2">
+          <label class="fm-lbl">Trạng thái</label>
           <label class="fm-lbl">Trạng thái</label>
           <select formControlName="status" class="fm-inp">
             <option *ngFor="let key of STATUS_KEYS" [value]="key">
@@ -564,7 +608,7 @@
           </select>
         </div>
 
-        <div>
+        <div class="col-span-2 sm:col-span-1">
           <label class="fm-lbl">Ngày bắt đầu <span class="text-red-500">*</span></label>
           <input
             formControlName="startDate"
@@ -575,7 +619,7 @@
           <p *ngIf="isInvalid('startDate')" class="fm-err">{{ getError('startDate') }}</p>
         </div>
 
-        <div>
+        <div class="col-span-2 sm:col-span-1">
           <label class="fm-lbl">Ngày kết thúc</label>
           <input
             formControlName="endDate"
@@ -591,22 +635,6 @@
           >
             Ngày kết thúc phải sau ngày bắt đầu.
           </p>
-        </div>
-
-        <div>
-          <label class="fm-lbl">Mentor</label>
-          <select formControlName="mentorId" class="fm-inp">
-            <option value="">Không chỉ định</option>
-            <option *ngFor="let m of MENTORS" [value]="m.id">{{ m.name }}</option>
-          </select>
-        </div>
-
-        <div>
-          <label class="fm-lbl">Manager</label>
-          <select formControlName="managerId" class="fm-inp">
-            <option value="">Không chỉ định</option>
-            <option *ngFor="let m of MANAGERS" [value]="m.id">{{ m.name }}</option>
-          </select>
         </div>
       </div>
     </div>
@@ -635,9 +663,12 @@
 
 <!-- ═══════════════════════════ MAIN PAGE ═══════════════════════════ -->
 <div class="max-w-[1200px] mx-auto p-5 sm:p-7">
-  <h1 class="text-xl font-bold text-gray-900 mb-5">Quản lý Thực tập sinh</h1>
+  <app-ui-page-header
+    title="Hồ sơ Thực tập sinh"
+    subtitle="Quản lý thông tin và trạng thái thực tập của các nhân sự mới"
+  ></app-ui-page-header>
 
-  <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+  <app-ui-card paddingClass="p-0">
     <!-- Toolbar row 1: actions + search -->
     <div
       class="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 flex-wrap"
@@ -804,41 +835,81 @@
     <!-- Table -->
     <div class="overflow-x-auto">
       <table class="w-full text-sm border-collapse">
-        <thead>
+        <thead class="bg-surface-50">
           <tr class="border-b border-gray-100 bg-white">
-            <th class="th">Họ tên</th>
-            <th class="th">Email</th>
-            <th class="th">SĐT</th>
-            <th class="th">Trường</th>
-            <th class="th">Phòng ban</th>
-            <th class="th">Vị trí</th>
-            <th class="th">Trạng thái</th>
-            <th class="th">Hành động</th>
+            <th
+              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
+            >
+              Thực tập sinh
+            </th>
+            <th
+              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
+            >
+              Liên hệ
+            </th>
+            <th
+              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
+            >
+              Trường ĐH
+            </th>
+            <th
+              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
+            >
+              Tổ chức
+            </th>
+            <th
+              class="px-6 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center"
+            >
+              Trạng thái
+            </th>
+            <th
+              class="px-8 py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right"
+            >
+              Thao tác
+            </th>
           </tr>
         </thead>
         <tbody>
           <tr
             *ngFor="let intern of filtered; trackBy: trackById"
-            class="trow border-b border-gray-50"
+            class="hover:bg-surface-50/50 transition-colors group border-b border-gray-50"
           >
-            <td class="td">
+            <td class="px-6 py-5">
               <div class="flex items-center gap-2.5">
-                <div>
-                  <p class="font-medium text-gray-800 text-[13px]">{{ intern.fullName }}</p>
-                  <p class="text-[11px] text-gray-400">{{ intern.major }}</p>
+                <div
+                  class="w-9 h-9 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary-100 shrink-0"
+                >
+                  {{ intern.fullName.charAt(0).toUpperCase() }}
+                </div>
+                <div class="flex flex-col">
+                  <span class="font-bold text-gray-800 leading-tight">{{ intern.fullName }}</span>
+                  <span
+                    class="text-[10px] text-gray-400 font-medium mt-0.5 uppercase tracking-tighter"
+                    >{{ intern.major || '—' }}</span
+                  >
                 </div>
               </div>
             </td>
-            <td class="td text-gray-500 text-[13px]">{{ intern.email }}</td>
-            <td class="td text-gray-500 text-[13px]">{{ intern.phone }}</td>
-            <td class="td text-gray-500 text-[13px] max-w-[140px]">
+            <td class="px-6 py-5">
+              <div class="flex flex-col space-y-0.5">
+                <span class="text-xs text-gray-600 font-medium">{{ intern.email }}</span>
+                <span class="text-[11px] text-gray-400">{{ intern.phone }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-5 text-gray-500 text-[13px]">
               <span class="block truncate" [title]="getUnivFull(intern.universityId)">{{
                 intern.universityName
               }}</span>
             </td>
-            <td class="td text-gray-500 text-[13px]">{{ intern.deptName }}</td>
-            <td class="td text-gray-500 text-[13px]">{{ intern.posName || '—' }}</td>
-            <td class="td">
+            <td class="px-6 py-5">
+              <div class="flex flex-col">
+                <span class="text-xs font-bold text-gray-700">{{ intern.deptName }}</span>
+                <span class="text-[10px] text-gray-400 font-medium mt-0.5">{{
+                  intern.posName || '—'
+                }}</span>
+              </div>
+            </td>
+            <td class="px-6 py-5 text-center">
               <button
                 (click)="openStatusModal(intern)"
                 [ngClass]="STATUS_META[intern.status].cls"
@@ -847,7 +918,7 @@
                 {{ STATUS_META[intern.status].label }}
               </button>
             </td>
-            <td class="td">
+            <td class="px-8 py-5 text-right">
               <div class="row-act flex gap-1">
                 <button
                   (click)="openEditModal(intern)"
@@ -946,5 +1017,5 @@
         Xóa bộ lọc
       </button>
     </div>
-  </div>
+  </app-ui-card>
 </div>
