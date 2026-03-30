@@ -145,7 +145,8 @@ export class InternsComponent implements OnInit {
   isEditMode = false;
   editingId: number | null = null;
   public isDeleteDrawerOpen: boolean = false;
-  selectedInternForDelete: Intern | null = null;
+  deletingIntern: Intern | null = null;
+  duplicateError: string = '';
 
   // Filters
   searchQuery = '';
@@ -278,6 +279,33 @@ export class InternsComponent implements OnInit {
     return deptId ? this.DEPT_POSITIONS[deptId] || [] : [];
   }
 
+  isInvalid(controlName: string): boolean {
+    const control = this.internForm.get(controlName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
+  }
+
+  getError(controlName: string): string {
+    const control = this.internForm.get(controlName);
+    if (!control || !control.errors) return '';
+
+    if (control.hasError('required')) return 'Trường này không được để trống';
+    if (control.hasError('email')) return 'Email không hợp lệ';
+    if (control.hasError('minlength'))
+      return `Tối thiểu ${control.errors['minlength'].requiredLength} ký tự`;
+    if (control.hasError('pattern')) {
+      if (controlName === 'phone') return 'Số điện thoại không hợp lệ (10 số)';
+      if (controlName === 'fullName') return 'Họ tên không được chứa số hoặc ký tự đặc biệt';
+      return 'Định dạng không hợp lệ';
+    }
+    if (
+      this.internForm.hasError('dateRange') &&
+      (controlName === 'startDate' || controlName === 'endDate')
+    ) {
+      return 'Ngày kết thúc phải sau ngày bắt đầu';
+    }
+    return 'Dữ liệu không hợp lệ';
+  }
+
   applyFilters(): void {
     const q = this.searchQuery.toLowerCase().trim();
     this.filtered = this.interns.filter((i) => {
@@ -293,6 +321,7 @@ export class InternsComponent implements OnInit {
     this.isEditMode = false;
     this.editingId = null;
     this.internForm.reset({ status: 'In_Progress' });
+    this.duplicateError = '';
     this.isFormModalOpen = true;
   }
 
@@ -306,11 +335,13 @@ export class InternsComponent implements OnInit {
     setTimeout(() => {
       this.internForm.patchValue({ positionId: intern.positionId });
     });
+    this.duplicateError = '';
     this.isFormModalOpen = true;
   }
 
   saveIntern() {
     if (this.internForm.invalid) return;
+    this.duplicateError = '';
     const val = this.internForm.getRawValue();
     const request = this.isEditMode
       ? this.http.put(`${this.API}/${this.editingId}`, val)
@@ -326,22 +357,25 @@ export class InternsComponent implements OnInit {
         this.loadInterns();
         this.isFormModalOpen = false;
       },
-      error: () => this.snackBar.open('Có lỗi xảy ra', 'Đóng', { duration: 3000 }),
+      error: (err) => {
+        this.duplicateError = err.error?.message || 'Có lỗi xảy ra khi lưu hồ sơ';
+        this.snackBar.open('Lỗi: ' + this.duplicateError, 'Đóng', { duration: 3000 });
+      },
     });
   }
 
   deleteIntern(intern: Intern) {
-    this.selectedInternForDelete = intern;
+    this.deletingIntern = intern;
     this.isDeleteDrawerOpen = true;
   }
 
   confirmDelete() {
-    if (!this.selectedInternForDelete) return;
-    this.http.delete(`${this.API}/${this.selectedInternForDelete.id}`).subscribe(() => {
+    if (!this.deletingIntern) return;
+    this.http.delete(`${this.API}/${this.deletingIntern.id}`).subscribe(() => {
       this.snackBar.open('Đã xóa hồ sơ thực tập sinh thành công', 'Đóng', { duration: 3000 });
       this.loadInterns();
       this.isDeleteDrawerOpen = false;
-      this.selectedInternForDelete = null;
+      this.deletingIntern = null;
     });
   }
 
