@@ -217,7 +217,7 @@
   <!-- DRAWER OVERLAY (BACKDROP) -->
   <div
     *ngIf="showAddModal || showTaskModal"
-    class="fixed top-16 inset-x-0 bottom-0 bg-gray-900/30 backdrop-blur-sm z-[40] transition-all animate-fade-in"
+    class="fixed top-16 inset-x-0 bottom-0 z-[40]"
     (click)="closeAddModal(); closeTaskModal()"
   ></div>
 
