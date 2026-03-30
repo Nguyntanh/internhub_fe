@@ -1,4 +1,5 @@
 import { Component, OnInit, ChangeDetectorRef, afterNextRender } from '@angular/core';
+import { trigger, transition, style, animate } from '@angular/animations';
 import { CommonModule } from '@angular/common';
 import {
   FormsModule,
@@ -100,6 +101,20 @@ interface Position {
     MatSnackBarModule,
     UiCardComponent,
     UiPageHeaderComponent,
+  ],
+  animations: [
+    trigger('modalAnimation', [
+      transition(':enter', [
+        style({ transform: 'translateX(100%)', opacity: 0 }),
+        animate(
+          '300ms cubic-bezier(0.4, 0, 0.2, 1)',
+          style({ transform: 'translateX(0)', opacity: 1 }),
+        ),
+      ]),
+      transition(':leave', [
+        animate('250ms ease-in', style({ transform: 'translateX(100%)', opacity: 0 })),
+      ]),
+    ]),
   ],
   templateUrl: './interns.html',
   styleUrls: ['./interns.css'],
