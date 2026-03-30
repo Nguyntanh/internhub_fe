@@ -39,8 +39,30 @@ export const API_ENDPOINTS = {
     profile: `${BASE_API_URL}/user/profile`,
     changePassword: `${BASE_API_URL}/user/change-password`,
     updateAvatar: `${BASE_API_URL}/user/profile/avatar`,
+    interns: `${BASE_API_URL}/user/interns`,
+  },
+  Mentor: {
+    interns: `${BASE_API_URL}/mentor/interns`,
   },
   Radar: {
     byInternId: (id: number) => `${BASE_API_URL}/radar/intern/${id}`,
+  },
+  Universities: {
+    base: `${BASE_API_URL}/universities`,
+  },
+
+  Interns: {
+    base: `${BASE_API_URL}/interns`,
+    byId: (id: number) => `${BASE_API_URL}/interns/${id}`,
+  },
+  Export: {
+    internExcel: (id: number) => `${BASE_API_URL}/export/intern/${id}/excel`,
+    groupExcel: (departmentId?: number, universityId?: number) => {
+      const params = new URLSearchParams();
+      if (departmentId) params.set('departmentId', String(departmentId));
+      if (universityId) params.set('universityId', String(universityId));
+      const q = params.toString();
+      return `${BASE_API_URL}/export/group/excel${q ? '?' + q : ''}`;
+    },
   },
 };

@@ -1,7 +1,6 @@
 import {
   Component,
   OnInit,
-  AfterViewInit,
   ChangeDetectorRef,
   NgZone,
   afterNextRender,
@@ -11,8 +10,10 @@ import {
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { finalize } from 'rxjs/operators';
+import { finalize } from 'rxjs';
 import { RoleService } from '../../../auth/role.service';
+import { ExportService } from '../../../services/export.service';
+import { API_ENDPOINTS } from '../../../api-endpoints';
 
 // ─── Models ───────────────────────────────────────────────────────────────────
 
@@ -36,8 +37,21 @@ interface RadarAnalyticsResponse {
   internId: number;
   internName: string;
   internEmail: string;
+  phone: string | null;
+  // Profile info
+  universityName: string | null;
+  major: string | null;
   positionName: string | null;
   departmentName: string | null;
+  status: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  // Mentor / Manager
+  mentorId: number | null;
+  mentorName: string | null;
+  managerId: number | null;
+  managerName: string | null;
+  // Scores
   skillScores: SkillScore[];
   benchmarkScores: BenchmarkScore[];
   totalTasksReviewed: number;
@@ -62,9 +76,6 @@ interface InternItem {
   styleUrl: './analytics.css',
 })
 export class AnalyticsComponent implements OnInit {
-  private readonly API = 'http://localhost:8090/api';
-
-  // Role state
   currentRole = '';
   isIntern = false;
 
@@ -81,11 +92,15 @@ export class AnalyticsComponent implements OnInit {
   // Chart rendered flag
   chartRendered = false;
 
+  // Export state
+  isExporting = false;
+
   constructor(
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
     private zone: NgZone,
     private roleService: RoleService,
+    private exportService: ExportService,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {
     afterNextRender(() => {
@@ -100,10 +115,8 @@ export class AnalyticsComponent implements OnInit {
     this.isIntern = this.roleService.isIntern();
 
     if (this.isIntern) {
-      // INTERN: tự động load radar cho chính mình
       this.loadOwnRadar();
     } else {
-      // ADMIN / HR / MANAGER / MENTOR: load danh sách intern
       this.loadInterns();
     }
   }
@@ -113,25 +126,24 @@ export class AnalyticsComponent implements OnInit {
   private loadInterns(): void {
     this.isLoadingInterns = true;
 
-    // ADMIN, HR: lấy tất cả intern
-    // MENTOR: lấy intern mình phụ trách
     const url =
       this.currentRole === 'ADMIN' || this.currentRole === 'HR'
-        ? `${this.API}/admin/users/all`
-        : `${this.API}/mentor/interns`;
+        ? `${API_ENDPOINTS.Admin.users}/all`
+        : API_ENDPOINTS.Mentor.interns;
 
     this.http
       .get<any[]>(url)
       .pipe(
         finalize(() => {
-          this.isLoadingInterns = false;
-          this.cdr.detectChanges();
+          this.zone.run(() => {
+            this.isLoadingInterns = false;
+            this.cdr.detectChanges();
+          });
         }),
       )
       .subscribe({
         next: (data) => {
           this.zone.run(() => {
-            // Lọc chỉ lấy role INTERN nếu gọi /admin/users/all
             if (this.currentRole === 'ADMIN' || this.currentRole === 'HR') {
               this.interns = data
                 .filter((u) => (u.roleName || '').toUpperCase() === 'INTERN')
@@ -151,47 +163,25 @@ export class AnalyticsComponent implements OnInit {
   // ── INTERN xem radar của chính mình ───────────────────────────────────────
 
   private loadOwnRadar(): void {
-    // Lấy userId từ JWT
     try {
       const token = localStorage.getItem('jwt_token');
       if (!token) return;
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      // Tìm user id — cần gọi profile để lấy
-      this.http.get<any>(`${this.API}/user/profile`).subscribe({
-        next: () => {
-          // Gọi radar với intern's own ID
-          // Vì INTERN có thể lấy id từ endpoint intern dashboard hoặc profile
-          // Ta dùng endpoint radar và pass "me" concept — nhưng BE cần internId
-          // Giải pháp: gọi /api/v1/intern/dashboard để lấy context, rồi xác định ID
-          this.http.get<any>(`${this.API}/v1/intern/dashboard`).subscribe({
-            next: (_) => {
-              // Gọi radar — cần internId; lấy từ JWT sub (email) → tìm user
-              // Dùng profile để biết, nhưng profile không trả id trực tiếp
-              // Giải pháp đơn giản: parse JWT để lấy email, rồi gọi radar với sub=self
-              // Thay thế bằng cách dùng endpoint /api/radar/intern/{id} với id từ users/all
-              this.fetchCurrentUserId();
-            },
-            error: () => this.fetchCurrentUserId(),
-          });
-        },
-        error: () => this.fetchCurrentUserId(),
-      });
+      // Validate token is parseable before proceeding
+      JSON.parse(atob(token.split('.')[1]));
+      this.fetchCurrentUserId();
     } catch {
       this.fetchCurrentUserId();
     }
   }
 
   private fetchCurrentUserId(): void {
-    // Lấy userId từ admin users list (self-reference thông qua email trong token)
     try {
       const token = localStorage.getItem('jwt_token');
       if (!token) return;
       const payload = JSON.parse(atob(token.split('.')[1]));
       const email = payload.sub || payload.email || '';
 
-      // Dùng /api/admin/users/all để tìm mình — nhưng INTERN không có quyền
-      // Thay thế: tìm từ /api/user/interns (public intern list)
-      this.http.get<any[]>(`${this.API}/user/interns`).subscribe({
+      this.http.get<any[]>(API_ENDPOINTS.User.interns).subscribe({
         next: (interns) => {
           const me = interns.find((i) => i.email === email);
           if (me) {
@@ -210,7 +200,7 @@ export class AnalyticsComponent implements OnInit {
 
   // ── Khi MENTOR/MANAGER/ADMIN chọn intern ──────────────────────────────────
 
-  onInternChange(internId: any): void {
+  onInternChange(internId: number | string | null): void {
     const id = internId ? Number(internId) : null;
     this.selectedInternId = id;
     this.radarData = null;
@@ -229,11 +219,13 @@ export class AnalyticsComponent implements OnInit {
     this.chartRendered = false;
 
     this.http
-      .get<RadarAnalyticsResponse>(`${this.API}/radar/intern/${internId}`)
+      .get<RadarAnalyticsResponse>(API_ENDPOINTS.Radar.byInternId(internId))
       .pipe(
         finalize(() => {
-          this.isLoadingRadar = false;
-          this.cdr.detectChanges();
+          this.zone.run(() => {
+            this.isLoadingRadar = false;
+            this.cdr.detectChanges();
+          });
         }),
       )
       .subscribe({
@@ -241,7 +233,6 @@ export class AnalyticsComponent implements OnInit {
           this.zone.run(() => {
             this.radarData = data;
             this.cdr.detectChanges();
-            // Render chart sau khi DOM cập nhật
             setTimeout(() => this.renderRadarChart(), 100);
           });
         },
@@ -269,7 +260,6 @@ export class AnalyticsComponent implements OnInit {
     const canvas = document.getElementById('radarChart') as HTMLCanvasElement;
     if (!canvas) return;
 
-    // Destroy old chart nếu có
     const existing = (window as any).__radarChartInstance;
     if (existing) {
       existing.destroy();
@@ -290,7 +280,6 @@ export class AnalyticsComponent implements OnInit {
 
     const Chart = (window as any).Chart;
     if (!Chart) {
-      // Chart.js chưa load xong — thử lại
       setTimeout(() => this.renderRadarChart(), 300);
       return;
     }
@@ -410,10 +399,38 @@ export class AnalyticsComponent implements OnInit {
     return !!this.radarData && this.radarData.skillScores.length > 0;
   }
 
-  // Track by
+  // ── Export ────────────────────────────────────────────────────────────────
+
+  exportInternExcel(): void {
+    if (!this.radarData || !this.selectedInternId) return;
+    this.isExporting = true;
+    this.exportService.exportInternExcel(this.selectedInternId).subscribe({
+      next: (blob) => {
+        const safeName = this.radarData!.internName.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '-');
+        this.exportService.downloadBlob(blob, `bao-cao-${safeName}.xlsx`);
+        this.isExporting = false;
+      },
+      error: () => {
+        alert('Xuất báo cáo thất bại. Vui lòng thử lại.');
+        this.isExporting = false;
+      },
+    });
+  }
+
+  translateStatus(status: string | null): string {
+    switch (status) {
+      case 'In_Progress': return 'Đang thực tập';
+      case 'Completed':   return 'Hoàn thành';
+      case 'Terminated':  return 'Đã chấm dứt';
+      case 'Extended':    return 'Gia hạn';
+      default:            return status ?? '—';
+    }
+  }
+
   trackBySkillId(_: number, s: SkillScore): number {
     return s.skillId;
   }
+
   trackByInternId(_: number, i: InternItem): number {
     return i.id;
   }
