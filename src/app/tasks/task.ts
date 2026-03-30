@@ -124,11 +124,17 @@ export class Tasks implements OnInit {
 
   openAddModal(): void {
     this.resetNewTaskForm();
-    this.showAddModal = true;
+    setTimeout(() => {
+      this.showAddModal = true;
+      this.cdr.detectChanges();
+    }, 0);
   }
 
   closeAddModal(): void {
-    this.showAddModal = false;
+    setTimeout(() => {
+      this.showAddModal = false;
+      this.cdr.detectChanges();
+    }, 0);
   }
 
   // Ngày hôm nay dạng 'YYYY-MM-DD' để set [min] cho date input
@@ -293,7 +299,10 @@ export class Tasks implements OnInit {
     this.taskService.createTask(payload).subscribe({
       next: () => {
         this.snackBar.open('Tạo task thành công', 'Đóng', { duration: 3000 });
-        this.showAddModal = false; // Close modal
+        setTimeout(() => {
+          this.showAddModal = false;
+          this.cdr.detectChanges();
+        }, 0);
         setTimeout(() => {
           this.resetNewTaskForm();
           this.cdr.detectChanges();
