@@ -8,9 +8,11 @@ import {
   Validators,
   AbstractControl,
 } from '@angular/forms';
+import { MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { HttpClient } from '@angular/common/http';
 import { UiPageHeaderComponent } from '../../../shared/components/ui-page-header/ui-page-header.component';
 import { UiCardComponent } from '../../../shared/components/ui-card/ui-card.component';
@@ -80,6 +82,8 @@ interface Position {
     MatButtonModule,
     MatIconModule,
     MatTooltipModule,
+    MatTableModule, // Thêm MatTableModule
+    MatProgressSpinnerModule,
     UiPageHeaderComponent,
     UiCardComponent,
   ],
@@ -147,6 +151,8 @@ export class HrInternsComponent implements OnInit {
   statusIntern: Intern | null = null;
   selectedStatus: InternStatus = 'In_Progress';
 
+  displayedColumns: string[] = ['intern', 'contact', 'major', 'org', 'status', 'actions']; // Định nghĩa displayedColumns
+
   duplicateError = '';
   toastMessage = '';
   showToastFlag = false;
@@ -188,18 +194,17 @@ export class HrInternsComponent implements OnInit {
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
   ) {
-    afterNextRender(() => {
-      this.buildForm();
-      this.loadUniversities();
-      this.loadDepartments();
-      this.loadPositions();
-      this.loadInterns();
-      this.loadManagers();
-      this.loadMentors();
-    });
+    this.buildForm();
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadUniversities();
+    this.loadDepartments();
+    this.loadPositions();
+    this.loadInterns();
+    this.loadManagers();
+    this.loadMentors();
+  }
 
   loadMentors() {
     this.http.get<Mentor[]>(this.API_MENTOR).subscribe((res) => (this.MENTORS = res));

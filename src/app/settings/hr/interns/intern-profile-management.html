@@ -671,7 +671,7 @@
   <app-ui-card paddingClass="p-0">
     <!-- Toolbar row 1: actions + search -->
     <div
-      class="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 flex-wrap"
+      class="flex items-center justify-between gap-3 px-4 py-3 border-b border-gray-100 flex-wrap sticky top-0 z-[5]"
     >
       <div class="flex items-center gap-2 flex-wrap">
         <!-- Nút Thêm mới (tạo user + profile) -->
@@ -832,154 +832,196 @@
       </button>
     </div>
 
-    <!-- Table -->
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm border-collapse">
-        <thead>
-          <tr class="bg-surface-50 border-b border-surface-50">
-            <th
-              class="!px-8 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
-            >
-              Thực tập sinh
-            </th>
-            <th
-              class="!px-6 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
-            >
-              Liên hệ
-            </th>
-            <th
-              class="!px-6 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
-            >
-              Trường ĐH
-            </th>
-            <th
-              class="!px-6 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-left"
-            >
-              Tổ chức
-            </th>
-            <th
-              class="!px-6 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-center"
-            >
-              Trạng thái
-            </th>
-            <th
-              class="!px-8 !py-4 text-[10px] font-bold text-gray-400 uppercase tracking-widest text-right"
-            >
-              Thao tác
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr
-            *ngFor="let intern of filtered; trackBy: trackById"
-            class="hover:bg-surface-50/50 transition-colors group border-b border-gray-50"
-          >
-            <td class="!px-8 !py-5">
-              <div class="flex items-center gap-2.5">
-                <div
-                  class="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary-100 shrink-0"
-                >
-                  {{ intern.fullName.charAt(0).toUpperCase() }}
-                </div>
-                <div class="flex flex-col">
-                  <span
-                    class="font-bold text-gray-800 leading-tight hover:text-primary-600 transition-colors cursor-pointer"
-                    >{{ intern.fullName }}</span
-                  >
-                  <span
-                    class="text-[10px] text-gray-400 font-medium mt-0.5 uppercase tracking-tighter"
-                    >{{ intern.major || '—' }}</span
-                  >
-                </div>
-              </div>
-            </td>
-            <td class="!px-6 !py-5">
-              <div class="flex flex-col space-y-0.5">
-                <span class="text-xs text-gray-600 font-medium">{{ intern.email }}</span>
-                <span class="text-[11px] text-gray-400">{{ intern.phone }}</span>
-              </div>
-            </td>
-            <td class="!px-6 !py-5 text-gray-500 text-[13px]">
-              <span class="block truncate" [title]="getUnivFull(intern.universityId)">{{
-                intern.universityName
-              }}</span>
-            </td>
-            <td class="!px-6 !py-5">
-              <div class="flex flex-col">
-                <span class="text-xs font-bold text-gray-700">{{ intern.deptName }}</span>
-                <span class="text-[10px] text-gray-400 font-medium mt-0.5">{{
-                  intern.posName || '—'
-                }}</span>
-              </div>
-            </td>
-            <td class="!px-6 !py-5 text-center">
-              <button
-                (click)="openStatusModal(intern)"
-                [ngClass]="STATUS_META[intern.status].cls"
-                class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-opacity whitespace-nowrap"
-              >
-                {{ STATUS_META[intern.status].label }}
-              </button>
-            </td>
-            <td class="!px-8 !py-5 text-right space-x-1">
-              <button
-                mat-icon-button
-                (click)="openEditModal(intern)"
-                class="text-gray-400 hover:text-primary-500 transition-all !w-8 !h-8"
-                matTooltip="Chỉnh sửa"
-              >
-                <mat-icon class="!text-lg">edit</mat-icon>
-              </button>
-              <button
-                mat-icon-button
-                (click)="openDeleteModal(intern)"
-                class="text-gray-400 hover:text-danger transition-all !w-8 !h-8"
-                matTooltip="Xóa"
-              >
-                <mat-icon class="!text-lg">delete_outline</mat-icon>
-              </button>
-            </td>
-          </tr>
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="p-20 flex flex-col items-center justify-center space-y-4">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p class="text-sm text-gray-400 font-medium">Đang tải danh sách nhân sự...</p>
+    </div>
 
-          <!-- Empty state -->
-          <tr *ngIf="filtered.length === 0">
-            <td colspan="8" class="px-4 py-16 text-center">
-              <div class="flex flex-col items-center gap-2.5">
-                <div class="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
-                  <svg
-                    class="w-6 h-6 text-gray-300"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                </div>
-                <p class="text-gray-600 text-[13px] font-medium">
-                  {{
-                    hasActiveFilter ? 'Không tìm thấy kết quả phù hợp' : 'Chưa có thực tập sinh nào'
-                  }}
-                </p>
-                <p class="text-gray-400 text-xs">
-                  {{
-                    hasActiveFilter
-                      ? 'Thử thay đổi bộ lọc'
-                      : 'Nhấn "+ Thêm" hoặc "Chọn từ danh sách" để bắt đầu'
-                  }}
-                </p>
+    <!-- Table -->
+    <div *ngIf="!isLoading" class="overflow-x-auto">
+      <table mat-table [dataSource]="filtered" class="w-full">
+        <!-- Intern Column -->
+        <ng-container matColumnDef="intern">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left"
+          >
+            Thực tập sinh
+          </th>
+          <td mat-cell *matCellDef="let row" class="!px-8 !py-5">
+            <div class="flex items-center space-x-4">
+              <div
+                class="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary-100"
+              >
+                {{ row.fullName.charAt(0).toUpperCase() }}
               </div>
-            </td>
-          </tr>
-        </tbody>
+              <div class="flex flex-col">
+                <span
+                  class="font-bold text-gray-800 leading-tight hover:text-primary-600 transition-colors cursor-pointer"
+                  >{{ row.fullName }}</span
+                >
+                <span
+                  class="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-tighter"
+                  [title]="getUnivFull(row.universityId)"
+                  >{{ row.universityName || 'University N/A' }}</span
+                >
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Contact Column -->
+        <ng-container matColumnDef="contact">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left"
+          >
+            Liên hệ
+          </th>
+          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
+            <div class="flex flex-col space-y-1">
+              <div class="flex items-center text-xs text-gray-600 font-medium">
+                <mat-icon class="!text-[14px] !w-3.5 !h-3.5 mr-1.5 text-gray-300">email</mat-icon>
+                {{ row.email }}
+              </div>
+              <div class="flex items-center text-xs text-gray-400">
+                <mat-icon class="!text-[14px] !w-3.5 !h-3.5 mr-1.5 text-gray-300">call</mat-icon>
+                {{ row.phone }}
+              </div>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Major Column -->
+        <ng-container matColumnDef="major">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left"
+          >
+            Chuyên ngành
+          </th>
+          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
+            <span
+              class="text-xs font-semibold text-gray-500 bg-surface-50 px-2 py-1 rounded-md border border-surface-100"
+              >{{ row.major || 'N/A' }}</span
+            >
+          </td>
+        </ng-container>
+
+        <!-- Organization Column -->
+        <ng-container matColumnDef="org">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left"
+          >
+            Tổ chức
+          </th>
+          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
+            <div class="flex flex-col">
+              <span class="text-xs font-bold text-gray-700">{{ row.deptName }}</span>
+              <span class="text-[10px] text-gray-400 font-medium mt-0.5">{{ row.posName }}</span>
+            </div>
+          </td>
+        </ng-container>
+
+        <!-- Status Column -->
+        <ng-container matColumnDef="status">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-center"
+          >
+            Trạng thái
+          </th>
+          <td mat-cell *matCellDef="let row" class="!px-6 !py-5 text-center">
+            <button
+              (click)="openStatusModal(row)"
+              [ngClass]="getStatusMeta(row.status).cls"
+              class="px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-opacity whitespace-nowrap"
+            >
+              {{ getStatusMeta(row.status).label }}
+            </button>
+          </td>
+        </ng-container>
+
+        <!-- Actions Column -->
+        <ng-container matColumnDef="actions">
+          <th
+            mat-header-cell
+            *matHeaderCellDef
+            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-right"
+          >
+            Thao tác
+          </th>
+          <td mat-cell *matCellDef="let row" class="!px-8 !py-5 text-right space-x-1">
+            <button
+              mat-icon-button
+              (click)="openEditModal(row)"
+              class="text-gray-400 hover:text-primary-500 transition-all !w-8 !h-8"
+              matTooltip="Chỉnh sửa"
+            >
+              <mat-icon class="!text-lg">edit</mat-icon>
+            </button>
+            <button
+              mat-icon-button
+              (click)="openDeleteModal(row)"
+              class="text-gray-400 hover:text-danger transition-all !w-8 !h-8"
+              matTooltip="Xóa"
+            >
+              <mat-icon class="!text-lg">delete_outline</mat-icon>
+            </button>
+          </td>
+        </ng-container>
+
+        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+        <tr
+          mat-row
+          *matRowDef="let row; columns: displayedColumns; trackBy: trackById"
+          class="hover:bg-surface-50/50 transition-colors group cursor-pointer"
+        ></tr>
+
+        <!-- Empty state -->
+        <tr *matNoDataRow>
+          <td colspan="8" class="px-4 py-16 text-center">
+            <div class="flex flex-col items-center gap-2.5">
+              <div class="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center">
+                <svg
+                  class="w-6 h-6 text-gray-300"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                </svg>
+              </div>
+              <p class="text-gray-600 text-[13px] font-medium">
+                {{
+                  hasActiveFilter ? 'Không tìm thấy kết quả phù hợp' : 'Chưa có thực tập sinh nào'
+                }}
+              </p>
+              <p class="text-gray-400 text-xs">
+                {{
+                  hasActiveFilter
+                    ? 'Thử thay đổi bộ lọc'
+                    : 'Nhấn "+ Thêm" hoặc "Chọn từ danh sách" để bắt đầu'
+                }}
+              </p>
+            </div>
+          </td>
+        </tr>
       </table>
     </div>
 
-    <!-- Footer -->
     <div
       *ngIf="interns.length > 0"
       class="px-4 py-2.5 border-t border-gray-100 flex items-center justify-between text-xs text-gray-400"
