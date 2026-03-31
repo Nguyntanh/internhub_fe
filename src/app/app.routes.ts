@@ -22,7 +22,6 @@ import { HrInternsComponent } from './settings/hr/interns/interns';
 import { OrgStructureComponent } from './settings/hr/org-structure/org-structure';
 import { EvaluationSkillsComponent } from './settings/evaluation/skills/skills';
 import { PartnersListComponent } from './settings/partners/list/list';
-import { OperationProcessComponent } from './settings/operation/process/process';
 import { SecurityLogsComponent } from './settings/security/logs/logs';
 import { ActivateAccountComponent } from './activate-account/activate-account.component';
 import { Tasks } from './tasks/task';
@@ -156,13 +155,12 @@ export const routes: Routes = [
       },
       {
         path: 'operation',
-        component: SystemOperation,
         data: { title: 'Vận hành hệ thống' },
         children: [
           { path: '', redirectTo: 'process', pathMatch: 'full' },
           {
             path: 'process',
-            component: OperationProcessComponent,
+            component: SystemOperation,
             data: { title: 'Cấu hình Quy trình' },
           },
         ],
