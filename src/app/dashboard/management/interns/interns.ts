@@ -1,394 +1,320 @@
-import { Component, OnInit, ChangeDetectorRef, afterNextRender } from '@angular/core';
-import { trigger, transition, style, animate } from '@angular/animations';
-import { CommonModule } from '@angular/common';
-import {
-  FormsModule,
-  ReactiveFormsModule,
-  FormBuilder,
-  FormGroup,
-  Validators,
-  AbstractControl,
-} from '@angular/forms';
+import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatDialogModule } from '@angular/material/dialog';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { ExportService } from '../../../services/export.service';
+import { API_ENDPOINTS } from '../../../api-endpoints';
 
-import { UiCardComponent } from '../../../shared/components/ui-card/ui-card.component';
-import { UiPageHeaderComponent } from '../../../shared/components/ui-page-header/ui-page-header.component';
-import * as XLSX from 'xlsx';
-
-export type InternStatus = 'In_Progress' | 'Completed' | 'Extended' | 'Terminated';
-
-export interface Intern {
+interface InternProfile {
   id: number;
-  fullName: string;
-  email: string;
-  phone: string;
-  major: string;
-  universityId: number;
-  universityName: string;
-  deptId: number;
-  deptName: string;
-  positionId: number;
-  posName: string;
-  status: InternStatus;
-  startDate: string;
-  endDate: string;
-  mentorId: number;
-  managerId: number;
-}
-
-interface UserItem {
-  id: number;
+  userId: number;
   name: string;
   email: string;
-  departmentId?: number;
-  phone?: string;
+  major: string | null;
+  universityName: string | null;
+  universityId: number | null;
+  positionName: string | null;
+  departmentName: string | null;
+  departmentId: number | null;
+  mentorName: string | null;
+  status: string;
+  startDate: string | null;
+  endDate: string | null;
 }
-interface University {
-  id: number;
-  name: string;
-  short: string;
-}
+
 interface Department {
   id: number;
   name: string;
 }
-interface Mentor {
+
+interface University {
   id: number;
   name: string;
-}
-interface Manager {
-  id: number;
-  name: string;
-}
-interface Position {
-  id: number;
-  name: string;
-  departmentId: number;
 }
 
 @Component({
   selector: 'app-interns',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatChipsModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatProgressBarModule,
-    MatDialogModule,
-    MatRadioModule,
-    MatSnackBarModule,
-    UiCardComponent,
-    UiPageHeaderComponent,
-  ],
-  animations: [
-    trigger('modalAnimation', [
-      transition(':enter', [
-        style({ transform: 'translateX(100%)', opacity: 0 }),
-        animate(
-          '300ms cubic-bezier(0.4, 0, 0.2, 1)',
-          style({ transform: 'translateX(0)', opacity: 1 }),
-        ),
-      ]),
-      transition(':leave', [
-        animate('250ms ease-in', style({ transform: 'translateX(100%)', opacity: 0 })),
-      ]),
-    ]),
-  ],
-  templateUrl: './interns.html',
-  styleUrls: ['./interns.css'],
+  imports: [CommonModule, FormsModule],
+  template: `
+    <div class="p-6">
+      <!-- Header -->
+      <div class="flex items-center justify-between mb-6">
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">Hồ sơ Intern</h1>
+          <p class="text-sm text-gray-500 mt-1">Quản lý danh sách thực tập sinh</p>
+        </div>
+        <div class="flex gap-2">
+          <!-- Lọc phòng ban -->
+          <select
+            [(ngModel)]="selectedDepartmentId"
+            (ngModelChange)="onFilterChange()"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option [ngValue]="null">Tất cả phòng ban</option>
+            @for (dept of departments; track dept.id) {
+              <option [ngValue]="dept.id">{{ dept.name }}</option>
+            }
+          </select>
+          <!-- Lọc trường đại học -->
+          <select
+            [(ngModel)]="selectedUniversityId"
+            (ngModelChange)="onFilterChange()"
+            class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option [ngValue]="null">Tất cả trường ĐH</option>
+            @for (uni of universities; track uni.id) {
+              <option [ngValue]="uni.id">{{ uni.name }}</option>
+            }
+          </select>
+          <!-- Nút xuất nhóm Excel -->
+          <button
+            (click)="exportGroup()"
+            [disabled]="isExportingGroup"
+            class="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-300
+                   text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              class="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fill-rule="evenodd"
+                d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                clip-rule="evenodd"
+              />
+            </svg>
+            {{ isExportingGroup ? 'Đang xuất...' : 'Xuất Excel (nhóm)' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      @if (isLoading) {
+        <div class="flex justify-center items-center py-20">
+          <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+        </div>
+      }
+
+      <!-- Error -->
+      @if (errorMsg) {
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm mb-4">
+          {{ errorMsg }}
+        </div>
+      }
+
+      <!-- Bảng danh sách -->
+      @if (!isLoading && filteredProfiles.length > 0) {
+        <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 text-sm">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600">Họ tên</th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600">Email</th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600">Trường ĐH</th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600">Vị trí</th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600">Phòng ban</th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600">Mentor</th>
+                  <th class="px-4 py-3 text-left font-semibold text-gray-600">Trạng thái</th>
+                  <th class="px-4 py-3 text-center font-semibold text-gray-600">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                @for (p of filteredProfiles; track p.id) {
+                  <tr class="hover:bg-gray-50 transition-colors">
+                    <td class="px-4 py-3 font-medium text-gray-900">{{ p.name }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ p.email }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ p.universityName ?? '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ p.positionName ?? '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ p.departmentName ?? '—' }}</td>
+                    <td class="px-4 py-3 text-gray-600">{{ p.mentorName ?? '—' }}</td>
+                    <td class="px-4 py-3">
+                      <span [class]="getStatusClass(p.status)">{{ p.status }}</span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <button
+                        (click)="exportIndividual(p.id, p.name)"
+                        [disabled]="exportingId === p.id"
+                        title="Xuất báo cáo Excel"
+                        class="inline-flex items-center gap-1 text-green-700 hover:text-green-900
+                               disabled:text-gray-400 text-xs font-medium px-2 py-1 rounded
+                               border border-green-300 hover:bg-green-50 transition-colors"
+                      >
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          class="h-3.5 w-3.5"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fill-rule="evenodd"
+                            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                            clip-rule="evenodd"
+                          />
+                        </svg>
+                        {{ exportingId === p.id ? '...' : 'Excel' }}
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+            Hiển thị {{ filteredProfiles.length }} / {{ profiles.length }} thực tập sinh
+          </div>
+        </div>
+      }
+
+      @if (!isLoading && filteredProfiles.length === 0 && !errorMsg) {
+        <div class="text-center py-20 text-gray-400">
+          <p class="text-lg">Không có dữ liệu</p>
+        </div>
+      }
+    </div>
+  `,
+  styles: ``,
 })
 export class InternsComponent implements OnInit {
-  private API = 'http://localhost:8090/api/interns';
-  private API_UNIV = 'http://localhost:8090/api/universities';
-  private API_DEPT = 'http://localhost:8090/api/departments';
-  private API_POS = 'http://localhost:8090/api/positions';
-  private API_MENTOR = 'http://localhost:8090/api/user/mentors';
-  private API_MANAGER = 'http://localhost:8090/api/user/managers';
-  private API_USERS = 'http://localhost:8090/api/admin/users/all';
-
-  interns: Intern[] = [];
-  filtered: Intern[] = [];
-  isLoading = true;
-
-  UNIVERSITIES: University[] = [];
-  DEPARTMENTS: Department[] = [];
-  MENTORS: Mentor[] = [];
-  MANAGERS: Manager[] = [];
-  ALL_POSITIONS: Position[] = [];
-  DEPT_POSITIONS: Record<number, { id: number; name: string }[]> = {};
-
-  // Form & Modals
-  internForm!: FormGroup;
-  isFormModalOpen = false;
-  isEditMode = false;
-  editingId: number | null = null;
-  public isDeleteDrawerOpen: boolean = false;
-  deletingIntern: Intern | null = null;
-  duplicateError: string = '';
-
-  // Filters
-  searchQuery = '';
-  filterDept = '';
-  filterStatus = '';
-
-  displayedColumns: string[] = ['intern', 'contact', 'major', 'org', 'status', 'actions'];
-
-  readonly STATUS_META: Record<InternStatus, { label: string; cls: string }> = {
-    In_Progress: { label: 'Đang thực tập', cls: 'bg-info/10 text-info border-info/20' },
-    Completed: { label: 'Hoàn thành', cls: 'bg-success/10 text-success border-success/20' },
-    Extended: { label: 'Gia hạn', cls: 'bg-warning/10 text-warning border-warning/20' },
-    Terminated: { label: 'Nghỉ việc', cls: 'bg-danger/10 text-danger border-danger/20' },
-  };
-
-  getStatusMeta(status: string): { label: string; cls: string } {
-    const s = status as InternStatus;
-    return this.STATUS_META[s] || { label: status, cls: 'bg-gray-100 text-gray-400' };
-  }
+  profiles: InternProfile[] = [];
+  departments: Department[] = [];
+  universities: University[] = [];
+  selectedDepartmentId: number | null = null;
+  selectedUniversityId: number | null = null;
+  isLoading = false;
+  isExportingGroup = false;
+  exportingId: number | null = null;
+  errorMsg = '';
 
   constructor(
-    private fb: FormBuilder,
     private http: HttpClient,
-    private cdr: ChangeDetectorRef,
-    private snackBar: MatSnackBar,
-  ) {
-    this.buildForm();
-  }
+    private exportService: ExportService,
+    @Inject(PLATFORM_ID) private platformId: Object,
+  ) {}
 
   ngOnInit(): void {
-    this.loadAllData();
+    if (isPlatformBrowser(this.platformId)) {
+      this.loadProfiles();
+      this.loadDepartments();
+      this.loadUniversities();
+    }
   }
 
-  loadAllData() {
+  get filteredProfiles(): InternProfile[] {
+    return this.profiles.filter((p) => {
+      if (this.selectedDepartmentId && p.departmentId !== this.selectedDepartmentId) {
+        return false;
+      }
+      if (this.selectedUniversityId && p.universityId !== this.selectedUniversityId) {
+        return false;
+      }
+      return true;
+    });
+  }
+
+  onFilterChange(): void {
+    // Filter is reactive via the getter; no action needed
+  }
+
+  private loadProfiles(): void {
     this.isLoading = true;
-    this.http.get<University[]>(this.API_UNIV).subscribe((res) => {
-      this.UNIVERSITIES = res;
-      this.cdr.detectChanges();
-    });
-    this.http.get<Department[]>(this.API_DEPT).subscribe((res) => {
-      this.DEPARTMENTS = res;
-      this.cdr.detectChanges();
-    });
-    this.http.get<any[]>(this.API_POS).subscribe((res) => {
-      this.ALL_POSITIONS = res;
-      res.forEach((p) => {
-        if (!this.DEPT_POSITIONS[p.departmentId]) this.DEPT_POSITIONS[p.departmentId] = [];
-        this.DEPT_POSITIONS[p.departmentId].push({ id: p.id, name: p.name });
-      });
-      this.cdr.detectChanges();
-    });
-    this.http.get<Mentor[]>(this.API_MENTOR).subscribe((res) => {
-      this.MENTORS = res;
-      this.cdr.detectChanges();
-    });
-    this.http.get<Manager[]>(this.API_MANAGER).subscribe((res) => {
-      this.MANAGERS = res;
-      this.cdr.detectChanges();
-    });
-    this.loadInterns();
-  }
-
-  loadInterns(): void {
-    this.http.get<any[]>(this.API).subscribe({
-      next: (res) => {
-        this.interns = res.map((i) => ({
-          ...i,
-          deptId: i.departmentId,
-          deptName: i.departmentName,
-          posName: i.positionName,
+    this.http.get<any[]>(API_ENDPOINTS.Interns.base).subscribe({
+      next: (data) => {
+        this.profiles = data.map((p) => ({
+          id: p.id,
+          userId: p.userId,
+          name: p.fullName ?? '—',
+          email: p.email ?? '—',
+          major: p.major ?? null,
+          universityName: p.universityName ?? null,
+          universityId: p.universityId ?? null,
+          positionName: p.positionName ?? null,
+          departmentName: p.departmentName ?? null,
+          departmentId: p.departmentId ?? null,
+          mentorName: p.mentorName ?? null,
+          status: p.status ?? '—',
+          startDate: p.startDate ?? null,
+          endDate: p.endDate ?? null,
         }));
-        this.applyFilters();
         this.isLoading = false;
-        this.cdr.detectChanges();
       },
       error: () => {
+        this.errorMsg = 'Không thể tải danh sách intern.';
         this.isLoading = false;
-        this.snackBar.open('Không thể tải danh sách thực tập sinh', 'Đóng', { duration: 3000 });
       },
     });
   }
 
-  buildForm(): void {
-    this.internForm = this.fb.group(
-      {
-        fullName: [
-          '',
-          [
-            Validators.required,
-            Validators.minLength(2),
-            Validators.pattern(/^[a-zA-ZÀ-ỹà-ỹĂăÂâĐđÊêÔôƠơƯư\s]+$/),
-          ],
-        ],
-        email: ['', [Validators.required, Validators.email]],
-        phone: ['', [Validators.required, Validators.pattern(/^(0|\+84)\d{9}$/)]],
-        major: [''],
-        universityId: [null],
-        departmentId: [null],
-        positionId: [null],
-        status: ['In_Progress'],
-        startDate: ['', Validators.required],
-        endDate: [''],
-        mentorId: [null],
-        managerId: [null],
+  private loadDepartments(): void {
+    this.http.get<any[]>(API_ENDPOINTS.Departments.base).subscribe({
+      next: (data) => {
+        this.departments = data.map((d) => ({ id: d.id, name: d.name }));
       },
-      {
-        validators: (group: AbstractControl) => {
-          const start = group.get('startDate')?.value;
-          const end = group.get('endDate')?.value;
-          if (start && end && new Date(end) <= new Date(start)) return { dateRange: true };
-          return null;
-        },
-      },
-    );
-
-    this.internForm.get('departmentId')?.valueChanges.subscribe(() => {
-      this.internForm.patchValue({ positionId: null }, { emitEvent: false });
-    });
-
-    this.internForm.get('endDate')?.valueChanges.subscribe((endDate) => {
-      if (!endDate) return;
-      if (new Date(endDate) < new Date()) {
-        this.internForm.patchValue({ status: 'Completed' }, { emitEvent: false });
-      }
+      error: () => {},
     });
   }
 
-  get availablePositions() {
-    const deptId = this.internForm.get('departmentId')?.value;
-    return deptId ? this.DEPT_POSITIONS[deptId] || [] : [];
+  private loadUniversities(): void {
+    this.http.get<any[]>(API_ENDPOINTS.Universities.base).subscribe({
+      next: (data) => {
+        this.universities = data.map((u) => ({ id: u.id, name: u.name }));
+      },
+      error: () => {},
+    });
   }
 
-  isInvalid(controlName: string): boolean {
-    const control = this.internForm.get(controlName);
-    return !!(control && control.invalid && (control.dirty || control.touched));
+  exportIndividual(internId: number, internName: string): void {
+    this.exportingId = internId;
+    this.exportService.exportInternExcel(internId).subscribe({
+      next: (blob) => {
+        const safeName = internName.replace(/[^a-zA-Z0-9\u00C0-\u1EF9]/g, '-');
+        const filename = `bao-cao-${safeName}.xlsx`;
+        this.exportService.downloadBlob(blob, filename);
+        this.exportingId = null;
+      },
+      error: () => {
+        alert('Xuất báo cáo thất bại. Vui lòng thử lại.');
+        this.exportingId = null;
+      },
+    });
   }
 
-  getError(controlName: string): string {
-    const control = this.internForm.get(controlName);
-    if (!control || !control.errors) return '';
+  exportGroup(): void {
+    this.isExportingGroup = true;
+    const deptId = this.selectedDepartmentId ?? undefined;
+    const uniId = this.selectedUniversityId ?? undefined;
+    this.exportService.exportGroupExcel(deptId, uniId).subscribe({
+      next: (blob) => {
+        const parts = [];
+        if (deptId) parts.push(`phong-ban-${deptId}`);
+        if (uniId) parts.push(`truong-${uniId}`);
+        const suffix = parts.length > 0 ? parts.join('-') : 'tat-ca';
+        this.exportService.downloadBlob(blob, `bao-cao-nhom-${suffix}.xlsx`);
+        this.isExportingGroup = false;
+      },
+      error: () => {
+        alert('Xuất báo cáo nhóm thất bại. Vui lòng thử lại.');
+        this.isExportingGroup = false;
+      },
+    });
+  }
 
-    if (control.hasError('required')) return 'Trường này không được để trống';
-    if (control.hasError('email')) return 'Email không hợp lệ';
-    if (control.hasError('minlength'))
-      return `Tối thiểu ${control.errors['minlength'].requiredLength} ký tự`;
-    if (control.hasError('pattern')) {
-      if (controlName === 'phone') return 'Số điện thoại không hợp lệ (10 số)';
-      if (controlName === 'fullName') return 'Họ tên không được chứa số hoặc ký tự đặc biệt';
-      return 'Định dạng không hợp lệ';
+  getStatusClass(status: string): string {
+    const base = 'inline-block px-2 py-0.5 rounded-full text-xs font-medium ';
+    switch (status) {
+      case 'In_Progress':
+        return base + 'bg-blue-100 text-blue-700';
+      case 'Completed':
+        return base + 'bg-green-100 text-green-700';
+      case 'Terminated':
+        return base + 'bg-red-100 text-red-700';
+      case 'Extended':
+        return base + 'bg-yellow-100 text-yellow-700';
+      default:
+        return base + 'bg-gray-100 text-gray-600';
     }
-    if (
-      this.internForm.hasError('dateRange') &&
-      (controlName === 'startDate' || controlName === 'endDate')
-    ) {
-      return 'Ngày kết thúc phải sau ngày bắt đầu';
-    }
-    return 'Dữ liệu không hợp lệ';
-  }
-
-  applyFilters(): void {
-    const q = this.searchQuery.toLowerCase().trim();
-    this.filtered = this.interns.filter((i) => {
-      const matchesSearch =
-        !q || i.fullName.toLowerCase().includes(q) || i.email.toLowerCase().includes(q);
-      const matchesDept = !this.filterDept || i.deptName === this.filterDept;
-      const matchesStatus = !this.filterStatus || i.status === this.filterStatus;
-      return matchesSearch && matchesDept && matchesStatus;
-    });
-  }
-
-  openAddModal() {
-    this.isEditMode = false;
-    this.editingId = null;
-    this.internForm.reset({ status: 'In_Progress' });
-    this.duplicateError = '';
-    this.isFormModalOpen = true;
-  }
-
-  openEditModal(intern: Intern) {
-    this.isEditMode = true;
-    this.editingId = intern.id;
-    this.internForm.patchValue({
-      ...intern,
-      departmentId: intern.deptId,
-    });
-    setTimeout(() => {
-      this.internForm.patchValue({ positionId: intern.positionId });
-    });
-    this.duplicateError = '';
-    this.isFormModalOpen = true;
-  }
-
-  saveIntern() {
-    if (this.internForm.invalid) return;
-    this.duplicateError = '';
-    const val = this.internForm.getRawValue();
-    const request = this.isEditMode
-      ? this.http.put(`${this.API}/${this.editingId}`, val)
-      : this.http.post(this.API, val);
-
-    request.subscribe({
-      next: () => {
-        this.snackBar.open(
-          this.isEditMode ? 'Cập nhật thành công' : 'Thêm mới thành công',
-          'Đóng',
-          { duration: 3000 },
-        );
-        this.loadInterns();
-        this.isFormModalOpen = false;
-      },
-      error: (err) => {
-        this.duplicateError = err.error?.message || 'Có lỗi xảy ra khi lưu hồ sơ';
-        this.snackBar.open('Lỗi: ' + this.duplicateError, 'Đóng', { duration: 3000 });
-      },
-    });
-  }
-
-  deleteIntern(intern: Intern) {
-    this.deletingIntern = intern;
-    this.isDeleteDrawerOpen = true;
-  }
-
-  confirmDelete() {
-    if (!this.deletingIntern) return;
-    this.http.delete(`${this.API}/${this.deletingIntern.id}`).subscribe(() => {
-      this.snackBar.open('Đã xóa hồ sơ thực tập sinh thành công', 'Đóng', { duration: 3000 });
-      this.loadInterns();
-      this.isDeleteDrawerOpen = false;
-      this.deletingIntern = null;
-    });
-  }
-
-  triggerImport() {
-    document.getElementById('xlsx-input')?.click();
-  }
-
-  handleImport(event: Event) {
-    // Logic import excel similar to original HrInternsComponent
-    this.snackBar.open('Chức năng Import đang được xử lý...', 'Đóng', { duration: 2000 });
-  }
-
-  getUnivShort(univId: number): string {
-    return this.UNIVERSITIES.find((u) => u.id === univId)?.short || '';
   }
 }
