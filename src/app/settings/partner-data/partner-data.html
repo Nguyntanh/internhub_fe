@@ -1,4 +1,4 @@
-<div class="max-w-[1200px] mx-auto p-5 sm:p-7 space-y-8 animate-fade-in">
+<div class="max-w-[1400px] mx-auto px-4 py-5 sm:px-6 sm:py-8 space-y-8 animate-fade-in">
   <app-ui-page-header
     title="Đối tác Đại học"
     subtitle="Quản lý danh sách các trường Đại học và thông tin đầu mối liên hệ"
@@ -16,7 +16,7 @@
 
   <app-ui-card paddingClass="p-0">
     <!-- TOOLBAR -->
-    <div class="flex items-center justify-between gap-4 px-6 py-4 border-b border-gray-100">
+    <div class="flex items-center justify-between gap-4 px-5 py-4 border-b border-gray-100">
       <div class="relative flex-1 max-w-sm">
         <mat-icon class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 !text-lg"
           >search</mat-icon
@@ -45,11 +45,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!px-8 !py-4 !text-[10px] !font-black !text-gray-400 uppercase tracking-widest"
+            class="!px-5 !py-4 !text-[10px] !font-black !text-gray-400 uppercase tracking-widest"
           >
             Trường Đại học
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-8 !py-5">
+          <td mat-cell *matCellDef="let row" class="!px-5 !py-5">
             <div class="font-bold text-gray-800 text-sm">{{ row.name }}</div>
             <div class="text-[10px] text-gray-400 font-medium mt-0.5 truncate max-w-[200px]">
               {{ row.address }}
@@ -62,11 +62,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!px-6 !py-4 !text-[10px] !font-black !text-gray-400 uppercase tracking-widest text-center"
+            class="!px-4 !py-4 !text-[10px] !font-black !text-gray-400 uppercase tracking-widest text-center"
           >
             Viết tắt
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5 text-center">
+          <td mat-cell *matCellDef="let row" class="!px-4 !py-5 text-center">
             <span
               class="px-2.5 py-1 rounded-lg bg-gray-100 text-gray-600 text-[10px] font-bold border border-gray-200 uppercase"
             >
@@ -80,11 +80,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!px-6 !py-4 !text-[10px] !font-black !text-gray-400 uppercase tracking-widest"
+            class="!px-4 !py-4 !text-[10px] !font-black !text-gray-400 uppercase tracking-widest"
           >
             Đầu mối liên hệ
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
+          <td mat-cell *matCellDef="let row" class="!px-4 !py-5">
             <div class="text-xs font-bold text-gray-700">{{ row.contactPerson }}</div>
             <div class="flex items-center space-x-3 mt-1 text-[10px] text-gray-400">
               <span class="flex items-center"
@@ -104,11 +104,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="!px-8 !py-4 !text-[10px] !font-black !text-gray-400 uppercase tracking-widest text-right"
+            class="!px-5 !py-4 !text-[10px] !font-black !text-gray-400 uppercase tracking-widest text-right"
           >
             Thao tác
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-8 !py-5 text-right space-x-1">
+          <td mat-cell *matCellDef="let row" class="!px-5 !py-5 text-right space-x-1">
             <button
               mat-icon-button
               (click)="openEditModal(row)"
