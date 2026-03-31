@@ -846,7 +846,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left whitespace-nowrap"
+            class="bg-white !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-gray-100 text-left whitespace-nowrap"
           >
             Thực tập sinh
           </th>
@@ -877,7 +877,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left whitespace-nowrap"
+            class="bg-white !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-gray-100 text-left whitespace-nowrap"
           >
             Liên hệ
           </th>
@@ -900,13 +900,13 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left whitespace-nowrap"
+            class="bg-white !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-gray-100 text-left whitespace-nowrap"
           >
             Chuyên ngành
           </th>
           <td mat-cell *matCellDef="let row" class="!px-6 !py-5 whitespace-nowrap">
             <span
-              class="text-xs font-semibold text-gray-500 bg-surface-50 px-2 py-1 rounded-md border border-surface-100"
+              class="text-xs font-semibold text-gray-500 bg-gray-50 px-2 py-1 rounded-md border border-gray-100"
               >{{ row.major || 'N/A' }}</span
             >
           </td>
@@ -917,7 +917,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left whitespace-nowrap"
+            class="bg-white !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-gray-100 text-left whitespace-nowrap"
           >
             Tổ chức
           </th>
@@ -934,7 +934,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-center whitespace-nowrap"
+            class="bg-white !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-gray-100 text-center whitespace-nowrap"
           >
             Trạng thái
           </th>
@@ -954,7 +954,7 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-right whitespace-nowrap"
+            class="bg-white !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-gray-100 text-right whitespace-nowrap"
           >
             Thao tác
           </th>
@@ -986,7 +986,7 @@
         <tr
           mat-row
           *matRowDef="let row; columns: displayedColumns; trackBy: trackById"
-          class="hover:bg-surface-50/50 transition-colors group cursor-pointer"
+          class="hover:bg-gray-50/50 transition-colors group cursor-pointer border-b border-gray-50"
         ></tr>
 
         <!-- Empty state -->

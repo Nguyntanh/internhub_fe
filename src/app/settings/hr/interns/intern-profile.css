@@ -68,13 +68,13 @@
   width: 6px;
 }
 .custom-scrollbar::-webkit-scrollbar-track {
-  @apply bg-surface-50;
+  @apply bg-gray-50;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  @apply bg-surface-200 rounded-full;
+  @apply bg-gray-200 rounded-full;
 }
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  @apply bg-surface-300;
+  @apply bg-gray-300;
 }
 
 /* ── Table helpers ─────────────────────────────────────────────────────── */
