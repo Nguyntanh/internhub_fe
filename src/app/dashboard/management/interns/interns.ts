@@ -1,7 +1,8 @@
-import { Component, OnInit, Inject, PLATFORM_ID } from '@angular/core';
+import { Component, OnInit, Inject, PLATFORM_ID, ChangeDetectorRef, NgZone } from '@angular/core';
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
+import { finalize } from 'rxjs';
 import { ExportService } from '../../../services/export.service';
 import { API_ENDPOINTS } from '../../../api-endpoints';
 
@@ -53,6 +54,8 @@ export class InternsComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private exportService: ExportService,
+    private cdr: ChangeDetectorRef,
+    private zone: NgZone,
     @Inject(PLATFORM_ID) private platformId: Object,
   ) {}
 
@@ -82,31 +85,50 @@ export class InternsComponent implements OnInit {
 
   private loadProfiles(): void {
     this.isLoading = true;
-    this.http.get<any[]>(API_ENDPOINTS.Interns.base).subscribe({
-      next: (data) => {
-        this.profiles = data.map((p) => ({
-          id: p.id,
-          userId: p.userId,
-          name: p.fullName ?? '—',
-          email: p.email ?? '—',
-          major: p.major ?? null,
-          universityName: p.universityName ?? null,
-          universityId: p.universityId ?? null,
-          positionName: p.positionName ?? null,
-          departmentName: p.departmentName ?? null,
-          departmentId: p.departmentId ?? null,
-          mentorName: p.mentorName ?? null,
-          status: p.status ?? '—',
-          startDate: p.startDate ?? null,
-          endDate: p.endDate ?? null,
-        }));
-        this.isLoading = false;
-      },
-      error: () => {
-        this.errorMsg = 'Không thể tải danh sách intern.';
-        this.isLoading = false;
-      },
-    });
+    this.http
+      .get<any[]>(API_ENDPOINTS.Interns.base)
+      .pipe(
+        finalize(() => {
+          this.zone.run(() => {
+            this.isLoading = false;
+            this.cdr.detectChanges();
+          });
+        }),
+      )
+      .subscribe({
+        next: (data) => {
+          this.zone.run(() => {
+            if (!data || !Array.isArray(data)) {
+              this.profiles = [];
+            } else {
+              this.profiles = data.map((p) => ({
+                id: p.id,
+                userId: p.userId,
+                name: p.fullName ?? '—',
+                email: p.email ?? '—',
+                major: p.major ?? null,
+                universityName: p.universityName ?? null,
+                universityId: p.universityId ?? null,
+                positionName: p.positionName ?? null,
+                departmentName: p.departmentName ?? null,
+                departmentId: p.departmentId ?? null,
+                mentorName: p.mentorName ?? null,
+                status: p.status ?? '—',
+                startDate: p.startDate ?? null,
+                endDate: p.endDate ?? null,
+              }));
+            }
+            this.cdr.detectChanges();
+          });
+        },
+        error: (err) => {
+          this.zone.run(() => {
+            console.error('Lỗi tải danh sách thực tập sinh:', err);
+            this.errorMsg = 'Không thể tải danh sách intern.';
+            this.cdr.detectChanges();
+          });
+        },
+      });
   }
 
   private loadDepartments(): void {
