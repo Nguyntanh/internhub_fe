@@ -1,465 +1,135 @@
-<div class="space-y-8 animate-fade-in">
-  <!-- PAGE HEADER -->
-  <app-ui-page-header
-    title="Hồ sơ Thực tập sinh"
-    subtitle="Quản lý thông tin và trạng thái thực tập của các nhân sự mới"
-  >
-    <div class="flex items-center space-x-3">
-      <button mat-stroked-button class="!rounded-xl" (click)="triggerImport()">
-        <mat-icon class="mr-2">upload_file</mat-icon> Import Excel
-      </button>
-      <input
-        type="file"
-        id="xlsx-input"
-        class="hidden"
-        (change)="handleImport($event)"
-        accept=".xlsx, .xls"
-      />
-
+<div class="p-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-6">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-800">Hồ sơ Intern</h1>
+      <p class="text-sm text-gray-500 mt-1">Quản lý danh sách thực tập sinh</p>
+    </div>
+    <div class="flex gap-2">
+      <!-- Lọc phòng ban -->
+      <select
+        [(ngModel)]="selectedDepartmentId"
+        (ngModelChange)="onFilterChange()"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option [ngValue]="null">Tất cả phòng ban</option>
+        @for (dept of departments; track dept.id) {
+          <option [ngValue]="dept.id">{{ dept.name }}</option>
+        }
+      </select>
+      <!-- Lọc trường đại học -->
+      <select
+        [(ngModel)]="selectedUniversityId"
+        (ngModelChange)="onFilterChange()"
+        class="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+      >
+        <option [ngValue]="null">Tất cả trường ĐH</option>
+        @for (uni of universities; track uni.id) {
+          <option [ngValue]="uni.id">{{ uni.name }}</option>
+        }
+      </select>
+      <!-- Nút xuất nhóm Excel -->
       <button
-        mat-flat-button
-        color="primary"
-        class="!rounded-xl shadow-lg shadow-primary-200"
-        (click)="openAddModal()"
+        (click)="exportGroup()"
+        [disabled]="isExportingGroup"
+        class="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
       >
-        <mat-icon class="mr-2">person_add</mat-icon> Thêm thực tập sinh
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          class="h-4 w-4"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fill-rule="evenodd"
+            d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+            clip-rule="evenodd"
+          />
+        </svg>
+        {{ isExportingGroup ? 'Đang xuất...' : 'Xuất Excel (nhóm)' }}
       </button>
     </div>
-  </app-ui-page-header>
-
-  <!-- CONTENT CARD -->
-  <app-ui-card paddingClass="p-0">
-    <!-- Filter Section -->
-    <div
-      card-header-title
-      class="flex flex-col md:flex-row md:items-center justify-between w-full px-8 py-6 gap-6"
-    >
-      <div class="flex items-center space-x-2">
-        <mat-icon class="text-primary-500">groups</mat-icon>
-        <span class="text-lg font-bold text-gray-800">Danh sách Nhân sự</span>
-        <span
-          class="ml-2 px-2 py-0.5 bg-primary-50 text-primary-600 text-[10px] font-black rounded-md"
-          >{{ filtered.length }} BẢN GHI</span
-        >
-      </div>
-
-      <div class="flex flex-wrap items-center gap-3">
-        <mat-form-field appearance="outline" class="!text-xs !w-48 !mb-[-1.25rem]">
-          <mat-label>Tìm kiếm...</mat-label>
-          <input matInput [(ngModel)]="searchQuery" (input)="applyFilters()" />
-          <mat-icon matSuffix class="!text-sm">search</mat-icon>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="!text-xs !w-40 !mb-[-1.25rem]">
-          <mat-label>Bộ phận</mat-label>
-          <mat-select [(ngModel)]="filterDept" (selectionChange)="applyFilters()">
-            <mat-option value="">Tất cả</mat-option>
-            <mat-option *ngFor="let d of DEPARTMENTS" [value]="d.name">{{ d.name }}</mat-option>
-          </mat-select>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="!text-xs !w-40 !mb-[-1.25rem]">
-          <mat-label>Trạng thái</mat-label>
-          <mat-select [(ngModel)]="filterStatus" (selectionChange)="applyFilters()">
-            <mat-option value="">Tất cả</mat-option>
-            <mat-option value="In_Progress">Đang thực tập</mat-option>
-            <mat-option value="Completed">Hoàn thành</mat-option>
-            <mat-option value="Extended">Gia hạn</mat-option>
-            <mat-option value="Terminated">Nghỉ việc</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
-    </div>
-
-    <!-- Loading State -->
-    <div *ngIf="isLoading" class="p-20 flex flex-col items-center justify-center space-y-4">
-      <mat-spinner diameter="40"></mat-spinner>
-      <p class="text-sm text-gray-400 font-medium">Đang tải danh sách nhân sự...</p>
-    </div>
-
-    <!-- Table -->
-    <div *ngIf="!isLoading" class="overflow-x-auto">
-      <table mat-table [dataSource]="filtered" class="w-full">
-        <ng-container matColumnDef="intern">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50"
-          >
-            Thực tập sinh
-          </th>
-          <td mat-cell *matCellDef="let row" class="!px-8 !py-5">
-            <div class="flex items-center space-x-4">
-              <div
-                class="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary-100"
-              >
-                {{ row.fullName.charAt(0).toUpperCase() }}
-              </div>
-              <div class="flex flex-col">
-                <span
-                  class="font-bold text-gray-800 leading-tight hover:text-primary-600 transition-colors cursor-pointer"
-                  >{{ row.fullName }}</span
-                >
-                <span
-                  class="text-[10px] text-gray-400 font-medium mt-1 uppercase tracking-tighter"
-                  >{{ row.universityName || 'University N/A' }}</span
-                >
-              </div>
-            </div>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="contact">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50"
-          >
-            Liên hệ
-          </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
-            <div class="flex flex-col space-y-1">
-              <div class="flex items-center text-xs text-gray-600 font-medium">
-                <mat-icon class="!text-[14px] !w-3.5 !h-3.5 mr-1.5 text-gray-300">email</mat-icon>
-                {{ row.email }}
-              </div>
-              <div class="flex items-center text-xs text-gray-400">
-                <mat-icon class="!text-[14px] !w-3.5 !h-3.5 mr-1.5 text-gray-300">call</mat-icon>
-                {{ row.phone }}
-              </div>
-            </div>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="major">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50"
-          >
-            Chuyên ngành
-          </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
-            <span
-              class="text-xs font-semibold text-gray-500 bg-surface-50 px-2 py-1 rounded-md border border-surface-100"
-              >{{ row.major || 'N/A' }}</span
-            >
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="org">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50"
-          >
-            Tổ chức
-          </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
-            <div class="flex flex-col">
-              <span class="text-xs font-bold text-gray-700">{{ row.deptName }}</span>
-              <span class="text-[10px] text-gray-400 font-medium mt-0.5">{{ row.posName }}</span>
-            </div>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="status">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-center"
-          >
-            Trạng thái
-          </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5 text-center">
-            <span
-              [class]="
-                'px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border ' +
-                getStatusMeta(row.status).cls
-              "
-            >
-              {{ getStatusMeta(row.status).label }}
-            </span>
-          </td>
-        </ng-container>
-
-        <ng-container matColumnDef="actions">
-          <th
-            mat-header-cell
-            *matHeaderCellDef
-            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-right"
-          >
-            Thao tác
-          </th>
-          <td mat-cell *matCellDef="let row" class="!px-8 !py-5 text-right space-x-1">
-            <button
-              mat-icon-button
-              (click)="openEditModal(row)"
-              class="text-gray-400 hover:text-primary-500 transition-all !w-8 !h-8"
-              matTooltip="Chỉnh sửa"
-            >
-              <mat-icon class="!text-lg">edit</mat-icon>
-            </button>
-            <button
-              mat-icon-button
-              (click)="deleteIntern(row)"
-              class="text-gray-400 hover:text-danger transition-all !w-8 !h-8"
-              matTooltip="Xóa"
-            >
-              <mat-icon class="!text-lg">delete_outline</mat-icon>
-            </button>
-          </td>
-        </ng-container>
-
-        <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-        <tr
-          mat-row
-          *matRowDef="let row; columns: displayedColumns"
-          class="hover:bg-surface-50/50 transition-colors group cursor-pointer"
-        ></tr>
-      </table>
-    </div>
-  </app-ui-card>
-</div>
-
-<!-- INTERN FORM DRAWER -->
-<div
-  *ngIf="isFormModalOpen"
-  [@modalAnimation]
-  class="fixed top-20 right-0 h-screen w-full max-w-lg bg-white shadow-2xl z-[50] border-l border-surface-50 flex flex-col"
->
-  <div
-    class="px-6 py-4 border-b border-surface-50 flex items-center justify-between flex-shrink-0 bg-white sticky top-0 z-10"
-  >
-    <div class="flex items-center space-x-3">
-      <div
-        class="w-10 h-10 bg-surface-50 rounded-xl flex items-center justify-center text-primary-500 shadow-sm"
-      >
-        <mat-icon>{{ isEditMode ? 'edit' : 'person_add' }}</mat-icon>
-      </div>
-      <div>
-        <h2 class="text-lg font-bold text-gray-900">
-          {{ isEditMode ? 'Cập nhật Hồ sơ' : 'Thêm Thực tập sinh mới' }}
-        </h2>
-        <p class="text-[10px] text-gray-400 font-black uppercase tracking-widest">
-          Chi tiết nhân sự
-        </p>
-      </div>
-    </div>
-    <button mat-icon-button (click)="isFormModalOpen = false"><mat-icon>close</mat-icon></button>
   </div>
 
-  <form
-    [formGroup]="internForm"
-    (ngSubmit)="saveIntern()"
-    class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar"
-  >
-    <div class="grid grid-cols-2 gap-x-4 gap-y-2">
-      <!-- Section: Personal Info -->
-      <div
-        class="col-span-2 text-[10px] font-black text-primary-600 uppercase tracking-widest border-b border-primary-50 pb-2 mb-2"
-      >
-        01. Thông tin định danh
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="flex justify-center items-center py-20">
+      <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600"></div>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (errorMsg) {
+    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700 text-sm mb-4">
+      {{ errorMsg }}
+    </div>
+  }
+
+  <!-- Bảng danh sách -->
+  @if (!isLoading && filteredProfiles.length > 0) {
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200 text-sm">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600">Họ tên</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600">Email</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600">Trường ĐH</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600">Vị trí</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600">Phòng ban</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600">Mentor</th>
+              <th class="px-4 py-3 text-left font-semibold text-gray-600">Trạng thái</th>
+              <th class="px-4 py-3 text-center font-semibold text-gray-600">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            @for (p of filteredProfiles; track p.id) {
+              <tr class="hover:bg-gray-50 transition-colors">
+                <td class="px-4 py-3 font-medium text-gray-900">{{ p.name }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ p.email }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ p.universityName ?? '—' }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ p.positionName ?? '—' }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ p.departmentName ?? '—' }}</td>
+                <td class="px-4 py-3 text-gray-600">{{ p.mentorName ?? '—' }}</td>
+                <td class="px-4 py-3">
+                  <span [class]="getStatusClass(p.status)">{{ p.status }}</span>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <button
+                    (click)="exportIndividual(p.id, p.name)"
+                    [disabled]="exportingId === p.id"
+                    title="Xuất báo cáo Excel"
+                    class="inline-flex items-center gap-1 text-green-700 hover:text-green-900 disabled:text-gray-400 text-xs font-medium px-2 py-1 rounded border border-green-300 hover:bg-green-50 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      class="h-3.5 w-3.5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path
+                        fill-rule="evenodd"
+                        d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z"
+                        clip-rule="evenodd"
+                      />
+                    </svg>
+                    {{ exportingId === p.id ? '...' : 'Excel' }}
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       </div>
-
-      <mat-form-field appearance="outline" class="col-span-2">
-        <mat-label>Họ và tên</mat-label>
-        <input matInput formControlName="fullName" placeholder="VD: Nguyễn Văn A" />
-        <mat-icon matPrefix class="mr-2 text-gray-400">badge</mat-icon>
-        <mat-error *ngIf="isInvalid('fullName')">{{ getError('fullName') }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="col-span-2 sm:col-span-1">
-        <mat-label>Email liên hệ</mat-label>
-        <input matInput formControlName="email" placeholder="example@company.com" />
-        <mat-icon matPrefix class="mr-2 text-gray-400">mail</mat-icon>
-        <mat-error *ngIf="isInvalid('email')">{{ getError('email') }}</mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="col-span-2 sm:col-span-1">
-        <mat-label>Số điện thoại</mat-label>
-        <input matInput formControlName="phone" placeholder="090..." />
-        <mat-icon matPrefix class="mr-2 text-gray-400">phone</mat-icon>
-        <mat-error *ngIf="isInvalid('phone')">{{ getError('phone') }}</mat-error>
-      </mat-form-field>
-
-      <!-- Section: Education -->
-      <div
-        class="col-span-2 text-[10px] font-black text-primary-600 uppercase tracking-widest border-b border-primary-50 pb-2 mb-2 mt-2"
-      >
-        02. Học vấn & Chuyên môn
-      </div>
-
-      <mat-form-field appearance="outline" class="col-span-2">
-        <mat-label>Chuyên ngành</mat-label>
-        <input matInput formControlName="major" placeholder="VD: Công nghệ thông tin" />
-        <mat-icon matPrefix class="mr-2 text-gray-400">school</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="col-span-2">
-        <mat-label>Trường đại học</mat-label>
-        <mat-select formControlName="universityId">
-          <mat-option *ngFor="let u of UNIVERSITIES" [value]="u.id">{{ u.name }}</mat-option>
-        </mat-select>
-        <mat-icon matPrefix class="mr-2 text-gray-400">account_balance</mat-icon>
-      </mat-form-field>
-
-      <!-- Section: Assignment -->
-      <div
-        class="col-span-2 text-[10px] font-black text-primary-600 uppercase tracking-widest border-b border-primary-50 pb-2 mb-2 mt-2"
-      >
-        03. Phân công công tác
-      </div>
-
-      <mat-form-field appearance="outline" class="col-span-2 sm:col-span-1">
-        <mat-label>Bộ phận tiếp nhận</mat-label>
-        <mat-select formControlName="departmentId">
-          <mat-option *ngFor="let d of DEPARTMENTS" [value]="d.id">{{ d.name }}</mat-option>
-        </mat-select>
-        <mat-icon matPrefix class="mr-2 text-gray-400">domain</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="col-span-2 sm:col-span-1">
-        <mat-label>Vị trí công việc</mat-label>
-        <mat-select formControlName="positionId">
-          <mat-option *ngFor="let p of availablePositions" [value]="p.id">{{ p.name }}</mat-option>
-        </mat-select>
-        <mat-icon matPrefix class="mr-2 text-gray-400">work_outline</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="col-span-2 sm:col-span-1">
-        <mat-label>Mentor hướng dẫn</mat-label>
-        <mat-select formControlName="mentorId">
-          <mat-option *ngFor="let m of MENTORS" [value]="m.id">{{ m.name }}</mat-option>
-        </mat-select>
-        <mat-icon matPrefix class="mr-2 text-gray-400">psychology</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="col-span-2 sm:col-span-1">
-        <mat-label>Manager phê duyệt</mat-label>
-        <mat-select formControlName="managerId">
-          <mat-option *ngFor="let m of MANAGERS" [value]="m.id">{{ m.name }}</mat-option>
-        </mat-select>
-        <mat-icon matPrefix class="mr-2 text-gray-400">verified_user</mat-icon>
-      </mat-form-field>
-
-      <!-- Section: Timeline & Status -->
-      <div
-        class="col-span-2 text-[10px] font-black text-primary-600 uppercase tracking-widest border-b border-primary-50 pb-2 mb-2 mt-2"
-      >
-        04. Lộ trình & Trạng thái
-      </div>
-
-      <mat-form-field appearance="outline" class="col-span-2 sm:col-span-1">
-        <mat-label>Ngày bắt đầu</mat-label>
-        <input matInput type="date" formControlName="startDate" />
-        <mat-icon matPrefix class="mr-2 text-gray-400">event_available</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="col-span-2 sm:col-span-1">
-        <mat-label>Ngày kết thúc (Dự kiến)</mat-label>
-        <input matInput type="date" formControlName="endDate" />
-        <mat-icon matPrefix class="mr-2 text-gray-400">event_busy</mat-icon>
-      </mat-form-field>
-
-      <div
-        *ngIf="internForm.errors?.['dateRange']"
-        class="col-span-2 text-xs text-red-500 bg-red-50 p-2 rounded-lg flex items-center mb-2"
-      >
-        <mat-icon class="!text-sm mr-1 h-4 w-4">error_outline</mat-icon>
-        Ngày kết thúc phải sau ngày bắt đầu.
-      </div>
-
-      <mat-form-field appearance="outline" class="col-span-2">
-        <mat-label>Trạng thái</mat-label>
-        <mat-select formControlName="status">
-          <mat-option value="In_Progress">Đang thực tập</mat-option>
-          <mat-option value="Completed">Hoàn thành</mat-option>
-          <mat-option value="Extended">Gia hạn</mat-option>
-          <mat-option value="Terminated">Nghỉ việc</mat-option>
-        </mat-select>
-        <mat-icon matPrefix class="mr-2 text-gray-400">rule</mat-icon>
-      </mat-form-field>
-
-      <div
-        *ngIf="duplicateError"
-        class="col-span-2 text-xs text-red-500 bg-red-50 p-3 rounded-xl border border-red-100 flex items-start"
-      >
-        <mat-icon class="mr-2 !text-base">warning</mat-icon>
-        <span>{{ duplicateError }}</span>
+      <div class="px-4 py-3 bg-gray-50 border-t border-gray-200 text-xs text-gray-500">
+        Hiển thị {{ filteredProfiles.length }} / {{ profiles.length }} thực tập sinh
       </div>
     </div>
-  </form>
+  }
 
-  <div
-    class="px-6 py-4 border-t border-surface-50 bg-surface-50/50 flex flex-col space-y-3 flex-shrink-0"
-  >
-    <button
-      mat-flat-button
-      color="primary"
-      class="w-full !rounded-xl !py-7 font-bold shadow-lg shadow-primary-200"
-      (click)="saveIntern()"
-      [disabled]="internForm.invalid"
-    >
-      <mat-icon class="mr-2">save</mat-icon><span class="font-bold">XÁC NHẬN LƯU HỒ SƠ</span>
-    </button>
-    <button
-      mat-button
-      class="w-full !rounded-xl text-gray-400 font-bold"
-      (click)="isFormModalOpen = false"
-    >
-      Hủy bỏ
-    </button>
-  </div>
-</div>
-
-<!-- DELETE CONFIRMATION DRAWER -->
-<div
-  *ngIf="isDeleteDrawerOpen"
-  [@modalAnimation]
-  class="fixed top-0 right-0 h-screen w-full max-w-md bg-white shadow-2xl z-[50] border-l border-surface-50 flex flex-col"
->
-  <div
-    class="px-6 py-4 border-b border-surface-50 flex items-center justify-between flex-shrink-0 bg-white"
-  >
-    <div class="flex items-center space-x-3">
-      <div class="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center text-red-500">
-        <mat-icon>delete_forever</mat-icon>
-      </div>
-      <h2 class="text-lg font-bold text-gray-900">Xác nhận xóa</h2>
+  @if (!isLoading && filteredProfiles.length === 0 && !errorMsg) {
+    <div class="text-center py-20 text-gray-400">
+      <p class="text-lg">Không có dữ liệu</p>
     </div>
-    <button mat-icon-button (click)="isDeleteDrawerOpen = false"><mat-icon>close</mat-icon></button>
-  </div>
-
-  <div class="flex-1 p-8 flex flex-col items-center justify-center text-center space-y-4">
-    <div
-      class="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center text-red-500 mb-2"
-    >
-      <mat-icon class="!w-12 !h-12 !text-5xl">warning</mat-icon>
-    </div>
-    <h3 class="text-xl font-bold text-gray-900">Bạn có chắc chắn?</h3>
-    <p class="text-sm text-gray-500 max-w-xs">
-      Hành động này sẽ xóa vĩnh viễn hồ sơ của
-      <strong class="text-gray-900">{{ deletingIntern?.fullName }}</strong
-      >. Dữ liệu đã xóa sẽ không thể khôi phục lại.
-    </p>
-  </div>
-
-  <div class="px-6 py-4 border-t border-surface-50 bg-surface-50/50 flex flex-col space-y-3">
-    <button
-      mat-flat-button
-      color="warn"
-      class="w-full !rounded-xl !py-7 font-bold shadow-lg shadow-red-100"
-      (click)="confirmDelete()"
-    >
-      XÁC NHẬN XÓA HỒ SƠ
-    </button>
-    <button
-      mat-button
-      class="w-full !rounded-xl text-gray-400 font-bold"
-      (click)="isDeleteDrawerOpen = false"
-    >
-      Hủy bỏ
-    </button>
-  </div>
+  }
 </div>
