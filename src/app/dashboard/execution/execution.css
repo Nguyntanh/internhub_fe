@@ -96,3 +96,30 @@
     transform: translateY(0) scale(1);
   }
 }
+
+.drawer-anim-right {
+  animation: drawerSlideIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes drawerSlideIn {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+/* Custom Scrollbar sync with interns.css */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  @apply bg-surface-50;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  @apply bg-surface-200 rounded-full;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  @apply bg-surface-300;
+}
