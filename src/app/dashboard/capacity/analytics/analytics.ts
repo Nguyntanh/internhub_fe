@@ -161,22 +161,6 @@ export class AnalyticsComponent implements OnInit {
   // ── INTERN xem radar của chính mình ───────────────────────────────────────
 
   private loadOwnRadar(): void {
-<<<<<<< HEAD
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    // Ưu tiên lấy ID và dữ liệu từ cache để hiển thị ngay
-    const cachedId = localStorage.getItem('cached_intern_id');
-    const cachedRadar = localStorage.getItem('cached_radar_data');
-
-    if (cachedId && cachedRadar) {
-      this.selectedInternId = Number(cachedId);
-      this.radarData = JSON.parse(cachedRadar);
-      setTimeout(() => this.renderRadarChart(), 0);
-    }
-
-    // Lấy userId từ JWT
-=======
->>>>>>> ca89b29169e4891c271d681b3b8e9375b8f5be4e
     try {
       const token = localStorage.getItem('jwt_token');
       if (!token) return;
@@ -189,12 +173,6 @@ export class AnalyticsComponent implements OnInit {
   }
 
   private fetchCurrentUserId(): void {
-<<<<<<< HEAD
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    // Lấy userId từ admin users list (self-reference thông qua email trong token)
-=======
->>>>>>> ca89b29169e4891c271d681b3b8e9375b8f5be4e
     try {
       const token = localStorage.getItem('jwt_token');
       if (!token) return;
@@ -445,11 +423,16 @@ export class AnalyticsComponent implements OnInit {
 
   translateStatus(status: string | null): string {
     switch (status) {
-      case 'In_Progress': return 'Đang thực tập';
-      case 'Completed':   return 'Hoàn thành';
-      case 'Terminated':  return 'Đã chấm dứt';
-      case 'Extended':    return 'Gia hạn';
-      default:            return status ?? '—';
+      case 'In_Progress':
+        return 'Đang thực tập';
+      case 'Completed':
+        return 'Hoàn thành';
+      case 'Terminated':
+        return 'Đã chấm dứt';
+      case 'Extended':
+        return 'Gia hạn';
+      default:
+        return status ?? '—';
     }
   }
 
