@@ -921,47 +921,23 @@
                 {{ STATUS_META[intern.status].label }}
               </button>
             </td>
-            <td class="!px-8 !py-5 text-right">
-              <div class="row-act flex gap-1">
-                <button
-                  (click)="openEditModal(intern)"
-                  class="p-1.5 rounded-lg text-gray-400 hover:text-primary-500 transition-colors"
-                  title="Chỉnh sửa"
-                >
-                  <svg
-                    class="w-[15px] h-[15px]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                    />
-                  </svg>
-                </button>
-                <button
-                  (click)="openDeleteModal(intern)"
-                  class="p-1.5 rounded-lg text-gray-400 hover:text-red-500 transition-colors"
-                  title="Xóa"
-                >
-                  <svg
-                    class="w-[15px] h-[15px]"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    stroke-width="2"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                    />
-                  </svg>
-                </button>
-              </div>
+            <td class="!px-8 !py-5 text-right space-x-1">
+              <button
+                mat-icon-button
+                (click)="openEditModal(intern)"
+                class="text-gray-400 hover:text-primary-500 transition-all !w-8 !h-8"
+                matTooltip="Chỉnh sửa"
+              >
+                <mat-icon class="!text-lg">edit</mat-icon>
+              </button>
+              <button
+                mat-icon-button
+                (click)="openDeleteModal(intern)"
+                class="text-gray-400 hover:text-danger transition-all !w-8 !h-8"
+                matTooltip="Xóa"
+              >
+                <mat-icon class="!text-lg">delete_outline</mat-icon>
+              </button>
             </td>
           </tr>
 

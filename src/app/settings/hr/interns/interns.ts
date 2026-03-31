@@ -8,6 +8,9 @@ import {
   Validators,
   AbstractControl,
 } from '@angular/forms';
+import { MatButtonModule } from '@angular/material/button';
+import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { HttpClient } from '@angular/common/http';
 import { UiPageHeaderComponent } from '../../../shared/components/ui-page-header/ui-page-header.component';
 import { UiCardComponent } from '../../../shared/components/ui-card/ui-card.component';
@@ -70,7 +73,16 @@ interface Position {
 @Component({
   selector: 'app-hr-interns',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, UiPageHeaderComponent, UiCardComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    MatButtonModule,
+    MatIconModule,
+    MatTooltipModule,
+    UiPageHeaderComponent,
+    UiCardComponent,
+  ],
   templateUrl: `./intern-profile-management.html`,
   styleUrl: `./intern-profile.css`,
 })
