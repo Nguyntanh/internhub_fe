@@ -846,11 +846,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left"
+            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left whitespace-nowrap"
           >
             Thực tập sinh
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-8 !py-5">
+          <td mat-cell *matCellDef="let row" class="!px-8 !py-5 whitespace-nowrap">
             <div class="flex items-center space-x-4">
               <div
                 class="w-10 h-10 rounded-xl bg-primary-500 flex items-center justify-center text-white font-bold text-sm shadow-md shadow-primary-100"
@@ -877,11 +877,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left"
+            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left whitespace-nowrap"
           >
             Liên hệ
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
+          <td mat-cell *matCellDef="let row" class="!px-6 !py-5 whitespace-nowrap">
             <div class="flex flex-col space-y-1">
               <div class="flex items-center text-xs text-gray-600 font-medium">
                 <mat-icon class="!text-[14px] !w-3.5 !h-3.5 mr-1.5 text-gray-300">email</mat-icon>
@@ -900,11 +900,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left"
+            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left whitespace-nowrap"
           >
             Chuyên ngành
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
+          <td mat-cell *matCellDef="let row" class="!px-6 !py-5 whitespace-nowrap">
             <span
               class="text-xs font-semibold text-gray-500 bg-surface-50 px-2 py-1 rounded-md border border-surface-100"
               >{{ row.major || 'N/A' }}</span
@@ -917,11 +917,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left"
+            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-left whitespace-nowrap"
           >
             Tổ chức
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5">
+          <td mat-cell *matCellDef="let row" class="!px-6 !py-5 whitespace-nowrap">
             <div class="flex flex-col">
               <span class="text-xs font-bold text-gray-700">{{ row.deptName }}</span>
               <span class="text-[10px] text-gray-400 font-medium mt-0.5">{{ row.posName }}</span>
@@ -934,11 +934,11 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-center"
+            class="bg-surface-50 !px-6 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-center whitespace-nowrap"
           >
             Trạng thái
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-6 !py-5 text-center">
+          <td mat-cell *matCellDef="let row" class="!px-6 !py-5 text-center whitespace-nowrap">
             <button
               (click)="openStatusModal(row)"
               [ngClass]="getStatusMeta(row.status).cls"
@@ -954,11 +954,15 @@
           <th
             mat-header-cell
             *matHeaderCellDef
-            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-right"
+            class="bg-surface-50 !px-8 !py-4 !text-[10px] !font-bold !text-gray-400 uppercase tracking-widest border-b border-surface-50 text-right whitespace-nowrap"
           >
             Thao tác
           </th>
-          <td mat-cell *matCellDef="let row" class="!px-8 !py-5 text-right space-x-1">
+          <td
+            mat-cell
+            *matCellDef="let row"
+            class="!px-8 !py-5 text-right space-x-1 whitespace-nowrap"
+          >
             <button
               mat-icon-button
               (click)="openEditModal(row)"
