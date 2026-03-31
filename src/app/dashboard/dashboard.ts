@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { RoleService } from '../auth/role.service';
 import { API_ENDPOINTS } from '../api-endpoints';
+import { Router, RouterModule } from '@angular/router';
 import { finalize } from 'rxjs';
 
 interface DashboardStats {
@@ -24,7 +25,7 @@ interface InternSummary {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, RouterModule],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css',
 })
@@ -42,6 +43,7 @@ export class Dashboard implements OnInit {
 
   constructor(
     private http: HttpClient,
+    private router: Router,
     private roleService: RoleService,
     private cdr: ChangeDetectorRef,
   ) {}
