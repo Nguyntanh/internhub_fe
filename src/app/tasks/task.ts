@@ -65,7 +65,6 @@ export class Tasks implements OnInit {
     'status',
     'submission',
     'intern',
-    'actions',
   ];
 
   selectedInternId: number | null = null;
