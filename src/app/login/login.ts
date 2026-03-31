@@ -1,6 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormGroup, FormControl, Validators } from '@angular/forms';
+import {
+  FormsModule,
+  ReactiveFormsModule,
+  FormGroup,
+  FormControl,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { Auth } from '../auth/auth';
 import { UserService } from '../services/user.service';
@@ -27,7 +33,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     private authService: Auth,
     private router: Router,
     private userService: UserService,
-    private roleService: RoleService
+    private roleService: RoleService,
   ) {}
 
   ngOnInit(): void {}
@@ -63,23 +69,25 @@ export class LoginComponent implements OnInit, OnDestroy {
                 this.roleService.setRole('');
                 this.roleService.reloadRole();
 
-                this.roleService.role$.pipe(
-                  filter(role => role !== ''),
-                  take(1),
-                  timeout(5000),
-                  catchError(() => of(''))
-                ).subscribe(role => {
-                  if (role === 'INTERN') {
-                    this.router.navigate(['/my-tasks']);
-                  } else {
-                    this.router.navigate(['/dashboard']);
-                  }
-                });
+                this.roleService.role$
+                  .pipe(
+                    filter((role) => role !== ''),
+                    take(1),
+                    timeout(5000),
+                    catchError(() => of('')),
+                  )
+                  .subscribe((role) => {
+                    if (role === 'INTERN') {
+                      this.router.navigate(['/dashboard/intern']);
+                    } else {
+                      this.router.navigate(['/my-tasks']);
+                    }
+                  });
               },
               error: (profileError) => {
                 console.error('Failed to fetch user profile', profileError);
                 this.router.navigate(['/dashboard']);
-              }
+              },
             });
           },
           error: (error) => {

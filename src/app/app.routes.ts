@@ -41,42 +41,33 @@ export const routes: Routes = [
     component: MainLayout,
     data: { title: 'Tổng quan' },
     children: [
-      { path: '', component: Dashboard, data: { title: 'Tổng quan', mode: 'dashboard' } },
-      { path: 'intern', component: InternDashboardComponent, canActivate: [internGuard], data: { title: 'Dashboard Intern' } },
+      {
+        path: '',
+        component: Dashboard,
+        canActivate: [nonInternGuard],
+        data: { title: 'Tổng quan', mode: 'dashboard' },
+      },
+      {
+        path: 'intern',
+        component: InternDashboardComponent,
+        canActivate: [internGuard],
+        data: { title: 'Dashboard Intern' },
+      },
     ],
   },
   {
     path: 'profile',
     component: MainLayout,
     data: { title: 'Hồ sơ của tôi' },
-    children: [
-      { path: '', component: MyProfileComponent, data: { title: 'Hồ sơ cá nhân' } }
-    ]
-  },
-  // ── Mentor/Manager: giao task, chấm điểm ──────────────────────────────────
-  {
-    path: 'tasks',
-    component: MainLayout,
-    data: { title: 'Thực thi' },
-    children: [
-      { path: '', component: Tasks }
-    ]
-  },
-  // ── Intern: xem task, nộp bài ─────────────────────────────────────────────
-  {
-    path: 'my-tasks',
-    component: MainLayout,
-    data: { title: 'Nhiệm vụ của tôi' },
-    children: [
-      { path: '', component: Execution, data: { title: 'Nhiệm vụ của tôi' } }
-    ]
+    children: [{ path: '', component: MyProfileComponent, data: { title: 'Hồ sơ cá nhân' } }],
   },
   // /tasks — chỉ non-intern
   {
     path: 'tasks',
     component: MainLayout,
     canActivate: [nonInternGuard],
-    children: [{ path: '', component: Tasks }]
+    data: { title: 'Thực thi' },
+    children: [{ path: '', component: Tasks, data: { title: 'Thực thi' } }],
   },
 
   // /my-tasks — chỉ intern
@@ -84,7 +75,8 @@ export const routes: Routes = [
     path: 'my-tasks',
     component: MainLayout,
     canActivate: [internGuard],
-    children: [{ path: '', component: Execution }]
+    data: { title: 'Nhiệm vụ của tôi' },
+    children: [{ path: '', component: Execution, data: { title: 'Nhiệm vụ của tôi' } }],
   },
   {
     path: 'management',
@@ -108,9 +100,7 @@ export const routes: Routes = [
     path: 'approval',
     component: MainLayout,
     data: { title: 'Phê duyệt' },
-    children: [
-      { path: '', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } },
-    ],
+    children: [{ path: '', component: Approval, data: { title: 'Phê duyệt', mode: 'dashboard' } }],
   },
   {
     path: 'settings',
@@ -125,9 +115,21 @@ export const routes: Routes = [
         data: { title: 'Quản trị Nhân sự' },
         children: [
           { path: '', redirectTo: 'accounts', pathMatch: 'full' },
-          { path: 'accounts', component: AccountManagementComponent, data: { title: 'Quản lý Tài khoản & Phân quyền' } },
-          { path: 'interns', component: HrInternsComponent, data: { title: 'Quản lý Thực tập sinh' } },
-          { path: 'org-structure', component: OrgStructureComponent, data: { title: 'Cơ cấu Tổ chức' } },
+          {
+            path: 'accounts',
+            component: AccountManagementComponent,
+            data: { title: 'Quản lý Tài khoản & Phân quyền' },
+          },
+          {
+            path: 'interns',
+            component: HrInternsComponent,
+            data: { title: 'Quản lý Thực tập sinh' },
+          },
+          {
+            path: 'org-structure',
+            component: OrgStructureComponent,
+            data: { title: 'Cơ cấu Tổ chức' },
+          },
         ],
       },
       {
@@ -136,7 +138,11 @@ export const routes: Routes = [
         data: { title: 'Cấu hình Đánh giá' },
         children: [
           { path: '', redirectTo: 'skills', pathMatch: 'full' },
-          { path: 'skills', component: EvaluationSkillsComponent, data: { title: 'Thư viện Kỹ năng' } },
+          {
+            path: 'skills',
+            component: EvaluationSkillsComponent,
+            data: { title: 'Thư viện Kỹ năng' },
+          },
         ],
       },
       {
@@ -154,7 +160,11 @@ export const routes: Routes = [
         data: { title: 'Vận hành hệ thống' },
         children: [
           { path: '', redirectTo: 'process', pathMatch: 'full' },
-          { path: 'process', component: OperationProcessComponent, data: { title: 'Cấu hình Quy trình' } },
+          {
+            path: 'process',
+            component: OperationProcessComponent,
+            data: { title: 'Cấu hình Quy trình' },
+          },
         ],
       },
       {
