@@ -103,8 +103,8 @@ export class PermissionService {
    * @returns Observable<Department[]>
    */
   loadDepartments(): Observable<Department[]> {
-    // Endpoint API cho Departments như yêu cầu
-    const url = 'http://localhost:8080/api/departments';
+    // Sử dụng URL tuyệt đối đồng nhất với các API khác để đảm bảo Interceptor hoạt động
+    const url = 'http://localhost:8090/api/departments';
     return this.http.get<Department[]>(url).pipe(
       tap((departments) => {
         this.departmentsSubject.next(departments);

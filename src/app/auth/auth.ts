@@ -18,7 +18,10 @@ export class Auth {
   private currentUserSubject: BehaviorSubject<any | null>;
   public currentUser$: Observable<any | null>;
 
-  constructor(private http: HttpClient, @Inject(PLATFORM_ID) private platformId: Object) {
+  constructor(
+    private http: HttpClient,
+    @Inject(PLATFORM_ID) private platformId: Object,
+  ) {
     let user = null;
     if (isPlatformBrowser(this.platformId)) {
       // Khởi tạo currentUserSubject từ token trong localStorage (nếu có)
@@ -26,7 +29,7 @@ export class Auth {
       if (token) {
         // TODO: Giải mã JWT token để lấy thông tin người dùng thực sự
         // Ví dụ: user = jwtDecode(token);
-        user = { token: token }; // Tạm thời lưu trữ token như một phần của user
+        user = { accessToken: token }; // Tạm thời lưu trữ token như một phần của user
       }
     }
     this.currentUserSubject = new BehaviorSubject<any | null>(user);
@@ -59,10 +62,10 @@ export class Auth {
           }
           // TODO: Giải mã JWT token để lấy thông tin người dùng thực sự
           // Ví dụ: this.currentUserSubject.next(jwtDecode(response.token));
-          this.currentUserSubject.next({ token: response.accessToken }); // Tạm thời cập nhật user với token
+          this.currentUserSubject.next({ accessToken: response.accessToken }); // Tạm thời cập nhật user với token
         }
       }),
-      catchError(this.handleError<any>('login'))
+      catchError(this.handleError<any>('login')),
     );
   }
 
@@ -72,9 +75,9 @@ export class Auth {
         'Content-Type': 'application/json',
       }),
     };
-    return this.http.post<any>(API_ENDPOINTS.Admin.users, userData, httpOptions).pipe(
-      catchError(this.handleError<any>('createUser'))
-    );
+    return this.http
+      .post<any>(API_ENDPOINTS.Admin.users, userData, httpOptions)
+      .pipe(catchError(this.handleError<any>('createUser')));
   }
 
   // Phương thức đăng xuất
@@ -89,7 +92,7 @@ export class Auth {
 
   // Phương thức thay đổi mật khẩu
   changePassword(oldPassword: string, newPassword: string): Observable<any> {
-    const token = this.currentUserValue?.token; // Lấy token từ BehaviorSubject
+    const token = this.currentUserValue?.accessToken; // Lấy token từ BehaviorSubject
     if (!token) {
       return throwError(() => new Error('No JWT token found. User not authenticated.'));
     }
@@ -97,15 +100,15 @@ export class Auth {
     const httpOptions = {
       headers: new HttpHeaders({
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       }),
     };
 
     const body = { oldPassword, newPassword };
 
-    return this.http.post<any>(API_ENDPOINTS.User.changePassword, body, httpOptions).pipe(
-      catchError(this.handleError<any>('changePassword'))
-    );
+    return this.http
+      .post<any>(API_ENDPOINTS.User.changePassword, body, httpOptions)
+      .pipe(catchError(this.handleError<any>('changePassword')));
   }
 
   private handleError<T>(operation = 'operation', result?: T) {
@@ -124,8 +127,8 @@ export class Auth {
         'Content-Type': 'application/json',
       }),
     };
-    return this.http.get<any>(`${API_ENDPOINTS.Auth.activateAccount}?token=${token}`, httpOptions).pipe(
-      catchError(this.handleError<any>('activateAccount'))
-    );
+    return this.http
+      .get<any>(`${API_ENDPOINTS.Auth.activateAccount}?token=${token}`, httpOptions)
+      .pipe(catchError(this.handleError<any>('activateAccount')));
   }
 }
