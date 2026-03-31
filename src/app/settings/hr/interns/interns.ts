@@ -116,6 +116,7 @@ export class HrInternsComponent implements OnInit {
 
   interns: Intern[] = [];
   filtered: Intern[] = [];
+  isLoading = true;
 
   searchQuery = '';
   filterDept = '';
@@ -163,6 +164,11 @@ export class HrInternsComponent implements OnInit {
     const q = this.universitySearch.toLowerCase().trim();
     if (!q) return this.UNIVERSITIES;
     return this.UNIVERSITIES.filter((u) => u.name.toLowerCase().includes(q));
+  }
+
+  getStatusMeta(status: string): { label: string; cls: string } {
+    const s = status as InternStatus;
+    return this.STATUS_META[s] || { label: status, cls: 'bg-gray-100 text-gray-400' };
   }
 
   constructor(
@@ -218,6 +224,7 @@ export class HrInternsComponent implements OnInit {
   }
 
   loadInterns(): void {
+    this.isLoading = true;
     this.http.get<any[]>(this.API).subscribe((res) => {
       this.interns = res.map((i) => ({
         id: i.id,
@@ -238,6 +245,7 @@ export class HrInternsComponent implements OnInit {
         managerId: i.managerId,
       }));
       this.applyFilters();
+      this.isLoading = false;
       this.cdr.detectChanges();
     });
   }
@@ -753,23 +761,31 @@ export class HrInternsComponent implements OnInit {
     return c[name.charCodeAt(0) % c.length];
   }
 
-  isInvalid(field: string): boolean {
-    const ctrl = this.internForm.get(field);
-    return !!(ctrl?.invalid && ctrl.touched);
+  isInvalid(controlName: string): boolean {
+    const control = this.internForm.get(controlName);
+    return !!(control && control.invalid && (control.dirty || control.touched));
   }
 
-  getError(field: string): string {
-    const ctrl = this.internForm.get(field);
-    if (!ctrl?.errors || !ctrl.touched) return '';
-    if (ctrl.errors['required']) return 'Trường này là bắt buộc.';
-    if (ctrl.errors['email']) return 'Email không hợp lệ.';
-    if (ctrl.errors['minlength'])
-      return `Tối thiểu ${ctrl.errors['minlength'].requiredLength} ký tự.`;
-    if (ctrl.errors['pattern']) {
-      if (field === 'fullName') return 'Họ tên không được chứa ký tự đặc biệt.';
-      return 'Số điện thoại không hợp lệ (VD: 0901234567).';
+  getError(controlName: string): string {
+    const control = this.internForm.get(controlName);
+    if (!control || !control.errors) return '';
+
+    if (control.hasError('required')) return 'Trường này không được để trống';
+    if (control.hasError('email')) return 'Email không hợp lệ';
+    if (control.hasError('minlength'))
+      return `Tối thiểu ${control.errors['minlength'].requiredLength} ký tự`;
+    if (control.hasError('pattern')) {
+      if (controlName === 'phone') return 'Số điện thoại không hợp lệ (10 số)';
+      if (controlName === 'fullName') return 'Họ tên không được chứa số hoặc ký tự đặc biệt';
+      return 'Định dạng không hợp lệ';
     }
-    return 'Giá trị không hợp lệ.';
+    if (
+      this.internForm.hasError('dateRange') &&
+      (controlName === 'startDate' || controlName === 'endDate')
+    ) {
+      return 'Ngày kết thúc phải sau ngày bắt đầu';
+    }
+    return 'Dữ liệu không hợp lệ';
   }
 
   showToastMessage(msg: string, isError = false): void {
