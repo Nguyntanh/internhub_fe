@@ -11,23 +11,33 @@
       <!-- Logo and Project Name -->
       <div class="flex items-center space-x-3">
         <img src="assets/images/interhub.jpg" alt="InternHub Logo" class="h-8 w-auto" />
-        <span class="text-2xl font-bold text-gray-900">InternHub</span>
+        <span class="text-2xl font-black text-gray-900 tracking-tight"
+          >Intern<span class="text-blue-600">Hub</span></span
+        >
       </div>
 
       <!-- Menu -->
       <div class="hidden md:flex items-center space-x-8">
-        <a href="#" class="text-gray-600 hover:text-primary transition">Giải pháp</a>
-        <a href="#" class="text-gray-600 hover:text-primary transition">Về chúng tôi</a>
-        <a href="#" class="text-gray-600 hover:text-primary transition">Đối tác</a>
+        <a href="#" class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition"
+          >Giải pháp</a
+        >
+        <a href="#" class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition"
+          >Về chúng tôi</a
+        >
+        <a href="#" class="text-sm font-semibold text-gray-600 hover:text-blue-600 transition"
+          >Đối tác</a
+        >
       </div>
 
       <!-- Action Buttons -->
       <div class="flex items-center space-x-4">
-        <a routerLink="/login" class="text-gray-600 hover:text-primary font-medium transition"
+        <a
+          routerLink="/login"
+          class="text-sm text-gray-600 hover:text-blue-600 font-bold transition"
           >Đăng nhập</a
         >
         <button
-          class="bg-primary text-white px-5 py-2 rounded-lg font-medium hover:opacity-90 transition"
+          class="bg-blue-600 text-white px-6 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100"
         >
           Dùng thử
         </button>
@@ -51,12 +61,12 @@
         </p>
         <div class="mt-10 flex justify-center items-center space-x-4">
           <button
-            class="bg-primary text-white px-8 py-3 rounded-lg font-bold text-lg hover:opacity-90 transition"
+            class="bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-blue-700 transition shadow-xl shadow-blue-200 flex items-center gap-2"
           >
             Dùng thử miễn phí
           </button>
           <button
-            class="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg font-bold text-lg hover:bg-gray-300 transition"
+            class="bg-white text-gray-700 border border-gray-200 px-8 py-4 rounded-2xl font-bold text-lg hover:bg-gray-50 transition"
           >
             Xem Video Demo
           </button>
@@ -65,24 +75,27 @@
           class="mt-16 max-w-5xl mx-auto bg-gray-100 p-8 rounded-2xl shadow-lg border border-gray-200"
         >
           <p class="text-center text-gray-500">
-            [Hình ảnh Dashboard với biểu đồ Radar (Radar Chart) đại diện cho việc định lượng năng
-            lực]
-          </p>
-          <div class="mt-4 h-96 bg-gray-200 rounded-lg flex items-center justify-center">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              class="w-20 h-20 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
+            <span class="text-xs font-black uppercase tracking-widest text-blue-500 block mb-4"
+              >Preview Dashboard</span
             >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-                d="M19.071 4.929c3.905 3.905 3.905 10.237 0 14.142-3.905 3.905-10.237 3.905-14.142 0-3.905-3.905-3.905-10.237 0-14.142 3.905-3.905 10.237-3.905 14.142 0zM9 12l2 2 4-4m-5 5v-3.5a3.5 3.5 0 013.5-3.5h0a3.5 3.5 0 013.5 3.5V14m-7 0v-1.5a1.5 1.5 0 011.5-1.5h4a1.5 1.5 0 011.5 1.5V14m-7 0h7"
-              ></path>
-            </svg>
+          </p>
+          <div
+            class="mt-4 h-96 bg-white rounded-xl shadow-inner overflow-hidden border border-gray-200 flex flex-col"
+          >
+            <div class="h-12 bg-gray-50 border-b border-gray-100 flex items-center px-4 gap-2">
+              <div class="w-3 h-3 rounded-full bg-red-400"></div>
+              <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+              <div class="w-3 h-3 rounded-full bg-green-400"></div>
+            </div>
+            <div
+              class="flex-1 flex items-center justify-center bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-50 to-white"
+            >
+              <img
+                src="https://ui-avatars.com/api/?name=Radar+Chart&background=eff6ff&color=2563eb&size=200"
+                alt="Radar Chart Demo"
+                class="opacity-50"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -115,7 +128,9 @@
             </ul>
           </div>
           <!-- Giải pháp InternHub -->
-          <div class="bg-primary text-white p-8 rounded-xl shadow-lg transform md:scale-105">
+          <div
+            class="bg-blue-600 text-white p-8 rounded-xl shadow-xl shadow-blue-200 transform md:scale-105"
+          >
             <h3 class="text-3xl font-bold mb-4">Giải pháp InternHub</h3>
             <ul class="space-y-3 text-lg">
               <li class="flex items-start">
@@ -151,31 +166,82 @@
         <div class="mt-12 grid md:grid-cols-5 gap-8">
           <!-- Card 1: HR -->
           <div class="text-center p-6 bg-gray-100 rounded-lg">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-xl font-semibold text-gray-900">HR (Người điều phối)</h4>
             <p class="mt-2 text-gray-600">Quản trị vòng đời & liên kết đại học.</p>
           </div>
           <!-- Card 2: Mentor -->
           <div class="text-center p-6 bg-gray-100 rounded-lg">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-xl font-semibold text-gray-900">Mentor (Người dẫn dắt)</h4>
             <p class="mt-2 text-gray-600">Phân rã Micro-tasks & Phản hồi tức thì.</p>
           </div>
           <!-- Card 3: Intern -->
           <div class="text-center p-6 bg-gray-100 rounded-lg">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-xl font-semibold text-gray-900">Intern (Người tạo giá trị)</h4>
             <p class="mt-2 text-gray-600">Tích lũy minh chứng & Làm chủ lộ trình.</p>
           </div>
           <!-- Card 4: Manager -->
           <div class="text-center p-6 bg-gray-100 rounded-lg">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-xl font-semibold text-gray-900">Manager (Người quyết định)</h4>
             <p class="mt-2 text-gray-600">Phê duyệt & Tuyển dụng dựa trên Benchmark.</p>
           </div>
           <!-- Card 5: Admin -->
           <div class="text-center p-6 bg-gray-100 rounded-lg">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+                ></path>
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-xl font-semibold text-gray-900">Admin (Người kiến tạo)</h4>
             <p class="mt-2 text-gray-600">Thiết lập hạ tầng & Giám sát bảo mật.</p>
           </div>
@@ -191,7 +257,7 @@
         <h2 class="text-center text-4xl font-bold text-gray-900">Công nghệ cốt lõi</h2>
         <div class="mt-12 grid md:grid-cols-2 gap-16 items-center">
           <div>
-            <h3 class="text-3xl font-bold text-primary mb-4">SkillCore Engine</h3>
+            <h3 class="text-3xl font-bold text-blue-600 mb-4">SkillCore Engine</h3>
             <p class="text-lg text-gray-600 mb-6">
               Cơ chế tính điểm năng lực tự động dựa trên mức độ hoàn thành và tầm quan trọng của
               từng nhiệm vụ. Mỗi đánh giá từ Mentor đều được lượng hóa, loại bỏ hoàn toàn yếu tố cảm
@@ -202,15 +268,22 @@
             </div>
           </div>
           <div>
-            <h3 class="text-3xl font-bold text-primary mb-4">Radar Overlay Chart</h3>
+            <h3 class="text-3xl font-bold text-blue-600 mb-4">Radar Overlay Chart</h3>
             <p class="text-lg text-gray-600 mb-6">
               Trực quan hóa sự chênh lệch giữa "Năng lực thực tế" của thực tập sinh và "Khung chuẩn
               (Benchmark)" của vị trí. Cung cấp cơ sở dữ liệu tin cậy cho quyết định tuyển dụng.
             </p>
             <div
-              class="bg-white p-4 rounded-xl shadow-lg border border-gray-200 h-64 flex items-center justify-center"
+              class="bg-white p-4 rounded-xl shadow-lg border border-gray-200 h-64 flex flex-col items-center justify-center relative overflow-hidden"
             >
-              <p class="text-gray-500">[Hình ảnh so sánh Radar Chart]</p>
+              <div
+                class="w-full h-full absolute inset-0 bg-blue-50/30 flex items-center justify-center font-bold text-blue-200 text-6xl rotate-12 pointer-events-none"
+              >
+                RADAR
+              </div>
+              <p class="text-gray-400 text-sm italic relative z-10">
+                So sánh năng lực thực tế vs. Benchmark
+              </p>
             </div>
           </div>
         </div>
@@ -236,62 +309,87 @@
             <!-- E01 -->
             <div class="md:grid md:grid-cols-2 md:items-center md:gap-16">
               <div class="md:text-right md:pr-16">
-                <p class="text-primary font-bold">E01</p>
+                <p class="text-blue-600 font-bold">E01</p>
                 <h3 class="text-2xl font-bold text-gray-900">Thiết lập hệ quy chiếu</h3>
                 <p class="text-gray-600 mt-2">Foundation</p>
               </div>
               <div
-                class="hidden md:block w-8 h-8 bg-white border-4 border-primary rounded-full absolute top-0 left-1/2 -translate-x-1/2"
+                class="hidden md:block w-8 h-8 bg-white border-4 border-blue-600 rounded-full absolute top-0 left-1/2 -translate-x-1/2"
               ></div>
-              <div class="mt-4 md:mt-0 md:pl-16"></div>
+              <div class="mt-4 md:mt-0 md:pl-16">
+                <p class="text-sm text-gray-500 leading-relaxed italic">
+                  Xây dựng thư viện kỹ năng chuẩn (Skill Bank), danh mục phòng ban và hệ thống
+                  Role-based Access Control.
+                </p>
+              </div>
             </div>
             <!-- E02 -->
             <div class="md:grid md:grid-cols-2 md:items-center md:gap-16">
               <div class="md:pl-16 md:order-2 md:text-left">
-                <p class="text-primary font-bold">E02</p>
+                <p class="text-blue-600 font-bold">E02</p>
                 <h3 class="text-2xl font-bold text-gray-900">Số hóa vòng đời Intern</h3>
                 <p class="text-gray-600 mt-2">Lifecycle</p>
               </div>
               <div
-                class="hidden md:block w-8 h-8 bg-white border-4 border-primary rounded-full absolute top-1/4 left-1/2 -translate-x-1/2"
+                class="hidden md:block w-8 h-8 bg-white border-4 border-blue-600 rounded-full absolute top-1/4 left-1/2 -translate-x-1/2"
               ></div>
-              <div class="mt-4 md:mt-0 md:pr-16 md:order-1 md:text-right"></div>
+              <div class="mt-4 md:mt-0 md:pr-16 md:order-1 md:text-right">
+                <p class="text-sm text-gray-500 leading-relaxed italic">
+                  Quản lý hồ sơ thực tập sinh điện tử, quy trình gán Mentor/Manager và theo dõi thời
+                  hạn thực tập tự động.
+                </p>
+              </div>
             </div>
             <!-- E03 -->
             <div class="md:grid md:grid-cols-2 md:items-center md:gap-16">
               <div class="md:text-right md:pr-16">
-                <p class="text-primary font-bold">E03</p>
+                <p class="text-blue-600 font-bold">E03</p>
                 <h3 class="text-2xl font-bold text-gray-900">Điều hành Micro-tasks</h3>
                 <p class="text-gray-600 mt-2">The Engine</p>
               </div>
               <div
-                class="hidden md:block w-8 h-8 bg-white border-4 border-primary rounded-full absolute top-1/2 left-1/2 -translate-x-1/2"
+                class="hidden md:block w-8 h-8 bg-white border-4 border-blue-600 rounded-full absolute top-1/2 left-1/2 -translate-x-1/2"
               ></div>
-              <div class="mt-4 md:mt-0 md:pl-16"></div>
+              <div class="mt-4 md:mt-0 md:pl-16">
+                <p class="text-sm text-gray-500 leading-relaxed italic">
+                  Hệ thống giao việc linh hoạt, tích hợp đánh giá kỹ năng trên từng đầu việc nhỏ để
+                  tích lũy SkillPoints.
+                </p>
+              </div>
             </div>
             <!-- E04 -->
             <div class="md:grid md:grid-cols-2 md:items-center md:gap-16">
               <div class="md:pl-16 md:order-2 md:text-left">
-                <p class="text-primary font-bold">E04</p>
+                <p class="text-blue-600 font-bold">E04</p>
                 <h3 class="text-2xl font-bold text-gray-900">Phê duyệt đa tầng</h3>
                 <p class="text-gray-600 mt-2">Quality Gate</p>
               </div>
               <div
-                class="hidden md:block w-8 h-8 bg-white border-4 border-primary rounded-full absolute top-3/4 left-1/2 -translate-x-1/2"
+                class="hidden md:block w-8 h-8 bg-white border-4 border-blue-600 rounded-full absolute top-3/4 left-1/2 -translate-x-1/2"
               ></div>
-              <div class="mt-4 md:mt-0 md:pr-16 md:order-1 md:text-right"></div>
+              <div class="mt-4 md:mt-0 md:pr-16 md:order-1 md:text-right">
+                <p class="text-sm text-gray-500 leading-relaxed italic">
+                  Luồng phê duyệt từ Mentor lên Manager, đảm bảo tính khách quan và chất lượng đầu
+                  ra của kỳ thực tập.
+                </p>
+              </div>
             </div>
             <!-- E05 -->
             <div class="md:grid md:grid-cols-2 md:items-center md:gap-16">
               <div class="md:text-right md:pr-16">
-                <p class="text-primary font-bold">E05</p>
+                <p class="text-blue-600 font-bold">E05</p>
                 <h3 class="text-2xl font-bold text-gray-900">Phân tích thông minh</h3>
                 <p class="text-gray-600 mt-2">Intelligence</p>
               </div>
               <div
-                class="hidden md:block w-8 h-8 bg-white border-4 border-primary rounded-full absolute bottom-0 left-1/2 -translate-x-1/2"
+                class="hidden md:block w-8 h-8 bg-white border-4 border-blue-600 rounded-full absolute bottom-0 left-1/2 -translate-x-1/2"
               ></div>
-              <div class="mt-4 md:mt-0 md:pl-16"></div>
+              <div class="mt-4 md:mt-0 md:pl-16">
+                <p class="text-sm text-gray-500 leading-relaxed italic">
+                  Dashboard báo cáo chuyên sâu, dự báo khả năng đáp ứng công việc và tối ưu hóa phễu
+                  nhân tài.
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -306,22 +404,58 @@
         <h2 class="text-center text-4xl font-bold text-gray-900">Giá trị cốt lõi</h2>
         <div class="mt-12 grid md:grid-cols-4 gap-8">
           <div class="bg-white p-8 rounded-lg shadow-md text-center border border-gray-200">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M13 10V3L4 14h7v7l9-11h-7z"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-2xl font-semibold text-gray-900">Quantitative</h4>
             <p class="mt-2 text-gray-600">Loại bỏ cảm tính trong đánh giá.</p>
           </div>
           <div class="bg-white p-8 rounded-lg shadow-md text-center border border-gray-200">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-2xl font-semibold text-gray-900">Instant Feedback</h4>
             <p class="mt-2 text-gray-600">Vòng lặp phản hồi tức thì, liên tục.</p>
           </div>
           <div class="bg-white p-8 rounded-lg shadow-md text-center border border-gray-200">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-2xl font-semibold text-gray-900">Efficiency</h4>
             <p class="mt-2 text-gray-600">Giảm 40% tải trọng hành chính.</p>
           </div>
           <div class="bg-white p-8 rounded-lg shadow-md text-center border border-gray-200">
-            <div class="text-primary text-4xl mb-3">[ICON]</div>
+            <div class="text-blue-600 mb-4 flex justify-center">
+              <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                ></path>
+              </svg>
+            </div>
             <h4 class="text-2xl font-semibold text-gray-900">Data-driven</h4>
             <p class="mt-2 text-gray-600">Biến thực tập thành phễu lọc nhân tài.</p>
           </div>
@@ -339,7 +473,7 @@
         </h3>
         <div class="mt-8">
           <button
-            class="bg-primary text-white px-10 py-4 rounded-lg font-bold text-xl hover:opacity-90 transition transform hover:scale-105"
+            class="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold text-xl hover:bg-blue-700 transition transform hover:scale-105 shadow-2xl shadow-blue-500/20"
           >
             Liên hệ tư vấn giải pháp
           </button>
