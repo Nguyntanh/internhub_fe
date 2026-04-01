@@ -25,7 +25,7 @@ import {
   RolePermissionResponse,
   FeaturePermission,
   toCrudString,
-  Role // Import Role interface
+  Role, // Import Role interface
 } from '../../../../shared/models/permissions.model';
 import { RolePermissionService } from '../../../../services/role-permission.service'; // New service
 import { PermissionService } from '../../../../services/permission.service'; // Import PermissionService
@@ -54,7 +54,9 @@ import { UiPageHeaderComponent } from '../../../../shared/components/ui-page-hea
   styleUrls: ['./account-management.component.css'],
 })
 export class AccountManagementComponent implements OnInit, OnDestroy {
- // Implement OnDestroy
+  // Implement OnDestroy
+  activeTab: 'accounts' | 'permissions' = 'accounts';
+  users: any[] = []; // Cần khai báo để tránh lỗi trong template, nên được định nghĩa kiểu dữ liệu cụ thể sau này
   rolesHeader: string[] = [];
   roleDefinitions: Role[] = [];
   permissionMatrix: PermissionMatrix | null = null;
@@ -68,7 +70,7 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
     private rolePermissionService: RolePermissionService,
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef, // Inject ChangeDetectorRef
-    private permissionService: PermissionService // Inject PermissionService
+    private permissionService: PermissionService, // Inject PermissionService
   ) {}
 
   ngOnInit(): void {
@@ -76,29 +78,34 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
     combineLatest([
       this.permissionService.getRoles(),
       this.permissionService.getPermissions(),
-      this.rolePermissionService.getAllRolePermissions()
-    ]).pipe(takeUntil(this.destroy$)).subscribe({
-      next: ([roles, permissions, flatPermissions]) => {
-        if (roles) {
-          this.roleDefinitions = roles;
-          this.rolesHeader = roles.map(r => r.name);
-        }
-        // Permissions are handled by buildPermissionMatrix
-        this.permissionMatrix = this.buildPermissionMatrix(flatPermissions);
-        this.isLoading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Failed to load initial data:', err);
-        this.snackBar.open('Failed to load initial data. Please check backend API.', 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
-        this.isLoading = false;
-        // Fallback to mock data if loading fails
-        this.roleDefinitions = ROLES_DATA_MOCK; // Use the mock data for roles
-        this.rolesHeader = ROLES_DATA_MOCK.map(r => r.name);
-        this.permissionMatrix = this.buildPermissionMatrix(MOCK_ROLE_PERMISSIONS_FLAT);
-        this.cdr.detectChanges();
-      }
-    });
+      this.rolePermissionService.getAllRolePermissions(),
+    ])
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ([roles, permissions, flatPermissions]) => {
+          if (roles) {
+            this.roleDefinitions = roles;
+            this.rolesHeader = roles.map((r) => r.name);
+          }
+          // Permissions are handled by buildPermissionMatrix
+          this.permissionMatrix = this.buildPermissionMatrix(flatPermissions);
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Failed to load initial data:', err);
+          this.snackBar.open('Failed to load initial data. Please check backend API.', 'Close', {
+            duration: 5000,
+            panelClass: ['error-snackbar'],
+          });
+          this.isLoading = false;
+          // Fallback to mock data if loading fails
+          this.roleDefinitions = ROLES_DATA_MOCK; // Use the mock data for roles
+          this.rolesHeader = ROLES_DATA_MOCK.map((r) => r.name);
+          this.permissionMatrix = this.buildPermissionMatrix(MOCK_ROLE_PERMISSIONS_FLAT);
+          this.cdr.detectChanges();
+        },
+      });
   }
 
   ngOnDestroy(): void {
@@ -113,7 +120,7 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
     const featureMap = new Map<number, RbacFeature>(); // Map functionId to RbacFeature
 
     // Initialize all features from FUNCTIONS_DATA
-    FUNCTIONS_DATA.forEach(func => {
+    FUNCTIONS_DATA.forEach((func) => {
       const rbacFeature: RbacFeature = {
         id: func.code, // Use the full code, e.g., E01_USER_MGMT
         functionId: func.id,
@@ -121,7 +128,8 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
         permissions: {},
       };
       // Initialize permissions for all roles to false
-      this.roleDefinitions.forEach(role => { // Use dynamic roleDefinitions
+      this.roleDefinitions.forEach((role) => {
+        // Use dynamic roleDefinitions
         rbacFeature.permissions[role.id] = {
           roleId: role.id,
           canCreate: false,
@@ -135,7 +143,7 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
     console.log('Feature map after initialization:', featureMap);
 
     // Populate permissions from flat data
-    flatPermissions.forEach(perm => {
+    flatPermissions.forEach((perm) => {
       const feature = featureMap.get(perm.functionId);
       if (feature) {
         feature.permissions[perm.roleId] = {
@@ -151,23 +159,58 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
 
     // Group features as per the original table structure
     const groupsConfig = [
-      { name: 'Quản trị Hệ thống', functionCodes: ['E01_USER_MGMT', 'E02_DEPT_POS_CONFIG', 'E03_SKILL_CONFIG', 'E04_AUDIT_LOGS'] },
-      { name: 'Onboarding & Quản lý Intern', functionCodes: ['E05_INTERN_IMPORT', 'E06_ASSIGN_MENTOR', 'E07_UNI_MGMT', 'E08_PERSONAL_DASHBOARD'] },
-      { name: 'Điều hành Micro-tasks', functionCodes: ['E09_TASK_ACTION', 'E10_TODO_LIST', 'E11_TASK_SUBMISSION', 'E12_GRADING'] },
-      { name: 'Luồng Phê duyệt & Báo cáo', functionCodes: ['E14_REALTIME_SCORE', 'E15_FINAL_EVALUATION', 'E16_FINAL_APPROVAL', 'E17_RADAR_CHART', 'E18_COMPARE_DASHBOARD', 'E19_EXPORT_REPORT'] },
+      {
+        name: 'Quản trị Hệ thống',
+        functionCodes: [
+          'E01_USER_MGMT',
+          'E02_DEPT_POS_CONFIG',
+          'E03_SKILL_CONFIG',
+          'E04_AUDIT_LOGS',
+        ],
+      },
+      {
+        name: 'Onboarding & Quản lý Intern',
+        functionCodes: [
+          'E05_INTERN_IMPORT',
+          'E06_ASSIGN_MENTOR',
+          'E07_UNI_MGMT',
+          'E08_PERSONAL_DASHBOARD',
+        ],
+      },
+      {
+        name: 'Điều hành Micro-tasks',
+        functionCodes: ['E09_TASK_ACTION', 'E10_TODO_LIST', 'E11_TASK_SUBMISSION', 'E12_GRADING'],
+      },
+      {
+        name: 'Luồng Phê duyệt & Báo cáo',
+        functionCodes: [
+          'E14_REALTIME_SCORE',
+          'E15_FINAL_EVALUATION',
+          'E16_FINAL_APPROVAL',
+          'E17_RADAR_CHART',
+          'E18_COMPARE_DASHBOARD',
+          'E19_EXPORT_REPORT',
+        ],
+      },
       // Add other functions that might not fit neatly into these primary groups
-      { name: 'Khác', functionCodes: ['USER_MGMT', 'SKILL_LIB'] } // Example for other codes
+      { name: 'Khác', functionCodes: ['USER_MGMT', 'SKILL_LIB'] }, // Example for other codes
     ];
 
-    groupsConfig.forEach(groupConfig => {
+    groupsConfig.forEach((groupConfig) => {
       const group: RbacFeatureGroup = {
         name: groupConfig.name,
         features: groupConfig.functionCodes
-          .map(code => FUNCTION_CODE_TO_ID_MAP[code]) // Get functionId from code
-          .map(functionId => functionId ? featureMap.get(functionId) : undefined)
+          .map((code) => FUNCTION_CODE_TO_ID_MAP[code]) // Get functionId from code
+          .map((functionId) => (functionId ? featureMap.get(functionId) : undefined))
           .filter((f): f is RbacFeature => f !== undefined),
       };
-      console.log('Group config:', groupConfig.name, 'features:', group.features.length, group.features);
+      console.log(
+        'Group config:',
+        groupConfig.name,
+        'features:',
+        group.features.length,
+        group.features,
+      );
       if (group.features.length > 0) {
         matrix.groups.push(group);
       }
@@ -178,18 +221,27 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
   }
 
   getRoleName(roleId: number): string {
-    return this.roleDefinitions.find(role => role.id === roleId)?.name || 'Unknown'; // Use dynamic roleDefinitions
+    return this.roleDefinitions.find((role) => role.id === roleId)?.name || 'Unknown'; // Use dynamic roleDefinitions
   }
 
   // Method to check if a permission is enabled for a given role and feature
-  isPermissionEnabled(feature: RbacFeature, roleId: number, type: 'canCreate' | 'canAccess' | 'canEdit' | 'canDelete'): boolean {
+  isPermissionEnabled(
+    feature: RbacFeature,
+    roleId: number,
+    type: 'canCreate' | 'canAccess' | 'canEdit' | 'canDelete',
+  ): boolean {
     const rolePermission = feature.permissions[roleId];
     if (!rolePermission) return false;
     return rolePermission[type];
   }
 
   // Method called when a checkbox/toggle is changed
-  onPermissionChange(feature: RbacFeature, role: { id: number, name: string }, permissionType: 'canCreate' | 'canAccess' | 'canEdit' | 'canDelete', event: MatCheckboxChange): void {
+  onPermissionChange(
+    feature: RbacFeature,
+    role: { id: number; name: string },
+    permissionType: 'canCreate' | 'canAccess' | 'canEdit' | 'canDelete',
+    event: MatCheckboxChange,
+  ): void {
     const isChecked = event.checked;
 
     // Update local matrix optimistically
@@ -209,7 +261,11 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
 
     this.rolePermissionService.updateRolePermission(request).subscribe({
       next: (response) => {
-        this.snackBar.open(`Permission for ${role.name} on ${feature.name} (${permissionType}) updated successfully.`, 'Close', { duration: 3000 });
+        this.snackBar.open(
+          `Permission for ${role.name} on ${feature.name} (${permissionType}) updated successfully.`,
+          'Close',
+          { duration: 3000 },
+        );
         // Update the 'id' of the permission if the response includes it (for tracking existing entries)
         if (response.id) {
           // This would be more relevant if we were tracking individual permission response IDs
@@ -217,7 +273,11 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Failed to update permission:', err);
-        this.snackBar.open(`Failed to update permission for ${role.name} on ${feature.name} (${permissionType}).`, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        this.snackBar.open(
+          `Failed to update permission for ${role.name} on ${feature.name} (${permissionType}).`,
+          'Close',
+          { duration: 5000, panelClass: ['error-snackbar'] },
+        );
         // Revert local change if API call fails
         if (currentPermission) {
           currentPermission[permissionType] = !isChecked;
@@ -238,14 +298,13 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
     return group.name; // Assuming group names are unique
   }
 
-
   openCreateUserDialog(): void {
     const dialogRef = this.dialog.open(CreateUserDialogComponent, {
       width: '450px',
       disableClose: true,
     });
 
-    dialogRef.afterClosed().subscribe(result => {
+    dialogRef.afterClosed().subscribe((result) => {
       console.log('The create user dialog was closed', result);
       if (result) {
         // Optionally reload permissions if user creation affects roles or permissions visible here

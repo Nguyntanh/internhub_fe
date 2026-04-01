@@ -80,6 +80,15 @@ export class Auth {
       .pipe(catchError(this.handleError<any>('createUser')));
   }
 
+  /**
+   * Lấy danh sách tất cả người dùng cho trang quản trị
+   */
+  getUsersAll(): Observable<any[]> {
+    return this.http
+      .get<any[]>(`${API_ENDPOINTS.Admin.users}/all`)
+      .pipe(catchError(this.handleError<any[]>('getUsersAll', [])));
+  }
+
   // Phương thức đăng xuất
   logout(): void {
     if (isPlatformBrowser(this.platformId)) {
