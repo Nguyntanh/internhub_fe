@@ -576,16 +576,16 @@
         <div class="col-span-2 sm:col-span-1">
           <label class="fm-lbl">Mentor</label>
           <select formControlName="mentorId" class="fm-inp">
-            <option value="">Không chỉ định</option>
-            <option *ngFor="let m of MENTORS" [value]="m.id">{{ m.name }}</option>
+            <option [ngValue]="null">Không chỉ định</option>
+            <option *ngFor="let m of MENTORS" [ngValue]="m.id">{{ m.name }}</option>
           </select>
         </div>
 
         <div class="col-span-2 sm:col-span-1">
           <label class="fm-lbl">Manager</label>
           <select formControlName="managerId" class="fm-inp">
-            <option value="">Không chỉ định</option>
-            <option *ngFor="let m of MANAGERS" [value]="m.id">{{ m.name }}</option>
+            <option [ngValue]="null">Không chỉ định</option>
+            <option *ngFor="let m of MANAGERS" [ngValue]="m.id">{{ m.name }}</option>
           </select>
         </div>
 

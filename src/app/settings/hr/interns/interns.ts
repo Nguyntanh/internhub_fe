@@ -13,6 +13,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { Auth } from '../../../auth/auth';
 import { HttpClient } from '@angular/common/http';
 import { UiPageHeaderComponent } from '../../../shared/components/ui-page-header/ui-page-header.component';
 import { UiCardComponent } from '../../../shared/components/ui-card/ui-card.component';
@@ -36,7 +37,9 @@ export interface Intern {
   startDate: string;
   endDate: string;
   mentorId: number;
+  mentorName: string;
   managerId: number;
+  managerName: string;
 }
 
 export interface UserItem {
@@ -95,10 +98,6 @@ export class HrInternsComponent implements OnInit {
   private API_UNIV = 'http://localhost:8090/api/universities';
   private API_DEPT = 'http://localhost:8090/api/departments';
   private API_POS = 'http://localhost:8090/api/positions';
-  private API_MENTOR = 'http://localhost:8090/api/user/mentors';
-  private API_MANAGER = 'http://localhost:8090/api/user/managers';
-  private API_USERS = 'http://localhost:8090/api/admin/users/all';
-
   UNIVERSITIES: University[] = [];
   DEPARTMENTS: Department[] = [];
   MENTORS: Mentor[] = [];
@@ -193,24 +192,35 @@ export class HrInternsComponent implements OnInit {
     private fb: FormBuilder,
     private http: HttpClient,
     private cdr: ChangeDetectorRef,
+    private authService: Auth,
   ) {
     this.buildForm();
   }
 
   ngOnInit(): void {
+    this.loadInitialData();
+  }
+
+  /**
+   * Tải các dữ liệu danh mục và người dùng trước khi tải danh sách Intern
+   */
+  loadInitialData(): void {
     this.loadUniversities();
     this.loadDepartments();
     this.loadPositions();
-    this.loadInterns();
-    this.loadManagers();
-    this.loadMentors();
-  }
 
-  loadMentors() {
-    this.http.get<Mentor[]>(this.API_MENTOR).subscribe((res) => (this.MENTORS = res));
-  }
-  loadManagers() {
-    this.http.get<Manager[]>(this.API_MANAGER).subscribe((res) => (this.MANAGERS = res));
+    // Lấy tất cả người dùng để lọc ra Mentor/Manager theo Role (Giống account-management)
+    this.authService.getUsersAll().subscribe((users) => {
+      this.MENTORS = users
+        .filter((u) => (u.roleName || u.role?.name) === 'MENTOR')
+        .map((u) => ({ id: u.id, name: u.name }));
+      this.MANAGERS = users
+        .filter((u) => (u.roleName || u.role?.name) === 'MANAGER')
+        .map((u) => ({ id: u.id, name: u.name }));
+
+      // Sau khi đã có danh sách Mentor/Manager làm map, mới tải Intern
+      this.loadInterns();
+    });
   }
 
   loadUniversities() {
@@ -259,7 +269,14 @@ export class HrInternsComponent implements OnInit {
         startDate: i.startDate,
         endDate: i.endDate,
         mentorId: i.mentorId,
+        // Nếu Backend trả về mentorName null, tìm trong danh sách MENTORS đã tải
+        mentorName:
+          i.mentorName || this.MENTORS.find((m) => m.id === i.mentorId)?.name || 'Chưa phân công',
         managerId: i.managerId,
+        managerName:
+          i.managerName ||
+          this.MANAGERS.find((m) => m.id === i.managerId)?.name ||
+          'Chưa phân công',
       }));
       this.applyFilters();
       this.isLoading = false;
@@ -271,7 +288,7 @@ export class HrInternsComponent implements OnInit {
    * Tải danh sách user có role INTERN nhưng chưa có InternshipProfile.
    */
   loadAvailableInternUsers(): void {
-    this.http.get<any[]>(this.API_USERS).subscribe({
+    this.authService.getUsersAll().subscribe({
       next: (allUsers) => {
         const internUsers = allUsers.filter((u) => {
           const role = u.roleName || u.role?.name || '';
@@ -556,8 +573,8 @@ export class HrInternsComponent implements OnInit {
         status: ['In_Progress'],
         startDate: ['', Validators.required],
         endDate: [''],
-        mentorId: [''],
-        managerId: [''],
+        mentorId: [null],
+        managerId: [null],
       },
       {
         validators: (group: AbstractControl) => {
