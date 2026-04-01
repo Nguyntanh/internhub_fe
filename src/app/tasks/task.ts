@@ -171,7 +171,7 @@ export class Tasks implements OnInit {
           error: () => {
             this.tasks = data.map((task) => ({ ...task, weight: task.skills?.[0]?.weight ?? 1 }));
             this.loading = false;
-            this.cdr.detectChanges();
+            this.cdr.markForCheck();
           },
         });
       },
@@ -179,7 +179,7 @@ export class Tasks implements OnInit {
         console.error('Lỗi load tasks:', error);
         this.tasks = [];
         this.loading = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
         this.snackBar.open('Không thể tải danh sách task!', 'Đóng', {
           duration: 5000,
           panelClass: ['error-snackbar'],
@@ -298,21 +298,23 @@ export class Tasks implements OnInit {
     this.taskService.createTask(payload).subscribe({
       next: () => {
         this.snackBar.open('Tạo task thành công', 'Đóng', { duration: 3000 });
-        setTimeout(() => {
-          this.showAddModal = false;
-          this.cdr.detectChanges();
-        }, 0);
-        setTimeout(() => {
-          this.resetNewTaskForm();
-          this.cdr.detectChanges();
-        }, 0);
+        this.showAddModal = false;
+        this.resetNewTaskForm();
         this.loadTasks();
       },
       error: (error) => {
         console.error('Lỗi tạo task:', error);
-        this.snackBar.open('Tạo task thất bại: ' + (error.message || 'Vui lòng thử lại'), 'Đóng', {
-          duration: 5000,
-        });
+        // If it's a parsing error with status 200, the task was actually created successfully
+        if (error.message && error.message.includes('response parsing failed')) {
+          this.snackBar.open('Tạo task thành công', 'Đóng', { duration: 3000 });
+          this.showAddModal = false;
+          this.resetNewTaskForm();
+          this.loadTasks();
+        } else {
+          this.snackBar.open('Tạo task thất bại: ' + (error.message || 'Vui lòng thử lại'), 'Đóng', {
+            duration: 5000,
+          });
+        }
       },
     });
   }
@@ -326,11 +328,59 @@ export class Tasks implements OnInit {
 
   // ─── View / Edit / Delete Task ────────────────────────────────────────────
 
+  private mapTaskDetail(task: any): any {
+    const skills = task.skills || [];
+
+    // Backend không có score ở root — lấy từ skills[0].ratingScore
+    // UI dùng thang 0-10, backend lưu 0-5 → nhân 2 để hiển thị lại
+    const rawScore = task.score ?? skills[0]?.ratingScore ?? null;
+    const displayScore: number | null = rawScore !== null
+      ? Math.round(rawScore * 10) / 10
+      : null;
+
+    // reviewComment lấy từ skills[0].reviewComment nếu không có ở root
+    const reviewComment: string | null = task.reviewComment
+      || task.review_comment
+      || skills[0]?.reviewComment
+      || null;
+
+    // assignedInterns: list API trả về mảng rỗng, detail API mới có
+    // Nếu rỗng nhưng có task.intern (single object) thì dùng đó
+    let assignedInterns: Intern[] = task.assignedInterns || [];
+    if (assignedInterns.length === 0 && task.intern) {
+      assignedInterns = [task.intern];
+    }
+
+    // submissionLink: check nhiều field name khác nhau
+    const submissionLink = task.submissionLink
+      || task.submission_link
+      || task.submitdate
+      || null;
+
+    return {
+      id: task.id,
+      title: task.title,
+      description: task.description,
+      deadline: task.deadline,
+      status: task.status,
+      weight: task.weight || (skills[0]?.weight ?? 1),
+      score: displayScore,
+      reviewComment,
+      submissionLink: submissionLink ?? undefined,
+      submission_link: task.submission_link || task.submitdate,
+      submissionNote: task.submissionNote || task.submission_note,
+      submission_note: task.submission_note,
+      assignedInterns,
+      skills
+    };
+  }
+
   viewTask(task: any): void {
     this.taskService.getTaskDetail(task.id).subscribe({
       next: (data) => {
         this.selectedTask = task;
-        this.taskDetail = { ...data, weight: task.weight };
+        this.taskDetail = this.mapTaskDetail(data);
+        this.taskDetail.weight = task.weight;
         if (data.skills && data.skills.length > 0) {
           this.selectedSkillId = data.skills[0].skillId;
         }
@@ -416,7 +466,20 @@ export class Tasks implements OnInit {
       },
       error: (error) => {
         console.error('Lỗi update task:', error);
-        this.snackBar.open('Cập nhật task thất bại', 'Đóng', { duration: 3000 });
+        // If it's a parsing error with status 200, the task was actually updated successfully
+        if (error.message && error.message.includes('response parsing failed')) {
+          setTimeout(() => {
+            this.snackBar.open('Cập nhật task thành công', 'Đóng', { duration: 3000 });
+            this.isEditing = false;
+            this.showTaskModal = false;
+            this.cdr.detectChanges();
+            this.loadTasks();
+          }, 0);
+        } else {
+          this.snackBar.open('Cập nhật task thất bại: ' + (error.message || 'Vui lòng thử lại'), 'Đóng', {
+            duration: 5000,
+          });
+        }
       },
     });
   }
@@ -434,18 +497,23 @@ export class Tasks implements OnInit {
       },
       error: (error) => {
         console.error('Lỗi xóa task:', error);
-        this.snackBar.open('Xóa task thất bại', 'Đóng', { duration: 3000 });
+        // If it's a parsing error with status 200, the task was actually deleted successfully
+        if (error.message && error.message.includes('response parsing failed')) {
+          setTimeout(() => {
+            this.snackBar.open('Đã xóa task', 'Đóng', { duration: 3000 });
+            this.closeTaskModal();
+            this.loadTasks();
+          }, 0);
+        } else {
+          this.snackBar.open('Xóa task thất bại: ' + (error.message || 'Vui lòng thử lại'), 'Đóng', {
+            duration: 5000,
+          });
+        }
       },
     });
   }
 
-  // ─── Review ───────────────────────────────────────────────────────────────
-
   openReviewModal(task: any): void {
-    this.reviewScore = null;
-    this.reviewComment = '';
-    this.reviewTaskData = null;
-
     this.taskService.getTaskDetail(task.id).subscribe({
       next: (detail) => {
         this.reviewTaskData = { ...task, ...detail, weight: task.weight };
@@ -512,17 +580,75 @@ export class Tasks implements OnInit {
       next: () => {
         this.closeReviewModal();
         this.snackBar.open('Chấm điểm thành công!', 'Đóng', { duration: 3000 });
+        
+        // Refresh task list first
         setTimeout(() => this.loadTasks(), 50);
+        
+        // Then refresh task detail if modal is still open
+        if (this.showTaskModal && this.selectedTask) {
+          setTimeout(() => {
+            this.taskService.getTaskDetail(this.selectedTask.id).subscribe({
+              next: (data) => {
+                this.taskDetail = this.mapTaskDetail(data);
+                this.taskDetail.weight = this.selectedTask.weight;
+                // Force change detection
+                this.cdr.markForCheck();
+              },
+              error: () => {
+                console.error('Failed to refresh task detail after review');
+              }
+            });
+          }, 200); // Increased timeout to ensure backend has processed the review
+        }
       },
       error: (error) => {
-        if (error?.status === 200 || error?.status === 0) {
+        console.error('Lỗi review task:', error);
+        // If it's a parsing error with status 200, the task was actually reviewed successfully
+        if (error.message && error.message.includes('response parsing failed')) {
           this.closeReviewModal();
           this.snackBar.open('Chấm điểm thành công!', 'Đóng', { duration: 3000 });
           setTimeout(() => this.loadTasks(), 50);
+          // Also refresh the task detail if modal is still open
+          if (this.showTaskModal && this.selectedTask) {
+            setTimeout(() => {
+              this.taskService.getTaskDetail(this.selectedTask.id).subscribe({
+                next: (data) => {
+                  this.taskDetail = this.mapTaskDetail(data);
+                  this.taskDetail.weight = this.selectedTask.weight;
+                  // Force change detection
+                  this.cdr.markForCheck();
+                },
+                error: () => {
+                  console.error('Failed to refresh task detail after review');
+                }
+              });
+            }, 250); // Increased timeout to ensure backend has processed the review
+          }
+        } else if (error?.status === 200 || error?.status === 0) {
+          this.closeReviewModal();
+          this.snackBar.open('Chấm điểm thành công!', 'Đóng', { duration: 3000 });
+          setTimeout(() => this.loadTasks(), 50);
+          // Also refresh the task detail if modal is still open
+          if (this.showTaskModal && this.selectedTask) {
+            setTimeout(() => {
+              this.taskService.getTaskDetail(this.selectedTask.id).subscribe({
+                next: (data) => {
+                  this.taskDetail = this.mapTaskDetail(data);
+                  this.taskDetail.weight = this.selectedTask.weight;
+                  // Force change detection
+                  this.cdr.markForCheck();
+                },
+                error: () => {
+                  console.error('Failed to refresh task detail after review');
+                }
+              });
+            }, 200);
+          }
           return;
+        } else {
+          const msg = error?.error?.message || error?.message || 'Chấm điểm thất bại';
+          this.snackBar.open(msg, 'Đóng', { duration: 4000 });
         }
-        const msg = error?.error?.message || error?.message || 'Chấm điểm thất bại';
-        this.snackBar.open(msg, 'Đóng', { duration: 4000 });
       },
     });
   }
@@ -578,7 +704,6 @@ export class Tasks implements OnInit {
     }
 
     this.isDuplicating = true;
-    this.cdr.detectChanges(); // sync ngay lập tức trước khi gọi API
 
     const deadline = `${this.duplicateDeadlineStr}T23:59:59`;
 
@@ -590,8 +715,6 @@ export class Tasks implements OnInit {
     this.taskService.duplicateTask(this.duplicateSourceTask.id, request).subscribe({
       next: (newTasks) => {
         const count = Array.isArray(newTasks) ? newTasks.length : 1;
-        // ✅ setTimeout tránh NG0100: Angular đã check [disabled] binding xong
-        //    mới cho phép thay đổi isDuplicating và đóng modal
         setTimeout(() => {
           this.isDuplicating = false;
           this.closeDuplicateModal();

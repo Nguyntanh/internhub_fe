@@ -4,7 +4,6 @@ import {
   provideHttpClient,
   HTTP_INTERCEPTORS,
   withInterceptorsFromDi,
-  withFetch,
 } from '@angular/common/http';
 import { routes } from './app.routes';
 import { provideClientHydration, withEventReplay } from '@angular/platform-browser';
@@ -17,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideRouter(routes),
     provideClientHydration(withEventReplay()),
-    provideHttpClient(withFetch(), withInterceptorsFromDi()),
+    provideHttpClient(withInterceptorsFromDi()),
     provideAnimations(),
     { provide: HTTP_INTERCEPTORS, useClass: JwtInterceptor, multi: true },
     { provide: HTTP_INTERCEPTORS, useClass: ErrorInterceptor, multi: true }, // Register ErrorInterceptor

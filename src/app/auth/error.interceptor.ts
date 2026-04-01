@@ -80,6 +80,12 @@ export class ErrorInterceptor implements HttpInterceptor {
 
           default:
             console.error(`HTTP Error ${error.status}: ${error.message}`, error);
+            // Handle JSON parsing errors specifically
+            if (error.status === 200 && error.message && error.message.includes('parsing')) {
+              errorMessage = 'Task created successfully but response parsing failed';
+              this.snackBar.open('Task created successfully', 'Close', { duration: 3000, panelClass: ['success-snackbar'] });
+              return throwError(() => new Error(errorMessage));
+            }
             this.snackBar.open(errorMessage, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
             break;
         }

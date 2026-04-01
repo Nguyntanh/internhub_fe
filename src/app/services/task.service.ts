@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
-import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Observable, throwError, from } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 
 export interface SkillWeight {
   skillId: number;
@@ -69,15 +69,6 @@ export class TaskService {
 
   constructor(private http: HttpClient) {}
 
-  private getAuthHeaders() {
-    const token = localStorage.getItem('token');
-    return {
-      headers: new HttpHeaders({
-        Authorization: `Bearer ${token}`
-      })
-    };
-  }
-
   private handleError(error: HttpErrorResponse) {
     let errorMessage = 'Có lỗi xảy ra';
     if (error.status === 0) {
@@ -93,7 +84,7 @@ export class TaskService {
 
   getMentorTasks(): Observable<TaskDetail[]> {
     return this.http
-      .get<any[]>(`${this.api}/mentor`, this.getAuthHeaders())
+      .get<any[]>(`${this.api}/mentor`)
       .pipe(
         map(tasks => tasks.map(task => this.mapTaskResponse(task))),
         catchError(this.handleError)
@@ -102,7 +93,7 @@ export class TaskService {
 
   getInternTasks(): Observable<TaskDetail[]> {
     return this.http
-      .get<any[]>(`${this.api}/intern`, this.getAuthHeaders())
+      .get<any[]>(`${this.api}/intern`)
       .pipe(
         map(tasks => tasks.map(task => this.mapTaskResponse(task))),
         catchError(this.handleError)
@@ -111,16 +102,17 @@ export class TaskService {
 
   createTask(task: Task): Observable<string> {
     return this.http
-      .post(`${this.api}`, task, {
-        ...this.getAuthHeaders(),
-        responseType: 'text'
-      })
-      .pipe(catchError(this.handleError));
+      .post(`${this.api}`, task, { responseType: 'blob' })
+      .pipe(
+        switchMap(blob => from(blob.text())),
+        map(text => text || 'Task created successfully'),
+        catchError(this.handleError)
+      );
   }
 
   getTaskDetail(taskId: number): Observable<TaskDetail> {
     return this.http
-      .get<any>(`${this.api}/${taskId}`, this.getAuthHeaders())
+      .get<any>(`${this.api}/${taskId}`)
       .pipe(
         map(task => this.mapTaskResponse(task)),
         catchError(this.handleError)
@@ -129,48 +121,43 @@ export class TaskService {
 
   updateTask(taskId: number, task: any): Observable<string> {
     return this.http
-      .put(`${this.api}/${taskId}`, task, {
-        ...this.getAuthHeaders(),
-        responseType: 'text'
-      })
-      .pipe(catchError(this.handleError));
+      .put(`${this.api}/${taskId}`, task, { responseType: 'text' })
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
   deleteTask(taskId: number): Observable<string> {
     return this.http
-      .delete(`${this.api}/${taskId}`, {
-        ...this.getAuthHeaders(),
-        responseType: 'text'
-      })
-      .pipe(catchError(this.handleError));
+      .delete(`${this.api}/${taskId}`, { responseType: 'text' })
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
-  submitTask(taskId: number, data: any): Observable<any> {
+  submitTask(taskId: number, data: any): Observable<string> {
     return this.http
-      .post(`${this.api}/${taskId}/submit`, data, this.getAuthHeaders())
+      .post(`${this.api}/${taskId}/submit`, data, { responseType: 'text' })
       .pipe(catchError(this.handleError));
   }
 
-  // FIX: backend trả plain text "Task reviewed successfully" → dùng responseType: 'text'
-  // để tránh JSON parse error dù status 200
   reviewTask(taskId: number, data: any): Observable<string> {
     return this.http
-      .post(`${this.api}/${taskId}/review`, data, {
-        ...this.getAuthHeaders(),
-        responseType: 'text'
-      })
-      .pipe(catchError(this.handleError));
+      .post(`${this.api}/${taskId}/review`, data, { responseType: 'text' })
+      .pipe(
+        catchError(this.handleError)
+      );
   }
 
   getInterns(): Observable<Intern[]> {
     return this.http
-      .get<Intern[]>(`${this.userApi}/interns`, this.getAuthHeaders())
+      .get<Intern[]>(`${this.userApi}/interns`)
       .pipe(catchError(this.handleError));
   }
 
   getSkills(): Observable<any[]> {
     return this.http
-      .get<any[]>(this.skillApi, this.getAuthHeaders())
+      .get<any[]>(this.skillApi)
       .pipe(catchError(this.handleError));
   }
 
@@ -178,14 +165,14 @@ export class TaskService {
   // Skill Tags và Trọng số được giữ nguyên tự động bởi backend.
   duplicateTask(taskId: number, data: DuplicateTaskRequest): Observable<TaskDetail[]> {
     return this.http
-      .post<any[]>(`${this.api}/${taskId}/duplicate`, data, this.getAuthHeaders())
+      .post<any[]>(`${this.api}/${taskId}/duplicate`, data)
       .pipe(
         map(tasks => tasks.map(task => this.mapTaskResponse(task))),
         catchError(this.handleError)
       );
   }
 
-  private mapTaskResponse(task: any): TaskDetail {
+  public mapTaskResponse(task: any): TaskDetail {
     const skills = task.skills || [];
 
     // Backend không có score ở root — lấy từ skills[0].ratingScore
