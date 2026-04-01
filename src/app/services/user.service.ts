@@ -14,6 +14,10 @@ export class UserService {
     return 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&s=200';
   }
 
+  // BehaviorSubject to share current user name across components
+  private _userNameSource = new BehaviorSubject<string>('');
+  currentUserName$ = this._userNameSource.asObservable();
+
   // BehaviorSubject to share current user avatar across components
   private _userAvatarSource = new BehaviorSubject<string>(this.getDefaultAvatar());
   currentUserAvatar$ = this._userAvatarSource.asObservable();
@@ -45,6 +49,11 @@ export class UserService {
     return this.http.patch<{ newAvatarUrl: string }>(`${this.baseApiUrl}/profile/avatar`, formData).pipe(
       catchError(this.handleError<{ newAvatarUrl: string }>('uploadAvatar'))
     );
+  }
+
+  // Method to update the user name across components
+  updateUserName(name: string) {
+    this._userNameSource.next(name);
   }
 
   // Method to update the avatar URL across components
