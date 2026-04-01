@@ -85,7 +85,7 @@ export class Auth {
    */
   getUsersAll(): Observable<any[]> {
     return this.http
-      .get<any[]>(`${API_ENDPOINTS.Admin.users}/all`)
+      .get<any[]>(`http://localhost:8090/api/admin/users/all`)
       .pipe(catchError(this.handleError<any[]>('getUsersAll', [])));
   }
 

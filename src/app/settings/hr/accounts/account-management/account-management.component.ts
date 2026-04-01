@@ -9,6 +9,7 @@ import { MatCheckboxModule, MatCheckboxChange } from '@angular/material/checkbox
 import { MatRadioModule } from '@angular/material/radio'; // For mat-radio-group
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner'; // For mat-spinner
 import { MatSnackBar } from '@angular/material/snack-bar'; // For notifications
+import { Auth } from '../../../../auth/auth';
 
 import { CreateUserDialogComponent } from './create-user-dialog/create-user-dialog.component';
 import {
@@ -71,6 +72,7 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
     private snackBar: MatSnackBar,
     private cdr: ChangeDetectorRef, // Inject ChangeDetectorRef
     private permissionService: PermissionService, // Inject PermissionService
+    private authService: Auth,
   ) {}
 
   ngOnInit(): void {
@@ -79,14 +81,16 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
       this.permissionService.getRoles(),
       this.permissionService.getPermissions(),
       this.rolePermissionService.getAllRolePermissions(),
+      this.authService.getUsersAll(),
     ])
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: ([roles, permissions, flatPermissions]) => {
+        next: ([roles, permissions, flatPermissions, users]) => {
           if (roles) {
             this.roleDefinitions = roles;
             this.rolesHeader = roles.map((r) => r.name);
           }
+          this.users = users;
           // Permissions are handled by buildPermissionMatrix
           this.permissionMatrix = this.buildPermissionMatrix(flatPermissions);
           this.isLoading = false;
@@ -103,6 +107,7 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
           this.roleDefinitions = ROLES_DATA_MOCK; // Use the mock data for roles
           this.rolesHeader = ROLES_DATA_MOCK.map((r) => r.name);
           this.permissionMatrix = this.buildPermissionMatrix(MOCK_ROLE_PERMISSIONS_FLAT);
+          this.users = [];
           this.cdr.detectChanges();
         },
       });
