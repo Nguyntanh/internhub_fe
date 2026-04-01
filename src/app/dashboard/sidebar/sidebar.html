@@ -7,15 +7,14 @@
     [class.justify-center]="!isSidebarVisible"
   >
     <div class="flex items-center overflow-hidden" [class.space-x-3]="isSidebarVisible">
-      <div
-        class="flex-shrink-0 w-10 h-10 bg-primary-500 rounded-xl flex items-center justify-center shadow-lg shadow-primary-200"
-      >
-        <img src="assets/images/interhub.jpg" alt="Logo" class="h-6 w-6 rounded-md object-cover" />
+      <div class="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+        <img
+          src="assets/images/interhub.jpg"
+          alt="Logo"
+          class="h-8 w-auto rounded-md object-cover"
+        />
       </div>
-      <span
-        class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-primary-800 tracking-tight"
-        *ngIf="isSidebarVisible"
-      >
+      <span class="text-xl font-bold text-gray-900 tracking-tight" *ngIf="isSidebarVisible">
         InternHub
       </span>
     </div>
