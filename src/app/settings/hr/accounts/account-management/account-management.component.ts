@@ -317,4 +317,12 @@ export class AccountManagementComponent implements OnInit, OnDestroy {
       }
     });
   }
+
+  /**
+   * Trả về nhãn hiển thị cho trạng thái tài khoản
+   * @param enabled Trạng thái kích hoạt của người dùng
+   */
+  getStatusLabel(enabled: boolean): string {
+    return enabled ? 'Hoạt động' : 'Đã khóa';
+  }
 }
